@@ -13,7 +13,7 @@ function App() {
         <aside className="sidebar">
           <div className="sidebar-logo">
             <Activity color="#ec4899" size={28} />
-            <span>FitOrbit</span>
+            <span>PROGYM</span>
           </div>
           <nav className="nav-links">
             <NavLink to="/" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
