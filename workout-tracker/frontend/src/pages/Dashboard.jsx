@@ -7,7 +7,23 @@ import { format, parseISO } from 'date-fns';
 export default function Dashboard() {
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [recentSessions, setRecentSessions] = useState([]);
+  const [quoteIndex, setQuoteIndex] = useState(0);
   const navigate = useNavigate();
+
+  const quotes = [
+    "This is where discipline becomes identity.",
+    "You're not chasing a body - you're building a standard.",
+    "Every session is a quiet investment in who you're becoming.",
+    "Strength is built in moments no one else sees.",
+    "You don't need motivation. You have a vision."
+  ];
+
+  useEffect(() => {
+    const quoteInterval = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 7000);
+    return () => clearInterval(quoteInterval);
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -67,17 +83,23 @@ export default function Dashboard() {
     <div className="dashboard">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Welcome back, Athlete</h1>
-          <p style={{color: 'var(--text-secondary)'}}>Ready to crush your goals today?</p>
+          <h1 className="page-title" style={{fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: '800'}}>Welcome back, Athlete!</h1>
+          <p style={{
+            color: '#C6FF00',
+            fontSize: '1.125rem',
+            marginTop: '1rem',
+            fontWeight: 300,
+            fontFamily: 'Inter, sans-serif'
+          }}>Ready to crush your goals today?</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/workout')}>
           <Play size={18} /> Start Workout
         </button>
       </header>
 
-      <div className="grid grid-cols-3" style={{marginBottom: '2rem'}}>
-        <div className="card" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <div style={{padding: '1rem', background: 'rgba(236,72,153,0.1)', borderRadius: '12px', color: 'var(--accent-secondary)'}}>
+      <div className="grid grid-cols-3" style={{marginBottom: '4rem'}}>
+        <div className="card card-glass" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+          <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '12px', color: '#C6FF00'}}>
             <Flame size={24} />
           </div>
           <div>
@@ -86,8 +108,8 @@ export default function Dashboard() {
           </div>
         </div>
         
-        <div className="card" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <div style={{padding: '1rem', background: 'rgba(79,70,229,0.1)', borderRadius: '12px', color: 'var(--accent-primary)'}}>
+        <div className="card card-glass" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+          <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '12px', color: '#C6FF00'}}>
             <Activity size={24} />
           </div>
           <div>
@@ -96,8 +118,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <div style={{padding: '1rem', background: 'rgba(16,185,129,0.1)', borderRadius: '12px', color: '#10b981'}}>
+        <div className="card card-glass" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+          <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '12px', color: '#C6FF00'}}>
             <CalendarCheck size={24} />
           </div>
           <div>
@@ -116,7 +138,7 @@ export default function Dashboard() {
              <p style={{color: 'var(--text-secondary)'}}>No workouts logged yet. Start a session!</p>
            </div>
         ) : recentSessions.map(session => (
-          <div key={session.id} className="card" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <div key={session.id} className="card card-glass" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <div>
               <h4 style={{fontWeight: '600', fontSize: '1.1rem'}}>{session.plan_name || 'Freestyle Workout'}</h4>
               <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>{format(parseISO(session.date), 'EEEE, MMMM do yyyy')}</p>
@@ -127,6 +149,30 @@ export default function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div key={`quote-${quoteIndex}`} style={{
+        textAlign: 'center',
+        marginBottom: '4rem',
+        marginTop: '4rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <p className="quote-text" style={{
+          fontSize: '2.5rem',
+          fontWeight: '700',
+          lineHeight: '1.8',
+          margin: 0,
+          background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 75%, #C6FF00 95%, #C6FF00 100%)',
+          backgroundSize: '200% 100%',
+          backgroundPosition: '100% center',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          {quotes[quoteIndex]}
+        </p>
       </div>
     </div>
   );
