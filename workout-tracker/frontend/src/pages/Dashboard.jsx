@@ -2,6 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { Activity, Flame, Clock, Trophy, Droplets, Calendar, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { 
+  format, 
+  addMonths, 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfWeek, 
+  endOfWeek, 
+  isSameMonth, 
+  isSameDay, 
+  addDays 
+} from 'date-fns';
 import './Dashboard.css';
 
 function AnimatedNumber({ value, useComma }) {
@@ -35,13 +48,13 @@ function AnimatedNumber({ value, useComma }) {
 }
 
 function CircularProgress({ percentage }) {
+  const { t } = useLanguage();
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
   
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.5 });
   
-  // Animate from 0 to target percentage when in view
   const displayPercentage = isInView ? percentage : 0;
   const strokeDashoffset = circumference - (displayPercentage / 100) * circumference;
 
@@ -67,7 +80,7 @@ function CircularProgress({ percentage }) {
         <span className="circular-progress-value">
           <AnimatedNumber value={percentage} useComma={false} />%
         </span>
-        <span className="circular-progress-label">COMPLETED</span>
+        <span className="circular-progress-label">{t('COMPLETED')}</span>
       </div>
     </div>
   );
@@ -97,25 +110,74 @@ function AnimatedMedal() {
 }
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
     api.getStats().then(setStats).catch(console.error);
   }, []);
 
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+  const renderCalendarDays = () => {
+    const monthStart = startOfMonth(currentMonth);
+    const startDate = startOfWeek(monthStart);
+
+    const dateFormat = "dd";
+    const days = [];
+    let day = startDate;
+
+    for (let i = 0; i < 42; i++) {
+      const formattedDate = format(day, dateFormat);
+      const isCurrentMonth = isSameMonth(day, monthStart);
+      const isToday = isSameDay(day, new Date());
+      
+      let className = "cal-day";
+      if (!isCurrentMonth) className += " text-muted";
+      if (isToday) className += " active";
+
+      days.push(
+        <div 
+          className={className} 
+          key={day.toISOString()}
+          style={{ opacity: isCurrentMonth ? 1 : 0.3 }}
+        >
+          {formattedDate}
+        </div>
+      );
+      day = addDays(day, 1);
+    }
+    return days;
+  };
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [
+    '/slideshow-1.jpg',
+    '/slideshow-2.png',
+    '/slideshow-3.png',
+    '/slideshow-4.png',
+    '/slideshow-5.png',
+    '/slideshow-6.png',
+    '/slideshow-7.png',
+    '/slideshow-8.png',
+    '/slideshow-9.png'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [slides.length]);
+
   const getGreetingData = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 11) {
-      return { text: "GOOD MORNING", bg: "/hero-bg-morning.png" };
-    }
-    if (hour >= 11 && hour < 18) {
-      return { text: "HELLO", bg: "/hero-bg.png" }; // Default athlete image for day
-    }
-    if (hour >= 18 && hour < 22) {
-      return { text: "GOOD EVENING", bg: "/hero-bg-evening.png" };
-    }
-    // Night time (22:00 - 04:59)
-    return { text: "HELLO", bg: "/hero-bg-night.png" };
+    if (hour >= 5 && hour < 11) return { text: t("GOOD MORNING") };
+    if (hour >= 11 && hour < 18) return { text: t("HELLO") };
+    if (hour >= 18 && hour < 22) return { text: t("GOOD EVENING") };
+    return { text: t("HELLO") };
   };
 
   const greeting = getGreetingData();
@@ -123,16 +185,24 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container">
       
-      {/* Hero Banner */}
-      <div 
-        className="hero-banner"
-        style={{
-          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.4) 100%), url('${greeting.bg}')`
-        }}
-      >
+      {/* Hero Banner Slideshow */}
+      <div className="hero-banner">
+        {slides.map((slide, index) => (
+          <div
+            key={slide}
+            className="hero-slide"
+            style={{
+              backgroundImage: `url('${slide}')`,
+              opacity: index === currentSlide ? 0.4 : 0,
+              transition: 'opacity 2.5s ease-in-out'
+            }}
+          />
+        ))}
+        <div className="hero-gradient-overlay" />
+
         <div className="hero-content">
           <h1>{greeting.text}, <span>JONAS</span></h1>
-          <p>WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.</p>
+          <p>{t('WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.')}</p>
         </div>
       </div>
 
@@ -141,10 +211,10 @@ export default function Dashboard() {
         {/* Daily Goal */}
         <div className="card daily-goal-card">
           <div className="card-header-flex">
-            <h2>DAILY GOAL</h2>
+            <h2>{t('DAILY GOAL')}</h2>
             <div className="goal-badges">
-              <span className="badge badge-outline">ACTIVE RECOVERY</span>
-              <span className="badge badge-solid">ELITE TRACK</span>
+              <span className="badge badge-outline">{t('ACTIVE RECOVERY')}</span>
+              <span className="badge badge-solid">{t('ELITE TRACK')}</span>
             </div>
           </div>
           
@@ -153,7 +223,7 @@ export default function Dashboard() {
           </div>
           
           <div className="quote-of-day">
-            Quote of the day: Consistency beats motivation
+            {t('Quote of the day: Consistency beats motivation')}
           </div>
         </div>
 
@@ -166,12 +236,12 @@ export default function Dashboard() {
                 <Droplets size={24} color="#000" />
               </div>
               <div className="hydration-text">
-                <h3>STAY HYDRATED</h3>
-                <p>1.2L more for peak efficiency.</p>
+                <h3>{t('STAY HYDRATED')}</h3>
+                <p>{t('1.2L more for peak efficiency.')}</p>
               </div>
             </div>
             <div className="hydration-goal">
-              <Droplets size={16} /> GOAL: 3.5L DAILY
+              <Droplets size={16} /> {t('GOAL: 3.5L DAILY')}
             </div>
             {/* Background decorative drop */}
             <Droplets className="bg-icon-drop" size={120} />
@@ -180,36 +250,22 @@ export default function Dashboard() {
           {/* Calendar */}
           <div className="card calendar-card">
             <div className="calendar-header">
-              <h3>APRIL 2026</h3>
+              <h3>{format(currentMonth, "MMMM yyyy").toUpperCase()}</h3>
               <div className="calendar-nav">
-                <ChevronLeft size={16} />
-                <ChevronRight size={16} />
+                <ChevronLeft size={16} onClick={prevMonth} />
+                <ChevronRight size={16} onClick={nextMonth} />
               </div>
             </div>
             <div className="calendar-grid">
-              <div className="cal-day-name">SUN</div>
-              <div className="cal-day-name">MON</div>
-              <div className="cal-day-name">TUE</div>
-              <div className="cal-day-name">WED</div>
-              <div className="cal-day-name">THU</div>
-              <div className="cal-day-name">FRI</div>
-              <div className="cal-day-name">SAT</div>
+              <div className="cal-day-name">{t('SUN')}</div>
+              <div className="cal-day-name">{t('MON')}</div>
+              <div className="cal-day-name">{t('TUE')}</div>
+              <div className="cal-day-name">{t('WED')}</div>
+              <div className="cal-day-name">{t('THU')}</div>
+              <div className="cal-day-name">{t('FRI')}</div>
+              <div className="cal-day-name">{t('SAT')}</div>
               
-              <div className="cal-day">29</div>
-              <div className="cal-day">30</div>
-              <div className="cal-day">31</div>
-              <div className="cal-day active">01</div>
-              <div className="cal-day">02</div>
-              <div className="cal-day">03</div>
-              <div className="cal-day">04</div>
-              
-              <div className="cal-day">05</div>
-              <div className="cal-day">06</div>
-              <div className="cal-day">07</div>
-              <div className="cal-day">08</div>
-              <div className="cal-day">09</div>
-              <div className="cal-day">10</div>
-              <div className="cal-day">11</div>
+              {renderCalendarDays()}
             </div>
           </div>
         </div>
@@ -227,11 +283,11 @@ export default function Dashboard() {
               <AnimatedNumber value={12482} useComma={true} />
             </div>
             <div className="stat-details">
-              <span>ACTIVE FLOW</span>
+              <span>{t('ACTIVE FLOW')}</span>
               <span className="stat-badge">+2.4k</span>
             </div>
           </div>
-          <div className="stat-title-side">STEPS</div>
+          <div className="stat-title-side">{t('STEPS')}</div>
         </div>
 
         {/* Calories */}
@@ -244,11 +300,11 @@ export default function Dashboard() {
               <AnimatedNumber value={2140} useComma={true} />
             </div>
             <div className="stat-details">
-              <span>BURN RATE</span>
-              <span className="stat-badge">OPTIMAL</span>
+              <span>{t('BURN RATE')}</span>
+              <span className="stat-badge">{t('OPTIMAL')}</span>
             </div>
           </div>
-          <div className="stat-title-side">CALORIES</div>
+          <div className="stat-title-side">{t('CALORIES')}</div>
         </div>
 
         {/* Minutes */}
@@ -261,11 +317,11 @@ export default function Dashboard() {
               <AnimatedNumber value={84} useComma={false} />
             </div>
             <div className="stat-details">
-              <span>TIME IN ZONE</span>
-              <span className="stat-badge">MIN</span>
+              <span>{t('TIME IN ZONE')}</span>
+              <span className="stat-badge">{t('MIN')}</span>
             </div>
           </div>
-          <div className="stat-title-side">MINUTES</div>
+          <div className="stat-title-side">{t('MINUTES')}</div>
         </div>
       </div>
 
@@ -273,24 +329,27 @@ export default function Dashboard() {
       <div className="card achievements-card">
         <div className="achievements-content">
           <div className="achievements-text-area">
-            <div className="achievements-label">LATEST ACHIEVEMENT</div>
-            <h2>ARCHIEVEMENTS</h2>
+            <div className="achievements-label">{t('LATEST ACHIEVEMENT')}</div>
+            <h2>{t('ACHIEVEMENTS')}</h2>
             <p className="achievements-desc">
-              You've maintained a top 5% strength-to-weight ratio worldwide for 12 consecutive weeks.
+              {t("You've maintained a top 5% strength-to-weight ratio worldwide for 12 consecutive weeks.")}
             </p>
             
             <div className="lifts-grid">
               <div className="lift-item">
-                <span className="lift-name">DEADLIFT</span>
-                <span className="lift-weight">485 LBS</span>
+                <span className="lift-name">{t('DEADLIFT')}</span>
+                <span className="lift-weight">180kg</span>
+                <span className="badge badge-solid">{t('NEW PR')}</span>
               </div>
               <div className="lift-item">
-                <span className="lift-name">SQUAT</span>
-                <span className="lift-weight">405 LBS</span>
+                <span className="lift-name">{t('SQUAT')}</span>
+                <span className="lift-weight">140kg</span>
+                <span className="badge badge-outline">TOP 5%</span>
               </div>
               <div className="lift-item">
-                <span className="lift-name">BENCH</span>
-                <span className="lift-weight">315 LBS</span>
+                <span className="lift-name">{t('BENCH')}</span>
+                <span className="lift-weight">100kg</span>
+                <span className="badge badge-outline">TOP 10%</span>
               </div>
             </div>
           </div>

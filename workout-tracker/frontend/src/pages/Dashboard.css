@@ -18,18 +18,35 @@
 .hero-banner {
   height: 280px;
   border-radius: 24px;
-  background-image: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%), url('/hero-bg.png');
-  background-size: cover;
-  background-position: center 30%;
   display: flex;
   align-items: center;
   padding: 0 48px;
   position: relative;
   border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+  background-color: #050505; /* Base color so lower opacity shows dark */
+}
+
+.hero-slide {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-size: cover;
+  background-position: center 30%;
+  z-index: 1;
+}
+
+.hero-gradient-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.1) 100%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .hero-content {
   max-width: 600px;
+  position: relative;
+  z-index: 3;
 }
 
 .hero-content h1 {
@@ -124,9 +141,9 @@
 /* Circular Progress */
 .circular-progress-container {
   position: relative;
-  width: 200px;
-  height: 200px;
-  margin: 32px auto;
+  width: 280px;
+  height: 280px;
+  margin: 48px auto;
 }
 
 .circular-progress-svg {
@@ -155,17 +172,17 @@
 }
 
 .circular-progress-value {
-  font-size: 3rem;
+  font-size: 4.5rem;
   font-weight: 900;
   color: #FFF;
   line-height: 1;
 }
 
 .circular-progress-label {
-  font-size: 0.65rem;
+  font-size: 0.85rem;
   color: #888;
-  letter-spacing: 2px;
-  margin-top: 4px;
+  letter-spacing: 3px;
+  margin-top: 8px;
 }
 
 /* Hydration Card */
@@ -299,10 +316,9 @@
 
 /* Calendar Card */
 .calendar-card {
-  flex: 2;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 .calendar-header {
@@ -329,7 +345,7 @@
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 16px;
+  gap: 12px;
   text-align: center;
 }
 
@@ -337,26 +353,35 @@
   font-size: 0.65rem;
   color: #666;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
 }
 
 .cal-day {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #888;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  width: 36px;
+  height: 44px;
+  width: 44px;
   margin: 0 auto;
-  border-radius: 50%;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cal-day:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #FFF;
 }
 
 .cal-day.active {
-  background-color: var(--color-primary);
-  color: #000;
-  box-shadow: 0 0 20px rgba(197, 254, 0, 0.4);
+  background-color: rgba(197, 254, 0, 0.15);
+  color: var(--color-primary);
+  box-shadow: 0 0 15px rgba(197, 254, 0, 0.1);
 }
 
 /* STATS GRID */
