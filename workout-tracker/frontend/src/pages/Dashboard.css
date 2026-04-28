@@ -1,0 +1,521 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Base Card Styles */
+.card {
+  background-color: #121212;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.03);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* HERO BANNER */
+.hero-banner {
+  height: 280px;
+  border-radius: 24px;
+  background-image: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%), url('/hero-bg.png');
+  background-size: cover;
+  background-position: center 30%;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.hero-content {
+  max-width: 600px;
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin: 0 0 16px 0;
+  color: #FFF;
+}
+
+.hero-content h1 span {
+  color: var(--color-primary);
+}
+
+.hero-content p {
+  color: #AAA;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* TOP GRID */
+.top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.top-grid-right-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Daily Goal Card */
+.daily-goal-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header-flex {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-header-flex h2 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin: 0;
+  color: #FFF;
+  text-transform: uppercase;
+}
+
+.goal-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.badge-outline {
+  color: var(--color-primary);
+  border: 1px solid rgba(197, 254, 0, 0.2);
+}
+
+.badge-solid {
+  background-color: rgba(255,255,255,0.05);
+  color: #FFF;
+}
+
+.quote-of-day {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 24px;
+}
+
+/* Circular Progress */
+.circular-progress-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 32px auto;
+}
+
+.circular-progress-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 10px rgba(197, 254, 0, 0.3));
+}
+
+.circular-progress-bg {
+  stroke: rgba(255,255,255,0.05);
+}
+
+.circular-progress-fill {
+  stroke: var(--color-primary);
+  transition: stroke-dashoffset 1.5s ease-in-out;
+}
+
+.circular-progress-content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-progress-value {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #FFF;
+  line-height: 1;
+}
+
+.circular-progress-label {
+  font-size: 0.65rem;
+  color: #888;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+/* Hydration Card */
+.hydration-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+/* Water Drop Ripple Effect */
+.hydration-card::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(197, 254, 0, 0.4) 0%, rgba(197, 254, 0, 0) 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hydration-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(197, 254, 0, 0.25);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(6px);
+}
+
+.hydration-card:hover {
+  border-color: rgba(197, 254, 0, 0.3);
+  box-shadow: inset 0 0 20px rgba(197, 254, 0, 0.05);
+}
+
+.hydration-card:hover::before {
+  animation: dropRippleFill 2s ease-out;
+}
+
+.hydration-card:hover::after {
+  animation: dropRippleRing 2.5s ease-out 0.15s;
+}
+
+@keyframes dropRippleFill {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(15); opacity: 0; }
+}
+
+@keyframes dropRippleRing {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; border-width: 6px; }
+  100% { transform: translate(-50%, -50%) scale(12); opacity: 0; border-width: 0px; }
+}
+
+.hydration-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  z-index: 2;
+}
+
+.icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.solid-green {
+  background-color: var(--color-primary);
+}
+
+.hydration-text h3 {
+  font-size: 1.25rem;
+  margin: 0 0 4px 0;
+  color: #FFF;
+}
+
+.hydration-text p {
+  color: #888;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.hydration-goal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+
+.bg-icon-drop {
+  position: absolute;
+  right: -20px;
+  bottom: -40px;
+  color: rgba(197, 254, 0, 0.05);
+  z-index: 1;
+  transition: all 0.5s ease;
+}
+
+.hydration-card:hover .bg-icon-drop {
+  color: rgba(255, 255, 255, 0.15);
+  animation: dropFloat 3s ease-in-out infinite;
+}
+
+@keyframes dropFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
+}
+
+/* Calendar Card */
+.calendar-card {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.calendar-header h3 {
+  font-size: 1.1rem;
+  color: #FFF;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 16px;
+  color: #888;
+  cursor: pointer;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.cal-day-name {
+  font-size: 0.65rem;
+  color: #666;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.cal-day {
+  font-size: 0.85rem;
+  color: #888;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  margin: 0 auto;
+  border-radius: 50%;
+}
+
+.cal-day.active {
+  background-color: var(--color-primary);
+  color: #000;
+  box-shadow: 0 0 20px rgba(197, 254, 0, 0.4);
+}
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.stat-card.horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  background-color: #121212;
+  border-radius: 16px;
+  padding: 32px;
+  border: 1px solid rgba(255,255,255,0.03);
+  position: relative;
+}
+
+.glow-green {
+  background-color: rgba(197, 254, 0, 0.1);
+  color: var(--color-primary);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.stat-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.65rem;
+  color: #888;
+  font-weight: 700;
+}
+
+.stat-badge {
+  color: var(--color-primary);
+}
+
+.stat-title-side {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #FFF;
+  letter-spacing: 2px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  opacity: 0.5;
+}
+
+/* ACHIEVEMENTS CARD */
+.achievements-card {
+  background-image: linear-gradient(90deg, rgba(14,14,14,1) 0%, rgba(14,14,14,0.95) 40%, rgba(14,14,14,0.85) 100%), url('/achievements-bg.png');
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(197, 254, 0, 0.1);
+  padding: 48px;
+}
+
+.achievements-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.achievements-text-area {
+  max-width: 600px;
+}
+
+.achievements-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.achievements-text-area h2 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #FFF;
+  margin: 0 0 16px 0;
+  letter-spacing: -1px;
+}
+
+.achievements-desc {
+  color: #AAA;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-bottom: 48px;
+}
+
+.lifts-grid {
+  display: flex;
+  gap: 48px;
+}
+
+.lift-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lift-name {
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.lift-weight {
+  font-size: 1.75rem;
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.achievements-medal-area {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 48px;
+}
+
+.medal-glow-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  opacity: 0.1;
+  filter: blur(20px);
+}
+
+.medal-icon {
+  width: 100px;
+  height: 100px;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 0 30px rgba(197, 254, 0, 0.4);
+}

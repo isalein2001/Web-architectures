@@ -1,179 +1,304 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
-import { Play, Activity, Flame, CalendarCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { format, parseISO } from 'date-fns';
+import { Activity, Flame, Clock, Trophy, Droplets, Calendar, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import './Dashboard.css';
+
+function AnimatedNumber({ value, useComma }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.5 });
+
+  useEffect(() => {
+    if (!isInView) {
+      setDisplayValue(0);
+      return;
+    }
+
+    let startTimestamp = null;
+    let animationFrame;
+    const duration = 1500;
+
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 4);
+      setDisplayValue(Math.floor(easeProgress * value));
+      if (progress < 1) animationFrame = window.requestAnimationFrame(step);
+    };
+
+    animationFrame = window.requestAnimationFrame(step);
+    return () => { if (animationFrame) window.cancelAnimationFrame(animationFrame); };
+  }, [value, isInView]);
+
+  return <span ref={ref}>{useComma ? displayValue.toLocaleString('en-US') : displayValue}</span>;
+}
+
+function CircularProgress({ percentage }) {
+  const radius = 90;
+  const circumference = 2 * Math.PI * radius;
+  
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.5 });
+  
+  // Animate from 0 to target percentage when in view
+  const displayPercentage = isInView ? percentage : 0;
+  const strokeDashoffset = circumference - (displayPercentage / 100) * circumference;
+
+  return (
+    <div className="circular-progress-container" ref={ref}>
+      <svg className="circular-progress-svg" viewBox="0 0 200 200">
+        <circle 
+          className="circular-progress-bg" 
+          cx="100" cy="100" r={radius} 
+          strokeWidth="12" fill="none" 
+        />
+        <circle 
+          className="circular-progress-fill" 
+          cx="100" cy="100" r={radius} 
+          strokeWidth="12" fill="none" 
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 1.5s cubic-bezier(0.165, 0.84, 0.44, 1)" }}
+        />
+      </svg>
+      <div className="circular-progress-content">
+        <span className="circular-progress-value">
+          <AnimatedNumber value={percentage} useComma={false} />%
+        </span>
+        <span className="circular-progress-label">COMPLETED</span>
+      </div>
+    </div>
+  );
+}
+
+function AnimatedMedal() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.5 });
+
+  return (
+    <div className="achievements-medal-area" ref={ref}>
+      <div className="medal-glow-bg"></div>
+      <motion.div 
+        className="medal-icon"
+        initial={{ scale: 0 }}
+        animate={isInView ? { scale: [0, 1.3, 0.85, 1.15, 0.95, 1] } : { scale: 0 }}
+        transition={{ 
+          duration: 1.5, 
+          times: [0, 0.4, 0.65, 0.8, 0.9, 1], 
+          ease: "easeInOut" 
+        }}
+      >
+        <Award size={40} color="#000" />
+      </motion.div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
-  const [recentSessions, setRecentSessions] = useState([]);
-  const [quoteIndex, setQuoteIndex] = useState(0);
-  const navigate = useNavigate();
-
-  const quotes = [
-    "This is where discipline becomes identity.",
-    "You're not chasing a body - you're building a standard.",
-    "Every session is a quiet investment in who you're becoming.",
-    "Strength is built in moments no one else sees.",
-    "You don't need motivation. You have a vision."
-  ];
 
   useEffect(() => {
-    const quoteInterval = setInterval(() => {
-      setQuoteIndex((prev) => (prev + 1) % quotes.length);
-    }, 7000);
-    return () => clearInterval(quoteInterval);
+    api.getStats().then(setStats).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const statsData = await api.getStats();
-        setStats(statsData);
-        
-        const sessionsData = await api.getSessions();
-        setRecentSessions(sessionsData.slice(0, 5));
-      } catch (err) {
-        console.error("Failed to load dashboard data", err);
-      }
+  const getGreetingData = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) {
+      return { text: "GOOD MORNING", bg: "/hero-bg-morning.png" };
     }
-    loadData();
-  }, []);
-
-  const calculateStreak = (dates) => {
-    if (!dates || dates.length === 0) return 0;
-    let streak = 0;
-    let current = new Date();
-    current.setHours(0,0,0,0);
-    
-    // Convert dates to YYYY-MM-DD
-    const dateStrings = dates.map(d => {
-       try { return new Date(d).toISOString().split('T')[0]; }
-       catch(e) { return null; }
-    }).filter(Boolean);
-    
-    const uniqueDateStrings = [...new Set(dateStrings)].sort().reverse();
-    if(uniqueDateStrings.length === 0) return 0;
-
-    const todayStr = current.toISOString().split('T')[0];
-    let yesterday = new Date(current);
-    yesterday.setDate(current.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    
-    if (uniqueDateStrings[0] !== todayStr && uniqueDateStrings[0] !== yesterdayStr) {
-      return 0; // Streak broken
+    if (hour >= 11 && hour < 18) {
+      return { text: "HELLO", bg: "/hero-bg.png" }; // Default athlete image for day
     }
-    
-    let expectedDate = new Date(uniqueDateStrings[0]);
-    
-    for (const dStr of uniqueDateStrings) {
-      if (dStr === expectedDate.toISOString().split('T')[0]) {
-        streak++;
-        expectedDate.setDate(expectedDate.getDate() - 1);
-      } else {
-        break;
-      }
+    if (hour >= 18 && hour < 22) {
+      return { text: "GOOD EVENING", bg: "/hero-bg-evening.png" };
     }
-    return streak;
+    // Night time (22:00 - 04:59)
+    return { text: "HELLO", bg: "/hero-bg-night.png" };
   };
 
-  const streak = calculateStreak(stats.sessionDates);
+  const greeting = getGreetingData();
 
   return (
-    <div className="dashboard">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title" style={{fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: '800'}}>Welcome back, Athlete!</h1>
-          <p style={{
-            color: '#C6FF00',
-            fontSize: '1.125rem',
-            marginTop: '1rem',
-            fontWeight: 300,
-            fontFamily: 'Inter, sans-serif'
-          }}>Ready to crush your goals today?</p>
+    <div className="dashboard-container">
+      
+      {/* Hero Banner */}
+      <div 
+        className="hero-banner"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.4) 100%), url('${greeting.bg}')`
+        }}
+      >
+        <div className="hero-content">
+          <h1>{greeting.text}, <span>JONAS</span></h1>
+          <p>WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/workout')}>
-          <Play size={18} /> Start Workout
-        </button>
-      </header>
+      </div>
 
-      <div className="grid grid-cols-3" style={{marginBottom: '4rem'}}>
-        <div className="card card-glass" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '12px', color: '#C6FF00'}}>
-            <Flame size={24} />
+      {/* Top Grid: Daily Goal & Widgets */}
+      <div className="top-grid">
+        {/* Daily Goal */}
+        <div className="card daily-goal-card">
+          <div className="card-header-flex">
+            <h2>DAILY GOAL</h2>
+            <div className="goal-badges">
+              <span className="badge badge-outline">ACTIVE RECOVERY</span>
+              <span className="badge badge-solid">ELITE TRACK</span>
+            </div>
           </div>
-          <div>
-            <h3 style={{fontSize: '1.5rem', fontWeight: '700'}}>{streak} Days</h3>
-            <span style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>Current Streak</span>
+          
+          <div className="daily-goal-chart">
+            <CircularProgress percentage={75} />
+          </div>
+          
+          <div className="quote-of-day">
+            Quote of the day: Consistency beats motivation
           </div>
         </div>
-        
-        <div className="card card-glass" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '12px', color: '#C6FF00'}}>
+
+        {/* Right Stack */}
+        <div className="top-grid-right-stack">
+          {/* Hydration */}
+          <div className="card hydration-card">
+            <div className="hydration-content">
+              <div className="icon-circle solid-green">
+                <Droplets size={24} color="#000" />
+              </div>
+              <div className="hydration-text">
+                <h3>STAY HYDRATED</h3>
+                <p>1.2L more for peak efficiency.</p>
+              </div>
+            </div>
+            <div className="hydration-goal">
+              <Droplets size={16} /> GOAL: 3.5L DAILY
+            </div>
+            {/* Background decorative drop */}
+            <Droplets className="bg-icon-drop" size={120} />
+          </div>
+
+          {/* Calendar */}
+          <div className="card calendar-card">
+            <div className="calendar-header">
+              <h3>APRIL 2026</h3>
+              <div className="calendar-nav">
+                <ChevronLeft size={16} />
+                <ChevronRight size={16} />
+              </div>
+            </div>
+            <div className="calendar-grid">
+              <div className="cal-day-name">SUN</div>
+              <div className="cal-day-name">MON</div>
+              <div className="cal-day-name">TUE</div>
+              <div className="cal-day-name">WED</div>
+              <div className="cal-day-name">THU</div>
+              <div className="cal-day-name">FRI</div>
+              <div className="cal-day-name">SAT</div>
+              
+              <div className="cal-day">29</div>
+              <div className="cal-day">30</div>
+              <div className="cal-day">31</div>
+              <div className="cal-day active">01</div>
+              <div className="cal-day">02</div>
+              <div className="cal-day">03</div>
+              <div className="cal-day">04</div>
+              
+              <div className="cal-day">05</div>
+              <div className="cal-day">06</div>
+              <div className="cal-day">07</div>
+              <div className="cal-day">08</div>
+              <div className="cal-day">09</div>
+              <div className="cal-day">10</div>
+              <div className="cal-day">11</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        {/* Steps */}
+        <div className="stat-card horizontal">
+          <div className="icon-circle glow-green">
             <Activity size={24} />
           </div>
-          <div>
-            <h3 style={{fontSize: '1.5rem', fontWeight: '700'}}>{stats.totalSessions}</h3>
-            <span style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>Total Workouts</span>
-          </div>
-        </div>
-
-        <div className="card card-glass" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '12px', color: '#C6FF00'}}>
-            <CalendarCheck size={24} />
-          </div>
-          <div>
-            <h3 style={{fontSize: '1.5rem', fontWeight: '700'}}>
-              {recentSessions.length > 0 ? format(parseISO(recentSessions[0].date), 'MMM d, yyyy') : 'Never'}
-            </h3>
-            <span style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>Last Workout</span>
-          </div>
-        </div>
-      </div>
-
-      <h2 style={{fontSize: '1.25rem', marginBottom: '1rem', fontWeight: '600'}}>Recent Sessions</h2>
-      <div className="grid">
-        {recentSessions.length === 0 ? (
-           <div className="card" style={{textAlign: 'center', padding: '3rem'}}>
-             <p style={{color: 'var(--text-secondary)'}}>No workouts logged yet. Start a session!</p>
-           </div>
-        ) : recentSessions.map(session => (
-          <div key={session.id} className="card card-glass" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <div>
-              <h4 style={{fontWeight: '600', fontSize: '1.1rem'}}>{session.plan_name || 'Freestyle Workout'}</h4>
-              <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>{format(parseISO(session.date), 'EEEE, MMMM do yyyy')}</p>
-              {session.notes && <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.5rem'}}>📝 {session.notes}</p>}
+          <div className="stat-info">
+            <div className="stat-value">
+              <AnimatedNumber value={12482} useComma={true} />
             </div>
-            <div style={{textAlign: 'right'}}>
-              <div className="badge">{session.logs?.length || 0} Exercises</div>
+            <div className="stat-details">
+              <span>ACTIVE FLOW</span>
+              <span className="stat-badge">+2.4k</span>
             </div>
           </div>
-        ))}
+          <div className="stat-title-side">STEPS</div>
+        </div>
+
+        {/* Calories */}
+        <div className="stat-card horizontal">
+          <div className="icon-circle glow-green">
+            <Flame size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">
+              <AnimatedNumber value={2140} useComma={true} />
+            </div>
+            <div className="stat-details">
+              <span>BURN RATE</span>
+              <span className="stat-badge">OPTIMAL</span>
+            </div>
+          </div>
+          <div className="stat-title-side">CALORIES</div>
+        </div>
+
+        {/* Minutes */}
+        <div className="stat-card horizontal">
+          <div className="icon-circle glow-green">
+            <Clock size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">
+              <AnimatedNumber value={84} useComma={false} />
+            </div>
+            <div className="stat-details">
+              <span>TIME IN ZONE</span>
+              <span className="stat-badge">MIN</span>
+            </div>
+          </div>
+          <div className="stat-title-side">MINUTES</div>
+        </div>
       </div>
 
-      <div key={`quote-${quoteIndex}`} style={{
-        textAlign: 'center',
-        marginBottom: '4rem',
-        marginTop: '4rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <p className="quote-text" style={{
-          fontSize: '2.5rem',
-          fontWeight: '700',
-          lineHeight: '1.8',
-          margin: 0,
-          background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 75%, #C6FF00 95%, #C6FF00 100%)',
-          backgroundSize: '200% 100%',
-          backgroundPosition: '100% center',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>
-          {quotes[quoteIndex]}
-        </p>
+      {/* Achievements Card */}
+      <div className="card achievements-card">
+        <div className="achievements-content">
+          <div className="achievements-text-area">
+            <div className="achievements-label">LATEST ACHIEVEMENT</div>
+            <h2>ARCHIEVEMENTS</h2>
+            <p className="achievements-desc">
+              You've maintained a top 5% strength-to-weight ratio worldwide for 12 consecutive weeks.
+            </p>
+            
+            <div className="lifts-grid">
+              <div className="lift-item">
+                <span className="lift-name">DEADLIFT</span>
+                <span className="lift-weight">485 LBS</span>
+              </div>
+              <div className="lift-item">
+                <span className="lift-name">SQUAT</span>
+                <span className="lift-weight">405 LBS</span>
+              </div>
+              <div className="lift-item">
+                <span className="lift-name">BENCH</span>
+                <span className="lift-weight">315 LBS</span>
+              </div>
+            </div>
+          </div>
+          
+          <AnimatedMedal />
+        </div>
       </div>
+
     </div>
   );
 }

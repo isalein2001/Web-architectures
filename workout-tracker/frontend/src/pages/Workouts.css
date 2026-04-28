@@ -1,0 +1,245 @@
+.workouts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2xl);
+}
+
+.custom-plan-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.custom-plan-card h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: 1px;
+}
+
+.input-group {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.input-group input {
+  background-color: #0E0E0E;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-main);
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: var(--color-primary);
+}
+
+.upload-box {
+  background-color: #0E0E0E;
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-box:hover {
+  border-color: var(--color-primary);
+}
+
+.upload-box span {
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.upload-box small {
+  color: var(--color-text-muted);
+}
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.exercise-item {
+  background-color: #0E0E0E;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.ex-header {
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+}
+
+.ex-details {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.ex-stat {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.ex-stat span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.ex-notes {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.new-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  border-color: rgba(197, 254, 0, 0.3);
+}
+
+.new-ex-input, .new-ex-notes {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: var(--spacing-sm);
+  color: white;
+  border-radius: var(--radius-sm);
+}
+
+.ex-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.ex-inputs input {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: var(--spacing-sm);
+  color: white;
+  border-radius: var(--radius-sm);
+}
+
+.add-ex-btn {
+  background: transparent;
+  border: 1px dashed var(--color-primary);
+  color: var(--color-primary);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  font-weight: 600;
+  margin-top: var(--spacing-xs);
+}
+
+.add-ex-btn:hover {
+  background: rgba(197, 254, 0, 0.1);
+}
+
+.ready-plans-section h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: var(--spacing-xs);
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xl);
+}
+
+.plan-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.plan-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.plan-badge {
+  display: inline-block;
+  background-color: rgba(197, 254, 0, 0.1);
+  color: var(--color-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+}
+
+.plan-badge.beginner {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.plan-card h3 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 1.5rem;
+}
+
+.plan-exercises {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--color-text-muted);
+}
+
+.plan-exercises li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.more-ex {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-top: var(--spacing-sm);
+}
+
+.start-plan-btn {
+  background-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: opacity 0.2s;
+}
+
+.start-plan-btn:hover {
+  opacity: 0.9;
+}
