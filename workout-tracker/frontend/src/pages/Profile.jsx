@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { User, Bell, Zap, Shield, Watch, Lock } from 'lucide-react';
+import { LanguageContext } from '../context/LanguageContext';
 import './Profile.css';
 
 export default function Profile() {
+  const { t } = useContext(LanguageContext);
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -9,35 +13,44 @@ export default function Profile() {
         <p>OPTIMIZE YOUR PROFILE AND INTERFACE. PREFERENCES FOR THE BEST EXPERIENCE.</p>
       </div>
 
-      <div className="settings-layout">
-        <div className="settings-main">
-          {/* Account Profile Section */}
-          <section className="setting-card">
-            <h2>ACCOUNT PROFILE</h2>
-            <div className="form-group-row">
-              <div className="form-group">
-                <label>DISPLAY NAME</label>
-                <input type="text" defaultValue="Jonas Arnold" />
-              </div>
-              <div className="form-group">
-                <label>EMAIL ADDRESS</label>
-                <input type="email" defaultValue="JonasArnold@gmail.com" />
+      <div className="profile-layout">
+        <div className="profile-left">
+          <section className="profile-card">
+            <div className="card-header">
+              <div className="header-label">
+                <User size={24} color="#C5FE00" />
+                <span>ACCOUNT PROFILE</span>
               </div>
             </div>
-            <div className="form-group">
+            <div className="profile-avatar">
+              <div className="avatar-circle">JA</div>
+              <div className="avatar-info">
+                <label>DISPLAY NAME</label>
+                <p>Jonas Arnold</p>
+              </div>
+            </div>
+            <div className="form-field">
+              <label>EMAIL ADDRESS</label>
+              <input type="email" defaultValue="JonasArnold@gmail.com" />
+            </div>
+            <div className="form-field">
               <label>PASSWORD</label>
-              <div className="password-row">
+              <div className="password-input-row">
                 <input type="password" defaultValue="••••••••••••" readOnly />
                 <button className="change-btn">CHANGE</button>
               </div>
             </div>
           </section>
 
-          {/* Advanced Biometrics Section */}
-          <section className="setting-card">
-            <h2>ADVANCED BIOMETRICS</h2>
-            <div className="form-group-row three-col">
-              <div className="form-group">
+          <section className="profile-card">
+            <div className="card-header">
+              <div className="header-label">
+                <Zap size={24} color="#C5FE00" />
+                <span>ADVANCED BIOMETRICS</span>
+              </div>
+            </div>
+            <div className="bio-grid">
+              <div className="form-field">
                 <label>GENDER</label>
                 <select defaultValue="Male">
                   <option>Male</option>
@@ -45,68 +58,89 @@ export default function Profile() {
                   <option>Other</option>
                 </select>
               </div>
-              <div className="form-group">
+              <div className="form-field">
                 <label>HEIGHT (CM)</label>
                 <input type="number" defaultValue="185" />
               </div>
-              <div className="form-group">
+              <div className="form-field">
                 <label>WEIGHT (KG)</label>
                 <input type="number" defaultValue="85" />
               </div>
             </div>
-            
-            <div className="bmi-section">
+            <div className="bmi-row">
               <button className="calc-btn">CALCULATE BMI</button>
-              <div className="bmi-result">
-                <span>AUTOMATED INDEX TRACKING</span>
-                <span className="bmi-val">BMI: 24.8</span>
+              <div className="bmi-display">
+                <span className="bmi-label">AUTOMATED INDEX TRACKING</span>
+                <span className="bmi-value">BMI: 24.8</span>
               </div>
             </div>
           </section>
-
-          {/* Alerts & Privacy Section */}
-          <div className="split-cards">
-            <section className="setting-card">
-              <h2>ALERTS</h2>
-              <div className="toggle-row">
-                <label>WORKOUT REMINDERS</label>
-                <span>DAILY SESSION PROMPTS</span>
-              </div>
-              <div className="toggle-row">
-                <label>HYDRATION ALERTS</label>
-                <span>WATER INTAKE TRACKING</span>
-              </div>
-            </section>
-
-            <section className="setting-card privacy-card">
-              <h2>PRIVACY</h2>
-              <button className="outline-btn">EXPORT PERSONAL DATA</button>
-              <button className="danger-btn">DELETE ACCOUNT</button>
-            </section>
-          </div>
-
-          <div className="action-row">
-            <button className="outline-btn">DISCARD CHANGES</button>
-            <button className="workout-btn" style={{width: 'auto'}}>APPLY CHANGES</button>
-          </div>
         </div>
 
-        <div className="settings-sidebar">
-          <div className="info-card">
-            <div className="info-badge">ADVANCED DATA ENCRYPTION PROTOCOL</div>
-            <p>All biometric data transmitted between your wearables and PROGYM servers is protected by 256-bit military-grade encryption. Your performance is private.</p>
-            <div className="tags">
-              <span className="tag">HIPAA COMPLIANT</span>
-              <span className="tag">END-TO-END ENCRYPTED</span>
+        <div className="profile-right">
+          <section className="profile-card">
+            <div className="card-header">
+              <div className="header-label">
+                <Bell size={24} color="#C5FE00" />
+                <span>ALERTS</span>
+              </div>
             </div>
-          </div>
+            <div className="toggle-item">
+              <div className="toggle-label">
+                <span className="label-main">WORKOUT REMINDERS</span>
+                <span className="label-sub">DAILY SESSION PROMPTS</span>
+              </div>
+              <div className="toggle-switch active"></div>
+            </div>
+            <div className="toggle-item">
+              <div className="toggle-label">
+                <span className="label-main">HYDRATION ALERTS</span>
+                <span className="label-sub">WATER INTAKE TRACKING</span>
+              </div>
+              <div className="toggle-switch"></div>
+            </div>
+          </section>
 
-          <div className="info-card connected-card">
-            <div className="info-badge success">CONNECTED</div>
-            <h3>APPLE WATCH</h3>
-            <p>HEALTHKIT ENABLED</p>
-            <button className="danger-text-btn">DISCONNECT</button>
-          </div>
+          <section className="profile-card">
+            <div className="card-header">
+              <div className="header-label">
+                <Shield size={24} color="#C5FE00" />
+                <span>PRIVACY</span>
+              </div>
+            </div>
+            <button className="export-btn">EXPORT PERSONAL DATA</button>
+            <button className="delete-btn">DELETE ACCOUNT</button>
+          </section>
+
+          <section className="profile-card">
+            <div className="card-header">
+              <div className="header-label">
+                <Watch size={24} color="#C5FE00" />
+                <span>APPLE WATCH</span>
+              </div>
+            </div>
+            <div className="device-status">
+              <span className="status-badge">CONNECTED</span>
+              <p className="device-info">HEALTHKIT ENABLED</p>
+              <button className="disconnect-btn">DISCONNECT</button>
+            </div>
+          </section>
+
+          <section className="profile-card encryption-card">
+            <div className="encryption-content">
+              <div className="encryption-icon-circle">
+                <Lock size={100} color="#C5FE00" />
+              </div>
+              <div className="encryption-info">
+                <div className="encryption-header">ADVANCED DATA ENCRYPTION PROTOCOL</div>
+                <p className="encryption-text">All biometric data transmitted between your wearables and PROGYM servers is protected by 256-bit military-grade encryption. Your performance is private.</p>
+                <div className="encryption-tags">
+                  <span className="tag">HIPAA COMPLIANT</span>
+                  <span className="tag">END-TO-END ENCRYPTED</span>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>

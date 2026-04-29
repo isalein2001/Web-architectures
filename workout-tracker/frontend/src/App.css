@@ -310,6 +310,6 @@
   /* Push content down below fixed topbar */
   margin-top: 80px;
   padding: var(--spacing-2xl);
-  padding-bottom: 100vh;
   background-color: var(--color-background);
+  min-height: calc(100vh - 80px);
 }
