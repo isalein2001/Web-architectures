@@ -84,17 +84,19 @@ function AppLayout() {
     <div className="app-container">
       {/* Left Sidebar */}
       <aside className="sidebar">
-        <NavLink 
-          to="/" 
-          style={{ textDecoration: 'none' }}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          <div className="sidebar-logo">
-            <Activity color="#C5FE00" size={28} />
-            <span>PROGYM</span>
-          </div>
-        </NavLink>
-        <div className="sidebar-subtitle">{t('Member').toUpperCase()}</div>
+        <div className="sidebar-brand">
+          <NavLink 
+            to="/" 
+            style={{ textDecoration: 'none' }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <div className="sidebar-logo">
+              <Activity color="#C5FE00" size={28} />
+              <span>PROGYM</span>
+            </div>
+          </NavLink>
+          <div className="sidebar-subtitle">{t('Member').toUpperCase()}</div>
+        </div>
         
         <nav className="nav-links">
           <NavLink 
@@ -131,38 +133,39 @@ function AppLayout() {
 
       {/* Main Content Area */}
       <div className="main-area">
-        {/* Top Bar */}
-        <header className="topbar">
-          <div className="search-bar">
-            <Search size={18} color="#ADAAAA" />
-            <input type="text" placeholder={t('SEARCH...')} />
-          </div>
-          
-          <div className="topbar-actions">
-            <div className="lang-selector" ref={langRef} onClick={() => setLangOpen(!langOpen)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Globe size={18} /> {lang.toUpperCase()}
-              </div>
-              <div className={`lang-dropdown ${langOpen ? 'open' : ''}`}>
-                <div onClick={(e) => { e.stopPropagation(); setLang('en'); setLangOpen(false); }} className={lang === 'en' ? 'active' : ''}>EN</div>
-                <div onClick={(e) => { e.stopPropagation(); setLang('de'); setLangOpen(false); }} className={lang === 'de' ? 'active' : ''}>DE</div>
-              </div>
+        {!isLanding && (
+          <header className="topbar">
+            <div className="search-bar">
+              <Search size={18} color="#ADAAAA" />
+              <input type="text" placeholder={t('SEARCH...')} />
             </div>
-            <Bell size={20} color="#ADAAAA" style={{ cursor: 'pointer' }} />
             
-            <NavLink to="/profile" style={{ textDecoration: 'none' }}>
-              <div className="user-profile" style={{ cursor: 'pointer' }}>
-                <div className="user-info">
-                  <span className="user-role">{t('Member')}</span>
-                  <span className="user-name">Jonas Arnold</span>
+            <div className="topbar-actions">
+              <div className="lang-selector" ref={langRef} onClick={() => setLangOpen(!langOpen)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Globe size={18} /> {lang.toUpperCase()}
                 </div>
-                <div className="user-avatar"></div>
+                <div className={`lang-dropdown ${langOpen ? 'open' : ''}`}>
+                  <div onClick={(e) => { e.stopPropagation(); setLang('en'); setLangOpen(false); }} className={lang === 'en' ? 'active' : ''}>EN</div>
+                  <div onClick={(e) => { e.stopPropagation(); setLang('de'); setLangOpen(false); }} className={lang === 'de' ? 'active' : ''}>DE</div>
+                </div>
               </div>
-            </NavLink>
-          </div>
-        </header>
+              <Bell size={20} color="#ADAAAA" style={{ cursor: 'pointer' }} />
+              
+              <NavLink to="/profile" style={{ textDecoration: 'none' }}>
+                <div className="user-profile" style={{ cursor: 'pointer' }}>
+                  <div className="user-info">
+                    <span className="user-role">{t('Member')}</span>
+                    <span className="user-name">Jonas Arnold</span>
+                  </div>
+                  <div className="user-avatar"></div>
+                </div>
+              </NavLink>
+            </div>
+          </header>
+        )}
 
-        <main className="main-content">
+        <main className={`main-content ${isLanding ? 'main-content--landing' : ''}`}>
           <Routes>
             <Route path="/" element={<><Landing /><Dashboard /></>} />
             <Route path="/dashboard" element={<Dashboard />} />
