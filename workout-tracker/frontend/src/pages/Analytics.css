@@ -198,12 +198,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  position: relative;
+  padding-right: calc(var(--spacing-lg) + 1.5rem);
 }
 
 .metric-card-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--spacing-sm);
 }
 
@@ -217,12 +219,26 @@
   color: var(--color-primary);
 }
 
-.metric-card-top span {
+.metric-card-title-side {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-text-muted);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  opacity: 0.55;
   text-transform: uppercase;
+  text-align: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  white-space: nowrap;
 }
 
 .metric-card-value {
@@ -251,6 +267,125 @@
   flex-direction: column;
   gap: var(--spacing-md);
   border-color: rgba(197, 254, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.milestone-card:hover {
+  border-color: rgba(197, 254, 0, 0.6);
+  box-shadow: 0 0 20px rgba(197, 254, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Firework Animation */
+.firework-burst {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  animation: firework-burst-pop 0.95s ease-out forwards;
+}
+
+.firework-core {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  left: -6px;
+  top: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, var(--color-primary) 34%, rgba(197, 254, 0, 0.25) 62%, transparent 72%);
+  box-shadow: 0 0 16px rgba(197, 254, 0, 0.75);
+  opacity: 0;
+  transform: scale(0);
+  animation: firework-core-flash 0.58s ease-out forwards;
+}
+
+.firework-spark {
+  position: absolute;
+  left: calc(var(--spark-size) / -2);
+  top: calc(var(--spark-size) / -2);
+  width: var(--spark-size);
+  height: var(--spark-size);
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 10px rgba(197, 254, 0, 0.85);
+  opacity: 0;
+  transform: rotate(var(--spark-angle)) translateX(0) scale(1);
+  animation: firework-spark-fly 0.86s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.firework-spark:nth-child(3n) {
+  background: #ffffff;
+  box-shadow: 0 0 9px rgba(255, 255, 255, 0.75);
+}
+
+.firework-spark:nth-child(4n) {
+  background: #7fffd4;
+  box-shadow: 0 0 10px rgba(127, 255, 212, 0.72);
+}
+
+.firework-spark:nth-child(5n) {
+  width: 2px;
+  height: 10px;
+  border-radius: 999px;
+  transform-origin: center;
+}
+
+.milestone-card > .ms-badge,
+.milestone-card > h3,
+.milestone-card > p {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes firework-burst-pop {
+  0%,
+  10% {
+    opacity: 0;
+  }
+  12%,
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes firework-core-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(2.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(4.8);
+  }
+}
+
+@keyframes firework-spark-fly {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--spark-angle)) translateX(0) scale(0.35);
+  }
+  16% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--spark-angle)) translateX(var(--spark-distance)) scale(0.12);
+  }
 }
 
 .ms-badge {
@@ -397,6 +532,29 @@
   height: 10px;
   border-radius: 50%;
   background-color: var(--color-primary);
+  box-shadow: 0 0 0 rgba(197, 254, 0, 0);
+  animation: streak-dot-pulse 1.8s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes streak-dot-pulse {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.86);
+    box-shadow: 0 0 0 rgba(197, 254, 0, 0);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.28);
+    box-shadow:
+      0 0 12px rgba(197, 254, 0, 0.72),
+      0 0 24px rgba(197, 254, 0, 0.28);
+  }
+  100% {
+    opacity: 0.72;
+    transform: scale(0.86);
+    box-shadow: 0 0 0 rgba(197, 254, 0, 0);
+  }
 }
 
 .schedule-meta.highlight {

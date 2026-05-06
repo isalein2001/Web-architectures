@@ -73,6 +73,80 @@ function buildSmoothLinePath(points) {
   return path;
 }
 
+function MilestoneCard() {
+  const [fireworks, setFireworks] = useState([]);
+  const fireworksTimer = useRef(null);
+
+  useEffect(() => () => {
+    window.clearTimeout(fireworksTimer.current);
+  }, []);
+
+  const handleMouseEnter = () => {
+    window.clearTimeout(fireworksTimer.current);
+
+    const nextFireworks = Array.from({ length: 5 }, (_, burstIndex) => ({
+      id: `${Date.now()}-${burstIndex}`,
+      left: 16 + Math.random() * 68,
+      top: 18 + Math.random() * 52,
+      delay: burstIndex * 0.12,
+      sparks: Array.from({ length: 16 }, (_, sparkIndex) => ({
+        id: sparkIndex,
+        angle: (360 / 16) * sparkIndex + Math.random() * 10,
+        distance: 34 + Math.random() * 34,
+        size: 3 + Math.random() * 3,
+      })),
+    }));
+
+    setFireworks(nextFireworks);
+    fireworksTimer.current = window.setTimeout(() => {
+      setFireworks([]);
+    }, 1300);
+  };
+
+  const handleMouseLeave = () => {
+    window.clearTimeout(fireworksTimer.current);
+    fireworksTimer.current = window.setTimeout(() => {
+      setFireworks([]);
+    }, 500);
+  };
+
+  return (
+    <div
+      className="milestone-card"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {fireworks.map((burst) => (
+        <div
+          key={burst.id}
+          className="firework-burst"
+          style={{
+            left: `${burst.left}%`,
+            top: `${burst.top}%`,
+            animationDelay: `${burst.delay}s`,
+          }}
+        >
+          <span className="firework-core" />
+          {burst.sparks.map((spark) => (
+            <span
+              key={spark.id}
+              className="firework-spark"
+              style={{
+                '--spark-angle': `${spark.angle}deg`,
+                '--spark-distance': `${spark.distance}px`,
+                '--spark-size': `${spark.size}px`,
+              }}
+            />
+          ))}
+        </div>
+      ))}
+      <div className="ms-badge">NEW MILESTONE</div>
+      <h3>BENCH PRESS +5KG</h3>
+      <p>Unlocked 2h ago</p>
+    </div>
+  );
+}
+
 function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', className = '', as: Tag = 'span' }) {
   const [displayValue, setDisplayValue] = useState(0);
   const ref = useRef(null);
@@ -253,12 +327,12 @@ export default function Analytics() {
               <div className="metric-card-icon">
                 <Dumbbell size={20} />
               </div>
-              <span>BENCH PRESS</span>
             </div>
             <div className="metric-card-value">
               315 <span>LBS</span>
             </div>
             <div className="metric-card-meta">CURRENT PB</div>
+            <div className="metric-card-title-side">BENCH PRESS</div>
           </div>
 
           <div className="metric-card">
@@ -266,12 +340,12 @@ export default function Analytics() {
               <div className="metric-card-icon">
                 <Dumbbell size={20} />
               </div>
-              <span>DEADLIFT</span>
             </div>
             <div className="metric-card-value">
               485 <span>LBS</span>
             </div>
             <div className="metric-card-meta">CURRENT PB</div>
+            <div className="metric-card-title-side">DEADLIFT</div>
           </div>
 
           <div className="metric-card">
@@ -279,19 +353,15 @@ export default function Analytics() {
               <div className="metric-card-icon">
                 <TrendingUp size={20} />
               </div>
-              <span>SQUADS</span>
             </div>
             <div className="metric-card-value">
               405 <span>LBS</span>
             </div>
             <div className="metric-card-meta">CURRENT PB</div>
+            <div className="metric-card-title-side">SQUADS</div>
           </div>
 
-          <div className="milestone-card">
-            <div className="ms-badge">NEW MILESTONE</div>
-            <h3>BENCH PRESS +5KG</h3>
-            <p>Unlocked 2h ago</p>
-          </div>
+          <MilestoneCard />
         </div>
 
         <div className="schedule-card">
