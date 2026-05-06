@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ProgressView() {
+  const { t } = useLanguage();
   const [exerciseQuery, setExerciseQuery] = useState('Bench Press');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,8 +45,8 @@ export default function ProgressView() {
     <div className="progress-view">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Progress Tracking</h1>
-          <p style={{color: 'var(--text-secondary)'}}>Visualize your gains over time</p>
+          <h1 className="page-title">{t('Progress Tracking')}</h1>
+          <p style={{color: 'var(--text-secondary)'}}>{t('Visualize your gains over time')}</p>
         </div>
       </header>
 
@@ -56,20 +58,20 @@ export default function ProgressView() {
             value={exerciseQuery} 
             onChange={e => setExerciseQuery(e.target.value)} 
             onKeyDown={e => e.key === 'Enter' && fetchProgress()}
-            placeholder="Search exercise (e.g. Squat)" 
+            placeholder={t('Search exercise (e.g. Squat)')} 
           />
-          <button className="btn btn-primary" onClick={fetchProgress}>Analyze</button>
+          <button className="btn btn-primary" onClick={fetchProgress}>{t('Analyze')}</button>
         </div>
       </div>
 
       <div className="card">
-        <h3 style={{fontSize: '1.25rem', marginBottom: '1.5rem'}}>Development over time</h3>
+        <h3 style={{fontSize: '1.25rem', marginBottom: '1.5rem'}}>{t('Development over time')}</h3>
         
         {loading ? (
-          <p style={{color: 'var(--text-secondary)'}}>Loading data...</p>
+          <p style={{color: 'var(--text-secondary)'}}>{t('Loading data...')}</p>
         ) : data.length === 0 ? (
           <div style={{textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)'}}>
-            No data found for "{exerciseQuery}". Try logging some workouts first!
+            {t('No data found for')} "{exerciseQuery}". {t('Try logging some workouts first!')}
           </div>
         ) : (
           <div style={{height: '400px', width: '100%'}}>
@@ -84,8 +86,8 @@ export default function ProgressView() {
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
                 <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="maxWeight" name="Max Weight" stroke="var(--accent-primary)" strokeWidth={3} activeDot={{ r: 8 }} />
-                <Line yAxisId="right" type="monotone" dataKey="maxReps" name="Max Reps" stroke="var(--accent-secondary)" strokeWidth={3} />
+                <Line yAxisId="left" type="monotone" dataKey="maxWeight" name={t('Max Weight')} stroke="var(--accent-primary)" strokeWidth={3} activeDot={{ r: 8 }} />
+                <Line yAxisId="right" type="monotone" dataKey="maxReps" name={t('Max Reps')} stroke="var(--accent-secondary)" strokeWidth={3} />
               </LineChart>
             </ResponsiveContainer>
           </div>

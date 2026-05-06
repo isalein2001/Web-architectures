@@ -344,12 +344,12 @@ export default function Dashboard() {
               <div className="lift-item">
                 <span className="lift-name">{t('SQUAT')}</span>
                 <span className="lift-weight">140kg</span>
-                <span className="badge badge-outline">TOP 5%</span>
+                <span className="badge badge-outline">{t('TOP 5%')}</span>
               </div>
               <div className="lift-item">
                 <span className="lift-name">{t('BENCH')}</span>
                 <span className="lift-weight">100kg</span>
-                <span className="badge badge-outline">TOP 10%</span>
+                <span className="badge badge-outline">{t('TOP 10%')}</span>
               </div>
             </div>
           </div>

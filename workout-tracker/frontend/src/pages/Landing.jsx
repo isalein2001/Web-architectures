@@ -1,9 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import './Landing.css';
 
 export default function Landing() {
+  const { t } = useLanguage();
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
   const hasNavigated = useRef(false);
@@ -81,21 +83,21 @@ export default function Landing() {
             className="landing-text"
             style={{ y: text1Y, opacity: text1Opacity }}
           >
-            <h1>ELEVATE YOUR<br/><span>PERFORMANCE</span></h1>
+            <h1>{t('ELEVATE YOUR')}<br/><span>{t('PERFORMANCE')}</span></h1>
           </motion.div>
 
           <motion.div 
             className="landing-text"
             style={{ y: text2Y, opacity: text2Opacity }}
           >
-            <h1>DATA DRIVEN.<br/><span>RESULT FOCUSED.</span></h1>
+            <h1>{t('DATA DRIVEN.')}<br/><span>{t('RESULT FOCUSED.')}</span></h1>
           </motion.div>
           
           <motion.div 
             className="scroll-indicator"
             style={{ opacity: indicatorOpacity }}
           >
-            <span>SCROLL DOWN</span>
+            <span>{t('SCROLL DOWN')}</span>
             <div className="mouse-icon">
               <div className="wheel"></div>
             </div>

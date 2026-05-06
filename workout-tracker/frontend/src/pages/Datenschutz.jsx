@@ -10,7 +10,7 @@ export default function Datenschutz() {
     <div className="dashboard-container">
       <div className="legal-header">
         <h1>
-          PRIVACY <span style={{ color: 'var(--color-primary)' }}>POLICY</span>
+          {t('PRIVACY')} <span style={{ color: 'var(--color-primary)' }}>{t('POLICY')}</span>
         </h1>
         <p>{t('PAGE_PRIVACY_DESC')}</p>
       </div>
@@ -21,13 +21,13 @@ export default function Datenschutz() {
             <Radio size={24} color="var(--color-primary)" />
             <div className="privacy-number">01</div>
           </div>
-          <h3>DATA COLLECTION</h3>
+          <h3>{t('DATA COLLECTION')}</h3>
           <p>
-            We capture essential performance metrics: heart rate, HRV, VO2 max, and spatial movement data during sessions.
+            {t('We capture essential performance metrics: heart rate, HRV, VO2 max, and spatial movement data during sessions.')}
           </p>
           <div className="tags">
-            <span className="tag">BIOMETRIC INPUT</span>
-            <span className="tag">MOTION TRACKING</span>
+            <span className="tag">{t('BIOMETRIC INPUT')}</span>
+            <span className="tag">{t('MOTION TRACKING')}</span>
           </div>
         </section>
 
@@ -36,13 +36,13 @@ export default function Datenschutz() {
             <Zap size={24} color="var(--color-primary)" />
             <div className="privacy-number">02</div>
           </div>
-          <h3>DATA USAGE</h3>
+          <h3>{t('DATA USAGE')}</h3>
           <p>
-            Processed via kinetic algorithms to calculate optimal recovery windows and personalized workload intensity targets.
+            {t('Processed via kinetic algorithms to calculate optimal recovery windows and personalized workload intensity targets.')}
           </p>
           <div className="tags">
-            <span className="tag">RECOVERY ANALYTICS</span>
-            <span className="tag">LOAD PREDICTION</span>
+            <span className="tag">{t('RECOVERY ANALYTICS')}</span>
+            <span className="tag">{t('LOAD PREDICTION')}</span>
           </div>
         </section>
 
@@ -51,13 +51,13 @@ export default function Datenschutz() {
             <Share2 size={24} color="var(--color-primary)" />
             <div className="privacy-number">03</div>
           </div>
-          <h3>THIRD-PARTY SHARING</h3>
+          <h3>{t('THIRD-PARTY SHARING')}</h3>
           <p>
-            We only sync with ecosystem partners you authorize (Apple Health). Zero data sales to advertisers.
+            {t('We only sync with ecosystem partners you authorize (Apple Health). Zero data sales to advertisers.')}
           </p>
           <div className="tags">
-            <span className="tag">API INTEGRATIONS</span>
-            <span className="tag">SECURE SYNC</span>
+            <span className="tag">{t('API INTEGRATIONS')}</span>
+            <span className="tag">{t('SECURE SYNC')}</span>
           </div>
         </section>
 
@@ -66,13 +66,13 @@ export default function Datenschutz() {
             <Shield size={24} color="var(--color-primary)" />
             <div className="privacy-number">04</div>
           </div>
-          <h3>USER RIGHTS</h3>
+          <h3>{t('USER RIGHTS')}</h3>
           <p>
-            You own your performance data. Request full exports, data deletion, or portable transfers at any moment.
+            {t('You own your performance data. Request full exports, data deletion, or portable transfers at any moment.')}
           </p>
           <div className="tags">
-            <span className="tag">DATA PORTABILITY</span>
-            <span className="tag">RIGHT TO ERASE</span>
+            <span className="tag">{t('DATA PORTABILITY')}</span>
+            <span className="tag">{t('RIGHT TO ERASE')}</span>
           </div>
         </section>
 
@@ -81,13 +81,13 @@ export default function Datenschutz() {
             <Lock size={24} color="var(--color-primary)" />
             <div className="privacy-number">05</div>
           </div>
-          <h3>SECURITY PROTOCOLS</h3>
+          <h3>{t('SECURITY PROTOCOLS')}</h3>
           <p>
-            End-to-end encryption for all telemetry data. Multi-factor authentication required for athlete profile access.
+            {t('End-to-end encryption for all telemetry data. Multi-factor authentication required for athlete profile access.')}
           </p>
           <div className="tags">
-            <span className="tag">AES-256 ENCRYPTION</span>
-            <span className="tag">2FA PROTECTION</span>
+            <span className="tag">{t('AES-256 ENCRYPTION')}</span>
+            <span className="tag">{t('2FA PROTECTION')}</span>
           </div>
         </section>
 
@@ -96,13 +96,13 @@ export default function Datenschutz() {
             <Cookie size={24} color="var(--color-primary)" />
             <div className="privacy-number">06</div>
           </div>
-          <h3>COOKIES</h3>
+          <h3>{t('COOKIES')}</h3>
           <p>
-            Minimalist tracking for session persistence and preference storage. No third-party marketing beacons used.
+            {t('Minimalist tracking for session persistence and preference storage. No third-party marketing beacons used.')}
           </p>
           <div className="tags">
-            <span className="tag">SESSION MANAGEMENT</span>
-            <span className="tag">USER PREFERENCES</span>
+            <span className="tag">{t('SESSION MANAGEMENT')}</span>
+            <span className="tag">{t('USER PREFERENCES')}</span>
           </div>
         </section>
       </div>

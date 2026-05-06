@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, MessageSquare, Plus, Send, ChevronDown } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import './Support.css';
 
 const faqItems = [
@@ -9,13 +10,14 @@ const faqItems = [
 ];
 
 export default function Support() {
+  const { t } = useLanguage();
   const [openFaq, setOpenFaq] = useState(null);
 
   return (
     <div className="support-page">
       <section className="support-hero">
-        <h1>SUPPORT <span>CENTER</span></h1>
-        <p>FREQUENTLY ASKED QUESTIONS</p>
+        <h1>{t('SUPPORT')} <span>{t('CENTER')}</span></h1>
+        <p>{t('FREQUENTLY ASKED QUESTIONS')}</p>
       </section>
 
       <section className="support-faq">
@@ -26,7 +28,7 @@ export default function Support() {
             onClick={() => setOpenFaq(openFaq === index ? null : index)}
             type="button"
           >
-            <span>{item}</span>
+            <span>{t(item)}</span>
             <Plus size={20} />
           </button>
         ))}
@@ -34,10 +36,9 @@ export default function Support() {
 
       <section className="support-main-grid">
         <div className="support-assistance">
-          <h2>STILL <span>NEED ASSISTANCE?</span></h2>
+          <h2>{t('STILL')} <span>{t('NEED ASSISTANCE?')}</span></h2>
           <p>
-            Our performance team is available for all users to help you reach
-            your peak performance.
+            {t('Our performance team is available for all users to help you reach your peak performance.')}
           </p>
 
           <div className="support-contact-row">
@@ -46,7 +47,7 @@ export default function Support() {
                 <Mail size={22} />
               </span>
               <span>
-                <small>EMAIL US</small>
+                <small>{t('EMAIL US')}</small>
                 <strong>SUPPORT@PROGYM.COM</strong>
               </span>
             </a>
@@ -56,7 +57,7 @@ export default function Support() {
                 <MessageSquare size={22} />
               </span>
               <span>
-                <small>SOCIAL CHANNELS</small>
+                <small>{t('SOCIAL CHANNELS')}</small>
                 <strong>@PROGYM</strong>
               </span>
             </a>
@@ -64,33 +65,33 @@ export default function Support() {
         </div>
 
         <form className="support-ticket-card">
-          <h2>SUBMIT A TICKET</h2>
+          <h2>{t('SUBMIT A TICKET')}</h2>
 
           <label className="support-field">
-            <span>SUBJECT</span>
-            <input type="text" placeholder="What's going on?" />
+            <span>{t('SUBJECT')}</span>
+            <input type="text" placeholder={t("What's going on?")} />
           </label>
 
           <label className="support-field">
-            <span>DEPARTMENT</span>
+            <span>{t('DEPARTMENT')}</span>
             <div className="support-select-shell">
               <select defaultValue="TECHNICAL SUPPORT">
-                <option>TECHNICAL SUPPORT</option>
-                <option>TRAINING PLAN</option>
-                <option>BILLING</option>
-                <option>ACCOUNT</option>
+                <option>{t('TECHNICAL SUPPORT')}</option>
+                <option>{t('TRAINING PLAN')}</option>
+                <option>{t('BILLING')}</option>
+                <option>{t('ACCOUNT')}</option>
               </select>
               <ChevronDown size={18} />
             </div>
           </label>
 
           <label className="support-field">
-            <span>MESSAGE</span>
-            <textarea placeholder="Describe your issue in detail..." />
+            <span>{t('MESSAGE')}</span>
+            <textarea placeholder={t('Describe your issue in detail...')} />
           </label>
 
           <button className="support-submit" type="button">
-            SUBMIT REQUEST <Send size={18} />
+            {t('SUBMIT REQUEST')} <Send size={18} />
           </button>
         </form>
       </section>

@@ -10,6 +10,7 @@ import {
   PlusCircle,
   Trash2,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import './Workouts.css';
 
 const readyPlans = [
@@ -72,6 +73,7 @@ const isExerciseEmpty = (exercise) =>
   !exercise.notes.trim();
 
 export default function Workouts() {
+  const { t } = useLanguage();
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState(initialExercises);
   const [draggingExerciseId, setDraggingExerciseId] = useState(null);
@@ -189,13 +191,13 @@ export default function Workouts() {
     const savedPlan = {
       id: editingPlanId || `custom-${Date.now()}`,
       title: workoutName.trim().toUpperCase(),
-      badge: 'CUSTOM PLAN',
+      badge: t('CUSTOM PLAN'),
       image: coverImage || '/hero-bg.png',
       iconKey: selectedIconKey,
       builderExercises: enteredExercises.map((exercise) => ({ ...exercise, id: Date.now() + Math.random() })),
       exercises: formattedExercises.slice(0, 3),
       extraExercises: formattedExercises.slice(3),
-      more: formattedExercises.length > 3 ? `+ ${formattedExercises.length - 3} MORE EXERCISES` : '',
+      more: formattedExercises.length > 3 ? `+ ${formattedExercises.length - 3} ${t('MORE EXERCISES')}` : '',
       editable: true,
     };
 
@@ -297,14 +299,14 @@ export default function Workouts() {
   return (
     <div className="workouts-page">
       <section className="workout-builder">
-        <h1 className="workouts-title">CREATE YOUR OWN <span>WORKOUT</span></h1>
+        <h1 className="workouts-title">{t('CREATE YOUR OWN')} <span>{t('WORKOUT')}</span></h1>
         <div className="workout-builder-topline">
           <div className="workout-section-kicker">
-            {editingPlanId ? 'EDIT YOUR PLAN' : 'BUILD YOUR OWN PLAN'}
+            {editingPlanId ? t('EDIT YOUR PLAN') : t('BUILD YOUR OWN PLAN')}
           </div>
           {editingPlanId && (
             <button className="delete-workout-button" type="button" onClick={deleteSavedPlan}>
-              <Trash2 size={16} /> DELETE WORKOUT
+              <Trash2 size={16} /> {t('DELETE WORKOUT')}
             </button>
           )}
         </div>
@@ -314,21 +316,21 @@ export default function Workouts() {
           type="text"
           value={workoutName}
           onChange={handleWorkoutNameChange}
-          placeholder="WORKOUT NAME (E.G. MONDAY OLYMPIC LIFTING)"
+          placeholder={t('WORKOUT NAME (E.G. MONDAY OLYMPIC LIFTING)')}
         />
         {validationErrors.workoutName && (
-          <div className="workout-error-message">Please enter a workout name.</div>
+          <div className="workout-error-message">{t('Please enter a workout name.')}</div>
         )}
 
         <div className="plan-icon-picker">
-          <div className="workout-cover-label">PLAN ICON</div>
+          <div className="workout-cover-label">{t('PLAN ICON')}</div>
           <div className="plan-icon-options">
             {planIconOptions.map(({ key, label, Icon }) => (
               <button
                 key={key}
                 className={`plan-icon-option ${selectedIconKey === key ? 'active' : ''}`}
                 type="button"
-                aria-label={`Use ${label} icon`}
+                aria-label={`${t('PLAN ICON')}: ${t(label)}`}
                 onClick={() => setSelectedIconKey(key)}
               >
                 <Icon size={20} />
@@ -337,7 +339,7 @@ export default function Workouts() {
           </div>
         </div>
 
-        <label className="workout-cover-label">WORKOUT COVER IMAGE</label>
+        <label className="workout-cover-label">{t('WORKOUT COVER IMAGE')}</label>
         <label
           className={`workout-upload-box ${coverImage ? 'has-image' : ''}`}
           style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
@@ -347,8 +349,8 @@ export default function Workouts() {
             <span className="workout-upload-icon">
               <Camera size={22} />
             </span>
-            <strong>{coverImage ? 'CHANGE COVER PHOTO' : 'UPLOAD COVER PHOTO'}</strong>
-            <small>PNG, JPG UP TO 10MB</small>
+            <strong>{coverImage ? t('CHANGE COVER PHOTO') : t('UPLOAD COVER PHOTO')}</strong>
+            <small>{t('PNG, JPG UP TO 10MB')}</small>
           </span>
         </label>
 
@@ -373,12 +375,12 @@ export default function Workouts() {
                   className={`exercise-title-input ${validationErrors.exercises[exercise.id]?.name ? 'field-error' : ''}`}
                   value={exercise.name}
                   onChange={(event) => updateExercise(exercise.id, 'name', event.target.value)}
-                  placeholder="Exercise Name..."
+                  placeholder={t('Exercise Name...')}
                 />
                 <div className="exercise-card-actions">
                   <button
                     type="button"
-                    aria-label="Delete exercise"
+                    aria-label={t('Delete exercise')}
                     className="delete-exercise-button"
                     onClick={(event) => {
                       event.preventDefault();
@@ -391,7 +393,7 @@ export default function Workouts() {
                   <button
                     type="button"
                     className="drag-exercise-button"
-                    aria-label="Move exercise"
+                    aria-label={t('Move exercise')}
                     onPointerDown={(event) => handleDragHandlePointerDown(event, exercise.id)}
                   >
                     <GripVertical size={20} />
@@ -399,34 +401,34 @@ export default function Workouts() {
                 </div>
               </div>
               {validationErrors.exercises[exercise.id]?.name && (
-                <div className="exercise-field-error title-error">Enter an exercise name.</div>
+                <div className="exercise-field-error title-error">{t('Enter an exercise name.')}</div>
               )}
 
               <div className="exercise-fields">
                 <label>
-                  <span>SETS</span>
+                  <span>{t('SETS')}</span>
                   <input
                     className={validationErrors.exercises[exercise.id]?.sets ? 'field-error' : ''}
                     value={exercise.sets}
                     onChange={(event) => updateExercise(exercise.id, 'sets', event.target.value)}
                   />
                   {validationErrors.exercises[exercise.id]?.sets && (
-                    <small className="exercise-field-error">Enter sets.</small>
+                    <small className="exercise-field-error">{t('Enter sets.')}</small>
                   )}
                 </label>
                 <label>
-                  <span>REPS</span>
+                  <span>{t('REPS')}</span>
                   <input
                     className={validationErrors.exercises[exercise.id]?.reps ? 'field-error' : ''}
                     value={exercise.reps}
                     onChange={(event) => updateExercise(exercise.id, 'reps', event.target.value)}
                   />
                   {validationErrors.exercises[exercise.id]?.reps && (
-                    <small className="exercise-field-error">Enter reps.</small>
+                    <small className="exercise-field-error">{t('Enter reps.')}</small>
                   )}
                 </label>
                 <label>
-                  <span>REST (S)</span>
+                  <span>{t('REST (S)')}</span>
                   <input
                     value={exercise.rest}
                     onChange={(event) => updateExercise(exercise.id, 'rest', event.target.value)}
@@ -435,7 +437,7 @@ export default function Workouts() {
               </div>
 
               <label className="exercise-notes">
-                <span>NOTES</span>
+                <span>{t('NOTES')}</span>
                 <input
                   value={exercise.notes}
                   onChange={(event) => updateExercise(exercise.id, 'notes', event.target.value)}
@@ -452,16 +454,16 @@ export default function Workouts() {
               type="button"
               onClick={addExercise}
             >
-              <PlusCircle size={16} /> ADD EXERCISE
+              <PlusCircle size={16} /> {t('ADD EXERCISE')}
             </button>
             {validationErrors.noExercises && (
               <div className="workout-error-message add-exercise-error">
-                Add at least one exercise to save your workout.
+                {t('Add at least one exercise to save your workout.')}
               </div>
             )}
           </div>
           <button className="save-workout-button" type="button" onClick={saveWorkout}>
-            {editingPlanId ? 'UPDATE WORKOUT' : 'SAVE WORKOUT'}
+            {editingPlanId ? t('UPDATE WORKOUT') : t('SAVE WORKOUT')}
           </button>
         </div>
       </section>
@@ -470,8 +472,8 @@ export default function Workouts() {
         {savedPlans.length > 0 && (
           <div className="ready-plan-group">
             <div className="ready-plans-heading">
-              <h2>SELF-MADE WORKOUT PLANS</h2>
-              <p>Your custom training foundations.</p>
+              <h2>{t('SELF-MADE WORKOUT PLANS')}</h2>
+              <p>{t('Your custom training foundations.')}</p>
             </div>
 
             <div className="ready-plan-list">
@@ -499,7 +501,7 @@ export default function Workouts() {
                     </div>
 
                     <div className="ready-plan-body">
-                      <span className="ready-plan-badge">{plan.badge}</span>
+                      <span className="ready-plan-badge">{t(plan.badge)}</span>
                       <h3>{plan.title}</h3>
                       <ul>
                         {visibleExercises.map((exercise) => (
@@ -515,10 +517,10 @@ export default function Workouts() {
                             togglePlanExercises(planKey);
                           }}
                         >
-                          {isExpanded ? 'SHOW LESS' : plan.more}
+                          {isExpanded ? t('SHOW LESS') : plan.more.replace('MORE EXERCISES', t('MORE EXERCISES'))}
                         </button>
                       )}
-                      <button type="button" onClick={(event) => event.stopPropagation()}>START WORKOUT</button>
+                      <button type="button" onClick={(event) => event.stopPropagation()}>{t('START WORKOUT')}</button>
                     </div>
                   </article>
                 );
@@ -529,8 +531,8 @@ export default function Workouts() {
 
         <div className="ready-plan-group">
           <div className="ready-plans-heading">
-            <h2>READY-MADE WORKOUT PLANS</h2>
-            <p>Curated high-performance foundations.</p>
+            <h2>{t('READY-MADE WORKOUT PLANS')}</h2>
+            <p>{t('Curated high-performance foundations.')}</p>
           </div>
 
           <div className="ready-plan-list">
@@ -558,11 +560,11 @@ export default function Workouts() {
                 </div>
 
                 <div className="ready-plan-body">
-                  <span className="ready-plan-badge">{plan.badge}</span>
-                  <h3>{plan.title}</h3>
+                  <span className="ready-plan-badge">{t(plan.badge)}</span>
+                  <h3>{t(plan.title)}</h3>
                   <ul>
                     {visibleExercises.map((exercise) => (
-                      <li key={exercise}>{exercise}</li>
+                      <li key={exercise}>{t(exercise)}</li>
                     ))}
                   </ul>
                   {plan.more && (
@@ -574,10 +576,10 @@ export default function Workouts() {
                         togglePlanExercises(planKey);
                       }}
                     >
-                      {isExpanded ? 'SHOW LESS' : plan.more}
+                      {isExpanded ? t('SHOW LESS') : plan.more.replace('MORE EXERCISES', t('MORE EXERCISES'))}
                     </button>
                   )}
-                  <button type="button" onClick={(event) => event.stopPropagation()}>START WORKOUT</button>
+                  <button type="button" onClick={(event) => event.stopPropagation()}>{t('START WORKOUT')}</button>
                 </div>
               </article>
             );

@@ -12,6 +12,7 @@ import {
   isSameDay,
   addDays,
 } from 'date-fns';
+import { useLanguage } from '../context/LanguageContext';
 import './Analytics.css';
 
 const trainingDays = [1, 3, 6, 7, 8, 10, 13, 14, 15];
@@ -74,6 +75,7 @@ function buildSmoothLinePath(points) {
 }
 
 function MilestoneCard() {
+  const { t } = useLanguage();
   const [fireworks, setFireworks] = useState([]);
   const fireworksTimer = useRef(null);
 
@@ -140,9 +142,9 @@ function MilestoneCard() {
           ))}
         </div>
       ))}
-      <div className="ms-badge">NEW MILESTONE</div>
-      <h3>BENCH PRESS +5KG</h3>
-      <p>Unlocked 2h ago</p>
+      <div className="ms-badge">{t('NEW MILESTONE')}</div>
+      <h3>{t('BENCH PRESS +5KG')}</h3>
+      <p>{t('Unlocked 2h ago')}</p>
     </div>
   );
 }
@@ -183,6 +185,7 @@ function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', classNa
 }
 
 export default function Analytics() {
+  const { t } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [activeRange, setActiveRange] = useState('1M');
   const chartRef = useRef(null);
@@ -231,17 +234,17 @@ export default function Analytics() {
   return (
     <div className="analytics-page">
       <div className="analytics-header">
-        <h1>STRENGTH <span>INSIGHTS</span></h1>
-        <p>REAL-TIME PERFORMANCE TREND</p>
+        <h1>{t('STRENGTH')} <span>{t('INSIGHTS')}</span></h1>
+        <p>{t('REAL-TIME PERFORMANCE TREND')}</p>
       </div>
 
       <div className="analytics-grid">
         <div className="chart-card">
           <div className="chart-card-top">
             <div className="chart-card-title">
-              <span>STRENGTH PROGRESS</span>
+              <span>{t('STRENGTH PROGRESS')}</span>
               <AnimatedNumber value={activeChart.change} decimals={1} prefix="+ " suffix=" %" className="chart-card-title-h2" as="h2" />
-              <p>{activeChart.compareLabel}</p>
+              <p>{t(activeChart.compareLabel)}</p>
             </div>
             <div className="chart-filters">
               {Object.keys(chartSeries).map((range) => (
@@ -329,10 +332,10 @@ export default function Analytics() {
               </div>
             </div>
             <div className="metric-card-value">
-              315 <span>LBS</span>
+              315 <span>{t('LBS')}</span>
             </div>
-            <div className="metric-card-meta">CURRENT PB</div>
-            <div className="metric-card-title-side">BENCH PRESS</div>
+            <div className="metric-card-meta">{t('CURRENT PB')}</div>
+            <div className="metric-card-title-side">{t('BENCH PRESS')}</div>
           </div>
 
           <div className="metric-card">
@@ -342,10 +345,10 @@ export default function Analytics() {
               </div>
             </div>
             <div className="metric-card-value">
-              485 <span>LBS</span>
+              485 <span>{t('LBS')}</span>
             </div>
-            <div className="metric-card-meta">CURRENT PB</div>
-            <div className="metric-card-title-side">DEADLIFT</div>
+            <div className="metric-card-meta">{t('CURRENT PB')}</div>
+            <div className="metric-card-title-side">{t('DEADLIFT')}</div>
           </div>
 
           <div className="metric-card">
@@ -355,10 +358,10 @@ export default function Analytics() {
               </div>
             </div>
             <div className="metric-card-value">
-              405 <span>LBS</span>
+              405 <span>{t('LBS')}</span>
             </div>
-            <div className="metric-card-meta">CURRENT PB</div>
-            <div className="metric-card-title-side">SQUADS</div>
+            <div className="metric-card-meta">{t('CURRENT PB')}</div>
+            <div className="metric-card-title-side">{t('SQUADS')}</div>
           </div>
 
           <MilestoneCard />
@@ -375,28 +378,28 @@ export default function Analytics() {
           <div className="calendar-grid">
             {weekdays.map((day, index) => (
               <div key={index} className="cal-day-name">
-                {day}
+                {t(day)}
               </div>
             ))}
             {renderCalendarDays()}
           </div>
           <div className="schedule-footer">
             <span className="schedule-meta">
-              <span className="status-dot"></span> CURRENT STREAK: 12 DAYS
+              <span className="status-dot"></span> {t('CURRENT STREAK: 12 DAYS')}
             </span>
-            <span className="schedule-meta highlight">78% MONTHLY COMPLETION RATE</span>
+            <span className="schedule-meta highlight">{t('78% MONTHLY COMPLETION RATE')}</span>
           </div>
         </div>
 
         <div className="quality-card">
           <div className="quality-card-top">
             <div>
-              <span>WEEKLY TRAINING QUALITY</span>
+              <span>{t('WEEKLY TRAINING QUALITY')}</span>
               <h3>94<span>%</span></h3>
             </div>
             <Award size={24} />
           </div>
-          <p>Your progress toward a perfect training week</p>
+          <p>{t('Your progress toward a perfect training week')}</p>
         </div>
       </div>
     </div>

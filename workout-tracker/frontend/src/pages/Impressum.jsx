@@ -18,7 +18,7 @@ export default function Impressum() {
           <div className="widget-header">
             <div className="header-label">
               <Building2 size={18} />
-              <span>ENTITY</span>
+              <span>{t('ENTITY')}</span>
             </div>
           </div>
 
@@ -27,21 +27,21 @@ export default function Impressum() {
           <div className="entity-grid">
             <div className="entity-details">
               <div className="card-block">
-                <div className="card-label">REGISTERED OFFICE</div>
+                <div className="card-label">{t('REGISTERED OFFICE')}</div>
                 <div className="card-value">
                   Fitnessstr. 1<br />
                   10115 Berlin<br />
-                  Germany
+                  {t('Germany')}
                 </div>
               </div>
             </div>
             <div className="entity-details">
               <div className="card-block">
-                <div className="card-label">REGISTRY COURT</div>
+                <div className="card-label">{t('REGISTRY COURT')}</div>
                 <div className="card-value">Amtsgericht Berlin</div>
               </div>
               <div className="card-block">
-                <div className="card-label">REGISTRY NUMBER</div>
+                <div className="card-label">{t('REGISTRY NUMBER')}</div>
                 <div className="card-value">HRB 123456 B</div>
               </div>
             </div>
@@ -52,35 +52,35 @@ export default function Impressum() {
           <div className="widget-header">
             <div className="header-label">
               <UserCheck size={18} />
-              <span>LEGAL REPRESENTATIVES</span>
+              <span>{t('LEGAL REPRESENTATIVES')}</span>
             </div>
           </div>
           <div className="card-title">ALEX MERCER</div>
-          <div className="card-value">CEO / MANAGING DIRECTOR</div>
+          <div className="card-value">{t('CEO / MANAGING DIRECTOR')}</div>
         </section>
 
         <section className="legal-card contact-card">
           <div className="widget-header">
             <div className="header-label">
               <AtSign size={18} />
-              <span>CONTACT DETAILS</span>
+              <span>{t('CONTACT DETAILS')}</span>
             </div>
           </div>
 
           <div className="contact-details">
             <div className="row">
               <div className="detail-wrapper">
-                <div className="card-label">EMAIL</div>
+                <div className="card-label">{t('EMAIL')}</div>
                 <div className="card-value">contact@progym.elite</div>
               </div>
               <div className="detail-wrapper">
-                <div className="card-label">PHONE</div>
+                <div className="card-label">{t('PHONE')}</div>
                 <div className="card-value">+49 30 12345678</div>
               </div>
             </div>
             <div className="row">
               <div className="detail-wrapper">
-                <div className="card-label">VAT ID</div>
+                <div className="card-label">{t('VAT ID')}</div>
                 <div className="card-value">DE 987654321</div>
               </div>
             </div>
@@ -91,11 +91,11 @@ export default function Impressum() {
           <div className="widget-header">
             <div className="header-label">
               <ShieldCheck size={18} />
-              <span>ONLINE DISPUTE RESOLUTION</span>
+              <span>{t('ONLINE DISPUTE RESOLUTION')}</span>
             </div>
           </div>
           <p>
-            The European Commission provides a platform for online dispute resolution (ODR), which you can find here: https://ec.europa.eu/consumers/odr. We are neither obliged nor willing to participate in a dispute resolution procedure before a consumer arbitration board.
+            {t('The European Commission provides a platform for online dispute resolution (ODR), which you can find here: https://ec.europa.eu/consumers/odr. We are neither obliged nor willing to participate in a dispute resolution procedure before a consumer arbitration board.')}
           </p>
         </section>
       </div>
