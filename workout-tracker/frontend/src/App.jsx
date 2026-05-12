@@ -48,6 +48,21 @@ function AppLayout() {
   const [activeReminder, setActiveReminder] = useState(null);
   const langRef = useRef(null);
   const alertsRef = useRef(null);
+  const pageTitleKey = location.pathname === '/dashboard'
+    ? 'Dashboard'
+    : location.pathname === '/workouts'
+      ? 'Workouts'
+      : location.pathname === '/analytics'
+        ? 'Analytics'
+        : location.pathname === '/settings'
+          ? 'Settings'
+          : location.pathname === '/profile'
+            ? 'Profile'
+            : location.pathname === '/about'
+              ? 'About Us'
+              : location.pathname === '/support'
+                ? 'Support'
+                : 'PROGYM';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -204,6 +219,10 @@ function AppLayout() {
           <NavLink to="/workouts" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             <NotebookPen size={20} /> {t('Workouts')}
           </NavLink>
+          <NavLink to="/workouts" className="mobile-start-workout-button">
+            <Activity size={18} />
+            <span>{t('START')}</span>
+          </NavLink>
           <NavLink to="/analytics" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             <LineChart size={20} /> {t('Analytics')}
           </NavLink>
@@ -211,7 +230,7 @@ function AppLayout() {
             <Activity size={20} /> {t('Settings')}
           </NavLink>
 
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="nav-secondary-links">
             <NavLink to="/about" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
               <Info size={20} /> {t('About Us')}
             </NavLink>
@@ -230,7 +249,14 @@ function AppLayout() {
       <div className="main-area">
         {!isLanding && (
           <header className="topbar">
-            <div className="search-bar">
+            <NavLink to="/dashboard" className="mobile-topbar-brand" aria-label="PROGYM Dashboard">
+              <Activity color="#C5FE00" size={22} />
+              <span>
+                <strong>PROGYM</strong>
+                <small>{t(pageTitleKey)}</small>
+              </span>
+            </NavLink>
+            <div className="search-bar desktop-search-bar">
               <Search size={18} color="#ADAAAA" />
               <input type="text" placeholder={t('SEARCH...')} />
             </div>
@@ -244,6 +270,10 @@ function AppLayout() {
                   <div onClick={(e) => { e.stopPropagation(); setLang('en'); setLangOpen(false); }} className={lang === 'en' ? 'active' : ''}>EN</div>
                   <div onClick={(e) => { e.stopPropagation(); setLang('de'); setLangOpen(false); }} className={lang === 'de' ? 'active' : ''}>DE</div>
                 </div>
+              </div>
+              <div className="search-bar mobile-search-bar" aria-label={t('SEARCH...')}>
+                <Search size={18} color="#ADAAAA" />
+                <input type="text" placeholder={t('SEARCH...')} />
               </div>
               <div className="alerts-selector" ref={alertsRef}>
                 <button
@@ -301,6 +331,7 @@ function AppLayout() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/workouts" element={<Workouts />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/settings" element={<Profile />} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/profile" element={<Profile />} />
@@ -311,8 +342,14 @@ function AppLayout() {
           {/* Global Footer */}
           <footer className="global-footer">
             <div className="footer-links">
-              <NavLink to="/impressum" className="footer-link">{t('IMPRESSUM')}</NavLink>
-              <NavLink to="/datenschutz" className="footer-link">{t('DATENSCHUTZ')}</NavLink>
+              <div className="footer-link-row">
+                <NavLink to="/impressum" className="footer-link">{t('IMPRESSUM')}</NavLink>
+                <NavLink to="/datenschutz" className="footer-link">{t('DATENSCHUTZ')}</NavLink>
+              </div>
+              <div className="footer-link-row">
+                <NavLink to="/about" className="footer-link">{t('About Us')}</NavLink>
+                <NavLink to="/support" className="footer-link">{t('Support')}</NavLink>
+              </div>
             </div>
             <div className="footer-copyright">
               © 2026 PROGYM PERFORMANCE SYSTEMS. ALL RIGHTS RESERVED.

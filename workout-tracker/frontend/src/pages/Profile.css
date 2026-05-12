@@ -1028,10 +1028,145 @@
 }
 
 @media (max-width: 760px) {
+  .bmi-modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .bmi-info-modal {
+    width: 100%;
+    max-height: calc(100vh - 88px);
+    border-radius: 20px;
+  }
+
+  .bmi-modal-close {
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .bmi-modal-header {
+    gap: 12px;
+    padding: 20px 56px 16px 18px;
+  }
+
+  .bmi-modal-header .profile-heading-icon {
+    width: 34px;
+    height: 34px;
+    aspect-ratio: 1 / 1;
+    flex: 0 0 34px;
+    border-radius: 50%;
+  }
+
+  .bmi-modal-header span:not(.profile-heading-icon) {
+    margin-bottom: 4px;
+    font-size: 0.54rem;
+  }
+
+  .bmi-modal-header h2 {
+    font-size: 1.45rem;
+  }
+
+  .bmi-modal-intro {
+    margin: 16px 18px;
+    max-width: none;
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .bmi-formula-card {
+    margin: 0 18px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .bmi-formula-card span {
+    margin-bottom: 6px;
+    font-size: 0.54rem;
+  }
+
+  .bmi-formula-card strong {
+    margin-bottom: 6px;
+    font-size: 1.35rem;
+  }
+
+  .bmi-formula-card p,
+  .bmi-info-grid p,
+  .bmi-ranges-section > p,
+  .bmi-range-card p {
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .bmi-info-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 12px 18px 0;
+  }
+
+  .bmi-info-grid > div {
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  .bmi-info-grid > div::before {
+    width: 26px;
+    height: 3px;
+    margin-bottom: 10px;
+  }
+
+  .bmi-info-grid h3 {
+    margin-bottom: 8px;
+    font-size: 0.66rem;
+  }
+
+  .bmi-ranges-section {
+    margin: 16px 18px 18px;
+    padding-top: 14px;
+  }
+
+  .bmi-ranges-section h3 {
+    margin-bottom: 8px;
+    font-size: 0.72rem;
+  }
+
+  .bmi-range-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .bmi-range-card {
+    min-height: 118px;
+    padding: 11px;
+    border-radius: 12px;
+  }
+
+  .bmi-range-card::after {
+    width: 48px;
+    height: 48px;
+    right: -14px;
+    bottom: -16px;
+  }
+
+  .bmi-range-card span {
+    margin-bottom: 5px;
+    font-size: 0.5rem;
+  }
+
+  .bmi-range-card strong {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+
   .profile-main-column .profile-panel,
   .compact-panel {
-    padding: 24px;
-    border-radius: 22px;
+    padding: 16px;
+    border-radius: 16px;
+    border-color: rgba(255,255,255,0.06);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 100%),
+      #121212;
   }
 
   .account-profile-body,
@@ -1041,8 +1176,64 @@
     grid-template-columns: 1fr;
   }
 
+  .encryption-panel {
+    min-height: 0;
+    gap: 12px;
+  }
+
+  .encryption-copy h2 {
+    margin-bottom: 12px;
+    font-size: 1.16rem;
+  }
+
+  .encryption-copy p {
+    max-width: none;
+    margin-bottom: 14px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .encryption-badges {
+    gap: 8px;
+  }
+
+  .encryption-badges span {
+    font-size: 0.54rem;
+  }
+
+  .encryption-visual {
+    min-height: 86px;
+  }
+
+  .encryption-visual::before {
+    width: 112px;
+    height: 112px;
+    opacity: 0.45;
+  }
+
+  .encryption-visual svg {
+    width: 42px;
+    height: 42px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .account-panel .account-form-grid {
+    gap: 12px;
+  }
+
   .profile-hero h1 {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 10.5vw, 2.55rem);
+    letter-spacing: 0;
+  }
+
+  .profile-hero p {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
   }
 
   .profile-settings-grid {
@@ -1058,7 +1249,32 @@
   }
 
   .profile-avatar-edit {
-    margin: 0 auto;
+    width: 70px;
+    margin: 0;
+  }
+
+  .profile-avatar-ring {
+    width: 70px;
+    height: 70px;
+  }
+
+  .profile-avatar-face {
+    width: 58px;
+    height: 58px;
+  }
+
+  .profile-avatar-face::before {
+    width: 20px;
+    height: 20px;
+    margin-top: 7px;
+    box-shadow: 0 28px 0 11px #222;
+  }
+
+  .profile-avatar-edit button {
+    right: -4px;
+    bottom: 2px;
+    width: 24px;
+    height: 24px;
   }
 
   .profile-password-row,
@@ -1076,8 +1292,160 @@
 
   .profile-toggle-row,
   .hydration-goal-value {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .profile-panel-heading {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .profile-heading-icon,
+  .watch-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .profile-heading-icon svg,
+  .watch-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .profile-panel-heading h2,
+  .watch-panel h2 {
+    font-size: 0.92rem;
+  }
+
+  .profile-form-field {
+    gap: 6px;
+  }
+
+  .profile-form-field span {
+    font-size: 0.58rem;
+  }
+
+  .profile-form-field input,
+  .profile-form-field select {
+    height: 40px;
+    padding: 0 13px;
+    border-radius: 10px;
+    font-size: 0.86rem;
+  }
+
+  .profile-password-row {
+    gap: 8px;
+    grid-template-columns: 1fr 78px;
+  }
+
+  .profile-password-row button,
+  .profile-outline-action,
+  .profile-danger-action {
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 0.58rem;
+  }
+
+  .biometrics-save-button {
+    width: auto;
+    min-height: 36px;
+    padding: 0 12px;
+    margin-left: 0;
+    font-size: 0.62rem;
+  }
+
+  .profile-panel-heading {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .biometrics-panel .profile-panel-heading {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .biometrics-panel .profile-panel-heading h2 {
+    min-width: 0;
+    font-size: 0.92rem;
+  }
+
+  .bmi-control-row {
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 18px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .bmi-control-row > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .bmi-result-pill {
+    justify-self: start;
+    min-height: 32px;
+    padding: 0 11px;
+    font-size: 0.68rem;
+  }
+
+  .bmi-info-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .profile-mini-toggle {
+    width: 42px;
+    height: 24px;
+  }
+
+  .profile-mini-toggle::after {
+    top: 4px;
+    left: 5px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .profile-mini-toggle.active::after {
+    transform: translateX(16px);
+  }
+
+  .profile-toggle-row {
+    min-height: 0;
+    padding: 12px 0;
+    gap: 12px;
+  }
+
+  .profile-toggle-row h3,
+  .bmi-control-row h3 {
+    font-size: 0.66rem;
+  }
+
+  .profile-toggle-row p,
+  .bmi-control-row p,
+  .watch-panel p {
+    font-size: 0.58rem;
+  }
+
+  .hydration-goal-value {
+    justify-content: space-between;
+  }
+
+  .hydration-goal-value span {
+    font-size: 2rem;
+  }
+
+  .profile-hydration-controls {
+    gap: 10px;
+  }
+
+  .profile-hydration-controls button {
+    width: 34px;
+    height: 34px;
   }
 
   .hydration-goal-value small {
@@ -1086,6 +1454,7 @@
 
   .profile-reminder-toast {
     right: 18px;
-    bottom: 18px;
+    bottom: calc(98px + env(safe-area-inset-bottom));
+    width: calc(100vw - 36px);
   }
 }

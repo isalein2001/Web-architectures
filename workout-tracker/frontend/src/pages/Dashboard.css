@@ -487,14 +487,14 @@
 
 .hydration-goal-controls {
   display: grid;
-  grid-template-columns: 42px 1fr 42px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .hydration-goal-controls button {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   display: flex;
@@ -504,6 +504,11 @@
   color: #FFF;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.hydration-goal-controls button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .hydration-goal-controls button:hover {
@@ -620,6 +625,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100dvh;
   padding: 24px;
   background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(14px);
@@ -629,6 +635,7 @@
   position: relative;
   width: min(720px, 100%);
   max-height: min(86vh, 780px);
+  margin: auto;
   overflow-y: auto;
   padding: 32px;
   border-radius: 16px;
@@ -980,7 +987,7 @@
 .achievements-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
 }
 
@@ -1042,6 +1049,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 16px;
   margin-right: 48px;
 }
 
@@ -1083,20 +1091,83 @@
 }
 
 @media (max-width: 680px) {
+  .dashboard-container {
+    gap: 14px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .hero-banner {
-    height: 240px;
-    padding: 0 24px;
+    min-height: 214px;
+    height: auto;
+    padding: 26px 20px;
+    border-radius: 16px;
+  }
+
+  .hero-gradient-overlay {
+    background-image: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.72) 62%, rgba(0,0,0,0.25) 100%);
   }
 
   .hero-content h1,
   .achievements-text-area h2 {
-    font-size: 2.5rem;
+    font-size: clamp(2.25rem, 12vw, 2.8rem);
+    letter-spacing: 0;
+  }
+
+  .hero-content p {
+    max-width: 280px;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    line-height: 1.65;
   }
 
   .card,
   .stat-card.horizontal,
   .achievements-card {
-    padding: 24px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 22px;
+    border-radius: 18px;
+    border-color: rgba(255,255,255,0.06);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 100%),
+      #121212;
+  }
+
+  .card-header-flex {
+    gap: 14px;
+    flex-direction: column;
+  }
+
+  .top-grid,
+  .top-grid-right-stack,
+  .stats-grid {
+    width: 100%;
+    min-width: 0;
+    gap: 14px;
+  }
+
+  .card-header-flex h2 {
+    font-size: 1.25rem;
+  }
+
+  .goal-badges {
+    flex-wrap: wrap;
+  }
+
+  .circular-progress-container {
+    width: min(196px, 64vw);
+    height: min(196px, 64vw);
+    margin: 20px auto;
+  }
+
+  .circular-progress-value {
+    font-size: clamp(2.3rem, 11vw, 2.8rem);
+  }
+
+  .hydration-card {
+    min-height: 150px;
   }
 
   .hydration-card,
@@ -1122,5 +1193,183 @@
 
   .hydration-target-badge {
     white-space: normal;
+  }
+
+  .calendar-header {
+    gap: 12px;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .calendar-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .calendar-nav {
+    gap: 10px;
+  }
+
+  .calendar-nav svg {
+    width: 28px;
+    height: 28px;
+    padding: 6px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .calendar-grid {
+    width: 100%;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    justify-items: center;
+    gap: 8px 0;
+    padding: 0 2px;
+  }
+
+  .cal-day-name {
+    font-size: 0.58rem;
+    margin-bottom: 8px;
+  }
+
+  .cal-day {
+    width: clamp(32px, 10vw, 38px);
+    height: clamp(32px, 10vw, 38px);
+    font-size: 0.78rem;
+    border-radius: 10px;
+    margin: 0 auto;
+  }
+
+  .stat-card.horizontal {
+    min-height: 100px;
+    align-items: center;
+    gap: 16px;
+    flex-direction: row;
+  }
+
+  .stat-title-side {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
+  .achievements-desc {
+    margin-bottom: 28px;
+    font-size: 0.95rem;
+  }
+
+  .achievements-card {
+    padding: 20px;
+    background-image:
+      linear-gradient(90deg, rgba(10,10,10,0.96) 0%, rgba(10,10,10,0.82) 58%, rgba(10,10,10,0.45) 100%),
+      url('/achievements-bg.png');
+    background-size: cover;
+    background-position: 62% center;
+  }
+
+  .achievements-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .achievements-text-area {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .achievements-text-area h2 {
+    font-size: clamp(1.75rem, 10vw, 2.25rem);
+  }
+
+  .achievements-medal-area {
+    width: 88px;
+    height: 116px;
+    margin-right: 0;
+    justify-self: end;
+    align-self: start;
+    margin-top: 72px;
+  }
+
+  .medal-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .lifts-grid {
+    gap: 14px;
+  }
+
+  .lift-weight {
+    font-size: 1.25rem;
+  }
+
+  .workout-planner-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .workout-planner-modal {
+    width: 100%;
+    max-height: calc(100vh - 92px);
+    padding: 28px 20px 20px;
+    border-radius: 26px;
+  }
+
+  .workout-planner-close {
+    top: 18px;
+    right: 18px;
+  }
+
+  .workout-planner-header {
+    align-items: flex-start;
+    gap: 14px;
+    padding-right: 44px;
+  }
+
+  .workout-planner-header h2 {
+    font-size: 1.65rem;
+  }
+
+  .scheduled-workout-current,
+  .ready-made-suggestion {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .scheduled-workout-current strong,
+  .ready-made-suggestion strong {
+    text-align: left;
+  }
+
+  .workout-select-card {
+    grid-template-columns: 72px 1fr;
+    gap: 12px;
+    border-radius: 18px;
+  }
+
+  .workout-planner-actions {
+    flex-direction: column;
+  }
+
+  .planner-remove-button,
+  .planner-save-button {
+    width: 100%;
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 380px) {
+  .calendar-grid {
+    gap: 6px 2px;
+  }
+
+  .cal-day {
+    width: 32px;
+    height: 32px;
   }
 }

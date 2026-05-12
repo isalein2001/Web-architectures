@@ -240,7 +240,7 @@ export default function Profile() {
               </div>
             </div>
             <div className="encryption-visual">
-              <Lock size={92} />
+              <Lock size={64} />
             </div>
           </section>
         </main>

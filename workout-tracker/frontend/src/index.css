@@ -44,3 +44,23 @@ body {
 * {
   cursor: none !important;
 }
+
+@media (max-width: 900px), (hover: none), (pointer: coarse) {
+  html {
+    background-color: var(--color-background);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+    touch-action: manipulation;
+  }
+}

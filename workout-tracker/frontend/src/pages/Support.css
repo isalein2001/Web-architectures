@@ -309,7 +309,7 @@
 
 @media (max-width: 720px) {
   .support-page {
-    gap: 44px;
+    gap: 28px;
   }
 
   .support-hero {
@@ -318,16 +318,18 @@
 
   .support-hero h1,
   .support-assistance h2 {
-    font-size: 2.55rem;
+    font-size: clamp(2rem, 10.5vw, 2.5rem);
+    letter-spacing: 0;
   }
 
   .support-faq {
     margin-top: -22px;
-    border-radius: 20px;
+    border-radius: 24px;
+    border-color: rgba(255,255,255,0.06);
   }
 
   .support-faq-row {
-    min-height: 78px;
+    min-height: 74px;
     padding: 0 22px;
     font-size: 0.82rem;
   }
@@ -338,7 +340,31 @@
   }
 
   .support-ticket-card {
-    padding: 28px;
-    border-radius: 24px;
+    padding: 20px;
+    border-radius: 20px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 100%),
+      #121212;
+  }
+
+  .support-contact-row {
+    flex-direction: column;
+  }
+
+  .support-field input,
+  .support-select-shell {
+    height: 54px;
+  }
+
+  .support-field input,
+  .support-field textarea,
+  .support-select-shell {
+    border-radius: 20px;
+    font-size: 1rem;
+  }
+
+  .support-submit {
+    height: 58px;
+    font-size: 0.82rem;
   }
 }

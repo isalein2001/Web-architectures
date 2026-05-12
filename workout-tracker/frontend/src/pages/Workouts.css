@@ -800,17 +800,85 @@
 
 @media (max-width: 640px) {
   .workouts-page {
-    margin-top: 12px;
+    gap: 34px;
+    margin-top: 6px;
+  }
+
+  .workouts-title {
+    margin-bottom: 22px;
+    font-size: clamp(2rem, 10.5vw, 2.55rem);
+    letter-spacing: 0;
+  }
+
+  .workout-builder-topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .workout-name-input {
-    height: 60px;
-    font-size: 0.85rem;
+    height: 54px;
+    padding: 0 20px;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    border-color: rgba(197, 254, 0, 0.42);
+    box-shadow:
+      var(--shadow-elevate),
+      0 0 22px rgba(197, 254, 0, 0.08);
+  }
+
+  .workout-cover-label {
+    margin-top: 30px;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+  }
+
+  .workout-upload-box {
+    min-height: 118px;
+    padding: 18px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.06);
+    border-radius: 22px;
+    background-color: #151515;
+  }
+
+  .plan-icon-options {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .plan-icon-option {
+    width: 48px;
+    height: 48px;
   }
 
   .workout-exercise-card {
-    padding: 24px;
-    border-radius: 16px;
+    padding: 18px;
+    border-radius: 18px;
+    border-color: rgba(255, 255, 255, 0.05);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 100%),
+      #121212;
+  }
+
+  .workout-exercise-stack {
+    gap: 18px;
+    margin-top: 24px;
+  }
+
+  .exercise-card-header {
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .exercise-card-header button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .exercise-title-input {
+    min-height: 42px;
+    font-size: 1rem;
   }
 
   .exercise-fields,
@@ -821,6 +889,23 @@
   .exercise-fields {
     display: flex;
     flex-direction: column;
+    gap: 14px;
+  }
+
+  .exercise-fields input,
+  .exercise-notes input,
+  .set-rep-field input {
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .exercise-notes {
+    margin-top: 16px;
+  }
+
+  .set-reps-panel {
+    padding: 16px;
+    border-radius: 18px;
   }
 
   .set-reps-heading {
@@ -836,10 +921,77 @@
   .workout-builder-actions {
     flex-direction: column;
     align-items: stretch;
+    gap: 14px;
+    margin-top: 28px;
+  }
+
+  .add-exercise-control {
+    width: 100%;
   }
 
   .add-exercise-button,
   .save-workout-button {
     width: 100%;
+    min-width: 0;
+    min-height: 54px;
+    padding: 0 20px;
+    font-size: 0.78rem;
+  }
+
+  .workout-error-message.add-exercise-error {
+    max-width: none;
+  }
+
+  .ready-plans-heading {
+    margin-bottom: 22px;
+  }
+
+  .ready-plan-list {
+    gap: 22px;
+  }
+
+  .ready-plan-card {
+    border-radius: 18px;
+    border-color: rgba(255, 255, 255, 0.06);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 100%),
+      #121212;
+  }
+
+  .ready-plan-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .ready-plan-cover {
+    height: 132px;
+  }
+
+  .ready-plan-body {
+    padding: 18px;
+  }
+
+  .ready-plan-body h3 {
+    font-size: 1.12rem;
+    letter-spacing: 0;
+  }
+
+  .ready-plan-body ul {
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+  }
+
+  .ready-plan-body > button:not(.ready-plan-more-button) {
+    height: 52px;
+  }
+}
+
+@media (max-width: 380px) {
+  .plan-icon-option {
+    width: 46px;
+    height: 46px;
+  }
+
+  .exercise-card-actions {
+    gap: 2px;
   }
 }
