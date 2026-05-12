@@ -61,16 +61,34 @@ const emptyExercise = () => ({
   name: '',
   sets: '',
   reps: '',
+  setReps: [],
   rest: '',
   notes: '',
 });
 
-const isExerciseEmpty = (exercise) =>
-  !exercise.name.trim() &&
-  !exercise.sets.trim() &&
-  !exercise.reps.trim() &&
-  !exercise.rest.trim() &&
-  !exercise.notes.trim();
+const getSetCount = (sets) => {
+  const parsedSets = Number.parseInt(sets, 10);
+  return Number.isFinite(parsedSets) && parsedSets > 0 ? Math.min(parsedSets, 12) : 0;
+};
+
+const normalizeSetReps = (exercise) => {
+  const setCount = getSetCount(exercise.sets);
+  const fallbackReps = exercise.reps || '';
+  const currentSetReps = Array.isArray(exercise.setReps) ? exercise.setReps : [];
+
+  return Array.from({ length: setCount }, (_, index) => currentSetReps[index] ?? fallbackReps);
+};
+
+const shouldShowSetRepsPanel = (exercise) => getSetCount(exercise.sets) > 1;
+
+const formatExerciseSummary = (exercise) => {
+  const setReps = normalizeSetReps(exercise).filter((rep) => rep.trim());
+  const repSummary = setReps.every((rep) => rep === setReps[0])
+    ? setReps[0]
+    : setReps.join('/');
+
+  return `${exercise.name.trim()} (${exercise.sets.trim()}x${repSummary})`;
+};
 
 export default function Workouts() {
   const { t } = useLanguage();
@@ -106,9 +124,55 @@ export default function Workouts() {
     }));
 
     setExercises((currentExercises) =>
-      currentExercises.map((exercise) =>
-        exercise.id === id ? { ...exercise, [field]: value } : exercise
-      )
+      currentExercises.map((exercise) => {
+        if (exercise.id !== id) return exercise;
+
+        const nextExercise = { ...exercise, [field]: value };
+
+        if (field === 'sets') {
+          return {
+            ...nextExercise,
+            setReps: normalizeSetReps(nextExercise),
+          };
+        }
+
+        if (field === 'reps') {
+          return {
+            ...nextExercise,
+            setReps: normalizeSetReps(nextExercise).map((currentRep) => currentRep || value),
+          };
+        }
+
+        return nextExercise;
+      })
+    );
+  };
+
+  const updateSetRep = (id, setIndex, value) => {
+    setValidationErrors((currentErrors) => ({
+      ...currentErrors,
+      exercises: {
+        ...currentErrors.exercises,
+        [id]: {
+          ...currentErrors.exercises[id],
+          reps: false,
+        },
+      },
+    }));
+
+    setExercises((currentExercises) =>
+      currentExercises.map((exercise) => {
+        if (exercise.id !== id) return exercise;
+
+        const setReps = normalizeSetReps(exercise);
+        setReps[setIndex] = value;
+
+        return {
+          ...exercise,
+          reps: setReps.filter(Boolean).join('/'),
+          setReps,
+        };
+      })
     );
   };
 
@@ -168,10 +232,13 @@ export default function Workouts() {
     }
 
     enteredExercises.forEach((exercise) => {
+      const setReps = normalizeSetReps(exercise);
       nextErrors.exercises[exercise.id] = {
         name: !exercise.name.trim(),
         sets: !exercise.sets.trim(),
-        reps: !exercise.reps.trim(),
+        reps: shouldShowSetRepsPanel(exercise)
+          ? setReps.some((rep) => !rep.trim())
+          : !exercise.reps.trim(),
       };
     });
 
@@ -184,9 +251,7 @@ export default function Workouts() {
       return;
     }
 
-    const formattedExercises = enteredExercises.map((exercise) =>
-      `${exercise.name.trim()} (${exercise.sets.trim()}x${exercise.reps.trim()})`
-    );
+    const formattedExercises = enteredExercises.map(formatExerciseSummary);
 
     const savedPlan = {
       id: editingPlanId || `custom-${Date.now()}`,
@@ -194,7 +259,11 @@ export default function Workouts() {
       badge: t('CUSTOM PLAN'),
       image: coverImage || '/hero-bg.png',
       iconKey: selectedIconKey,
-      builderExercises: enteredExercises.map((exercise) => ({ ...exercise, id: Date.now() + Math.random() })),
+      builderExercises: enteredExercises.map((exercise) => ({
+        ...exercise,
+        setReps: normalizeSetReps(exercise),
+        id: Date.now() + Math.random(),
+      })),
       exercises: formattedExercises.slice(0, 3),
       extraExercises: formattedExercises.slice(3),
       more: formattedExercises.length > 3 ? `+ ${formattedExercises.length - 3} ${t('MORE EXERCISES')}` : '',
@@ -218,7 +287,11 @@ export default function Workouts() {
     setWorkoutName(plan.title);
     setCoverImage(plan.image);
     setSelectedIconKey(plan.iconKey || 'dumbbell');
-    setExercises(plan.builderExercises.map((exercise) => ({ ...exercise, id: Date.now() + Math.random() })));
+    setExercises(plan.builderExercises.map((exercise) => ({
+      ...exercise,
+      setReps: normalizeSetReps(exercise),
+      id: Date.now() + Math.random(),
+    })));
     setValidationErrors({ workoutName: false, noExercises: false, exercises: {} });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -325,17 +398,21 @@ export default function Workouts() {
         <div className="plan-icon-picker">
           <div className="workout-cover-label">{t('PLAN ICON')}</div>
           <div className="plan-icon-options">
-            {planIconOptions.map(({ key, label, Icon }) => (
-              <button
-                key={key}
-                className={`plan-icon-option ${selectedIconKey === key ? 'active' : ''}`}
-                type="button"
-                aria-label={`${t('PLAN ICON')}: ${t(label)}`}
-                onClick={() => setSelectedIconKey(key)}
-              >
-                <Icon size={20} />
-              </button>
-            ))}
+            {planIconOptions.map(({ key, label, Icon }) => {
+              const PlanOptionIcon = Icon;
+
+              return (
+                <button
+                  key={key}
+                  className={`plan-icon-option ${selectedIconKey === key ? 'active' : ''}`}
+                  type="button"
+                  aria-label={`${t('PLAN ICON')}: ${t(label)}`}
+                  onClick={() => setSelectedIconKey(key)}
+                >
+                  <PlanOptionIcon size={20} />
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -422,9 +499,10 @@ export default function Workouts() {
                     className={validationErrors.exercises[exercise.id]?.reps ? 'field-error' : ''}
                     value={exercise.reps}
                     onChange={(event) => updateExercise(exercise.id, 'reps', event.target.value)}
+                    placeholder={t('Default reps')}
                   />
                   {validationErrors.exercises[exercise.id]?.reps && (
-                    <small className="exercise-field-error">{t('Enter reps.')}</small>
+                    <small className="exercise-field-error">{t('Enter reps for every set.')}</small>
                   )}
                 </label>
                 <label>
@@ -435,6 +513,27 @@ export default function Workouts() {
                   />
                 </label>
               </div>
+
+              {shouldShowSetRepsPanel(exercise) && (
+                <div className="set-reps-panel">
+                  <div className="set-reps-heading">
+                    <span>{t('REPS PER SET')}</span>
+                    <small>{t('Customize each set individually')}</small>
+                  </div>
+                  <div className="set-reps-grid">
+                    {normalizeSetReps(exercise).map((repValue, index) => (
+                      <label className="set-rep-field" key={`${exercise.id}-set-${index + 1}`}>
+                        <span>{t('SET')} {index + 1}</span>
+                        <input
+                          className={validationErrors.exercises[exercise.id]?.reps && !repValue.trim() ? 'field-error' : ''}
+                          value={repValue}
+                          onChange={(event) => updateSetRep(exercise.id, index, event.target.value)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <label className="exercise-notes">
                 <span>{t('NOTES')}</span>

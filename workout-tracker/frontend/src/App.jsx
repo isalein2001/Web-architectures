@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
-import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy } from "lucide-react";
+import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";
 import Analytics from "./pages/Analytics";
@@ -14,22 +14,115 @@ import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "./context/LanguageContext";
 
+const HYDRATION_REMINDER_TIMES = [
+  { hour: 8, minute: 30 },
+  { hour: 13, minute: 0 },
+  { hour: 19, minute: 0 },
+];
+const WORKOUT_REMINDER_TIME = { hour: 18, minute: 0 };
+
+const getNextReminderDelay = ({ hour, minute }) => {
+  const now = new Date();
+  const nextReminder = new Date();
+  nextReminder.setHours(hour, minute, 0, 0);
+
+  if (nextReminder <= now) {
+    nextReminder.setDate(nextReminder.getDate() + 1);
+  }
+
+  return nextReminder.getTime() - now.getTime();
+};
+
 function AppLayout() {
   const location = useLocation();
   const isLanding = location.pathname === "/";
   const { t, lang, setLang } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [workoutRemindersEnabled, setWorkoutRemindersEnabled] = useState(() => (
+    window.localStorage.getItem('workoutRemindersEnabled') !== 'false'
+  ));
+  const [hydrationAlertsEnabled, setHydrationAlertsEnabled] = useState(() => (
+    window.localStorage.getItem('hydrationAlertsEnabled') === 'true'
+  ));
+  const [activeReminder, setActiveReminder] = useState(null);
   const langRef = useRef(null);
+  const alertsRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (langRef.current && !langRef.current.contains(event.target)) {
         setLangOpen(false);
       }
+      if (alertsRef.current && !alertsRef.current.contains(event.target)) {
+        setAlertsOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const handleAlertPreferenceChange = (event) => {
+      if (typeof event.detail?.workoutRemindersEnabled === 'boolean') {
+        setWorkoutRemindersEnabled(event.detail.workoutRemindersEnabled);
+      }
+      if (typeof event.detail?.hydrationAlertsEnabled === 'boolean') {
+        setHydrationAlertsEnabled(event.detail.hydrationAlertsEnabled);
+      }
+    };
+
+    window.addEventListener('alert-preferences-change', handleAlertPreferenceChange);
+    return () => window.removeEventListener('alert-preferences-change', handleAlertPreferenceChange);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('workoutRemindersEnabled', workoutRemindersEnabled.toString());
+    window.dispatchEvent(new CustomEvent('alert-preferences-change', {
+      detail: { workoutRemindersEnabled },
+    }));
+  }, [workoutRemindersEnabled]);
+
+  useEffect(() => {
+    window.localStorage.setItem('hydrationAlertsEnabled', hydrationAlertsEnabled.toString());
+    window.dispatchEvent(new CustomEvent('alert-preferences-change', {
+      detail: { hydrationAlertsEnabled },
+    }));
+  }, [hydrationAlertsEnabled]);
+
+  useEffect(() => {
+    if (!workoutRemindersEnabled) return undefined;
+
+    const workoutReminderTimeout = window.setTimeout(() => {
+      setActiveReminder({
+        id: `workout-${Date.now()}`,
+        type: 'workout',
+        title: t('WORKOUT REMINDER'),
+        message: t('Your daily session prompt is ready. Keep the streak alive.'),
+        meta: t('Daily session prompt'),
+      });
+    }, getNextReminderDelay(WORKOUT_REMINDER_TIME));
+
+    return () => window.clearTimeout(workoutReminderTimeout);
+  }, [workoutRemindersEnabled, t]);
+
+  useEffect(() => {
+    if (!hydrationAlertsEnabled) return undefined;
+
+    const reminderTimeouts = HYDRATION_REMINDER_TIMES.map((reminderTime) =>
+      window.setTimeout(() => {
+        setActiveReminder({
+          id: `hydration-${Date.now()}`,
+          type: 'hydration',
+          title: t('HYDRATION REMINDER'),
+          message: t('Time to drink water. Keep your daily target on track.'),
+          meta: t('Morning, midday and evening reminder'),
+        });
+      }, getNextReminderDelay(reminderTime))
+    );
+
+    return () => reminderTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+  }, [hydrationAlertsEnabled, t]);
 
   useEffect(() => {
     const cursor = document.createElement("div");
@@ -152,7 +245,42 @@ function AppLayout() {
                   <div onClick={(e) => { e.stopPropagation(); setLang('de'); setLangOpen(false); }} className={lang === 'de' ? 'active' : ''}>DE</div>
                 </div>
               </div>
-              <Bell size={20} color="#ADAAAA" style={{ cursor: 'pointer' }} />
+              <div className="alerts-selector" ref={alertsRef}>
+                <button
+                  className={`topbar-icon-button ${alertsOpen ? 'active' : ''}`}
+                  type="button"
+                  aria-label={t('ALERTS')}
+                  aria-expanded={alertsOpen}
+                  onClick={() => setAlertsOpen((open) => !open)}
+                >
+                  <Bell size={20} />
+                </button>
+                <div className={`alerts-dropdown ${alertsOpen ? 'open' : ''}`}>
+                  <div className="alerts-dropdown-header">{t('ALERT SETTINGS')}</div>
+                  <button
+                    className="alerts-dropdown-row"
+                    type="button"
+                    onClick={() => setWorkoutRemindersEnabled((enabled) => !enabled)}
+                  >
+                    <span>
+                      <strong>{t('WORKOUT REMINDERS')}</strong>
+                      <small>{t('DAILY SESSION PROMPTS')}</small>
+                    </span>
+                    <span className={`topbar-mini-toggle ${workoutRemindersEnabled ? 'active' : ''}`}></span>
+                  </button>
+                  <button
+                    className="alerts-dropdown-row"
+                    type="button"
+                    onClick={() => setHydrationAlertsEnabled((enabled) => !enabled)}
+                  >
+                    <span>
+                      <strong>{t('HYDRATION ALERTS')}</strong>
+                      <small>{t('WATER INTAKE TRACKING')}</small>
+                    </span>
+                    <span className={`topbar-mini-toggle ${hydrationAlertsEnabled ? 'active' : ''}`}></span>
+                  </button>
+                </div>
+              </div>
               
               <NavLink to="/profile" style={{ textDecoration: 'none' }}>
                 <div className="user-profile" style={{ cursor: 'pointer' }}>
@@ -192,6 +320,21 @@ function AppLayout() {
           </footer>
         </main>
       </div>
+      {activeReminder && (
+        <div className="app-reminder-toast" role="status" aria-live="polite">
+          <div className="app-reminder-icon">
+            {activeReminder.type === 'workout' ? <Bell size={20} /> : <Droplets size={20} />}
+          </div>
+          <div className="app-reminder-content">
+            <span>{activeReminder.meta}</span>
+            <h3>{activeReminder.title}</h3>
+            <p>{activeReminder.message}</p>
+          </div>
+          <button type="button" onClick={() => setActiveReminder(null)} aria-label={t('Dismiss reminder')}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
