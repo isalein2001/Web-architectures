@@ -54,6 +54,27 @@ Validation:
 - Invalid `exercises` payload returns `400`
 - Unknown workout/plan id returns `404`
 
+### Nested Resource: Plan Exercises
+
+Exercises are the second API resource and are nested under their parent workout plan. This mirrors the database relationship: every row in `plan_exercises` belongs to one row in `plans`.
+
+The same nested routes are available through the `/api/workouts/:workoutId/exercises` alias because `/api/workouts` and `/api/plans` use the same router.
+
+| Method | Endpoint | Description | Success |
+| --- | --- | --- | --- |
+| `GET` | `/api/plans/:planId/exercises` | List exercises for one workout plan | `200` |
+| `GET` | `/api/plans/:planId/exercises/:exerciseId` | Get one exercise inside one workout plan | `200` |
+| `POST` | `/api/plans/:planId/exercises` | Create an exercise inside one workout plan | `201` |
+| `PUT` | `/api/plans/:planId/exercises/:exerciseId` | Fully replace/update one nested exercise | `200` |
+| `DELETE` | `/api/plans/:planId/exercises/:exerciseId` | Delete one nested exercise | `204` |
+
+Validation:
+
+- Missing `exercise_name` returns `400`
+- Invalid `target_sets` returns `400`
+- Unknown parent workout/plan id returns `404`
+- Unknown nested exercise id returns `404`
+
 ### Sessions
 
 Persisted in `workout_sessions` and `workout_logs`.
@@ -122,19 +143,42 @@ The backend was refactored minimally:
 - Input validation was added where missing.
 - `PUT` endpoints fully replace existing workout plans and their exercises.
 - `DELETE` endpoints were added for workout plans and sessions.
+- Nested exercise endpoints were added under workout plans as a second REST resource.
 
 No frontend architecture was replaced, and no existing database functionality was removed.
 
 ## Prompt Iterations
 
-The implementation followed these prompt constraints:
+### Iteration 1: Backend REST Refactor
 
-1. Analyze the existing backend before changing code.
-2. Preserve the React/Vite frontend and Express/SQLite backend architecture.
-3. Keep existing frontend behavior and existing API paths working.
-4. Improve REST structure only where necessary.
-5. Move route handlers out of `server.js` into separate route files.
-6. Verify HTTP status codes and backend startup after refactoring.
+The first backend prompt focused on preserving the existing app while improving API structure:
+
+- Analyze the existing backend before changing code.
+- Preserve the React/Vite frontend and Express/SQLite backend architecture.
+- Keep existing frontend behavior and existing API paths working.
+- Move route handlers out of `server.js` into separate route files.
+- Preserve SQLite persistence and the existing database flow.
+- Document resources, CRUD endpoints, architecture decisions and status codes.
+
+### Iteration 2: Missing Update Endpoint
+
+The second backend prompt added the missing update operation for the main resource:
+
+- Add `PUT /api/plans/:id`.
+- Add `PUT /api/workouts/:id` as an alias.
+- Return `200` with the updated plan.
+- Return `400` for invalid input and `404` for missing plans.
+- Keep existing frontend API paths unchanged.
+- Verify valid and invalid requests manually.
+
+### Iteration 3: Nested Second Resource
+
+The third backend prompt completed the bonus REST requirement:
+
+- Add nested `plan_exercises` endpoints under `/api/plans/:planId/exercises`.
+- Keep the `/api/workouts/:workoutId/exercises` alias available through the same router.
+- Test nested create, read, update and delete behavior.
+- Keep the frontend unchanged.
 
 ## Verification
 
@@ -153,6 +197,12 @@ Backend checks:
 - valid `PUT /api/plans/:id` -> `200`
 - invalid `PUT /api/plans/:id` -> `400`
 - valid `PUT /api/workouts/:id` -> `200`
+- valid `POST /api/plans/:planId/exercises` -> `201`
+- valid `GET /api/plans/:planId/exercises` -> `200`
+- valid `PUT /api/plans/:planId/exercises/:exerciseId` -> `200`
+- invalid `POST /api/plans/:planId/exercises` -> `400`
+- missing `GET /api/plans/:planId/exercises/:exerciseId` -> `404`
+- valid `DELETE /api/plans/:planId/exercises/:exerciseId` -> `204`
 - `DELETE /api/plans/:id` -> `204`
 
 Frontend check:
