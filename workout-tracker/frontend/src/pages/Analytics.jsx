@@ -1,13 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
-import { TrendingUp, Target, Award, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  TrendingUp,
+  Award,
+  Dumbbell,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  CalendarDays,
+  Trash2,
+  PlusCircle,
+  Flame,
+  Activity,
+  Bike,
+  Flower2,
+} from 'lucide-react';
 import {
   format,
   addMonths,
   subMonths,
   startOfMonth,
   startOfWeek,
-  endOfWeek,
   isSameMonth,
   isSameDay,
   addDays,
@@ -16,8 +30,48 @@ import { de } from 'date-fns/locale';
 import { useLanguage } from '../context/LanguageContext';
 import './Analytics.css';
 
-const trainingDays = [1, 3, 6, 7, 8, 10, 13, 14, 15];
+const MotionG = motion.g;
+const MotionPath = motion.path;
+const MotionCircle = motion.circle;
 const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
+const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+const readyMadeCalendarWorkouts = [
+  {
+    id: 'ready-push-pull-legs',
+    title: 'PUSH PULL LEGS',
+    badge: 'ADVANCED PLAN',
+    image: '/slideshow-8.png',
+    iconKey: 'dumbbell',
+    exercises: ['Chest Press (3x12)', 'Incline Bench Press (3x12)', 'Shoulder Press (2x15)'],
+    extraExercises: ['Lat Pulldown (3x12)', 'Romanian Deadlift (3x10)', 'Cable Row (4x12)'],
+  },
+  {
+    id: 'ready-fat-loss',
+    title: 'FAT LOSS',
+    badge: 'BEGINNER PLAN',
+    image: '/slideshow-3.png',
+    iconKey: 'flame',
+    exercises: ['HIIT Intervals (15m)', 'Bodyweight Squats (4x20)', 'Mountain Climbers (4x30s)'],
+    extraExercises: [],
+  },
+  {
+    id: 'ready-full-body-workout',
+    title: 'FULL BODY WORKOUT',
+    badge: 'BEGINNER PLAN',
+    image: '/achievements-bg.png',
+    iconKey: 'activity',
+    exercises: ['Bench Press (3x12)', 'Lat Pulldown (3x12)', 'Lateral Raise (4x12)'],
+    extraExercises: ['Leg Press (4x10)', 'Seated Row (3x12)', 'Hamstring Curl (3x15)', 'Plank Hold (3x45s)'],
+  },
+];
+const workoutIconMap = {
+  dumbbell: Dumbbell,
+  flame: Flame,
+  activity: Activity,
+  bike: Bike,
+  yoga: Flower2,
+};
 const CHART_WIDTH = 392;
 const CHART_HEIGHT = 280;
 const CHART_TOP_PADDING = 10;
@@ -41,6 +95,15 @@ const chartSeries = {
     labels: ['JAN', 'JUN', 'DEC'],
     values: [0.08, 0.11, 0.16, 0.24, 0.31, 0.45, 0.51, 0.58, 0.70, 0.79, 0.88, 0.98],
   },
+};
+
+const loadJsonFromStorage = (key, fallback) => {
+  try {
+    const storedValue = window.localStorage.getItem(key);
+    return storedValue ? JSON.parse(storedValue) : fallback;
+  } catch {
+    return fallback;
+  }
 };
 
 function getPointY(value) {
@@ -150,16 +213,13 @@ function MilestoneCard() {
   );
 }
 
-function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', className = '', as: Tag = 'span' }) {
+function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', className = '', as: elementType = 'span' }) {
   const [displayValue, setDisplayValue] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.5 });
 
   useEffect(() => {
-    if (!isInView) {
-      setDisplayValue(0);
-      return;
-    }
+    if (!isInView) return undefined;
 
     let startTimestamp = null;
     let animationFrame;
@@ -177,18 +237,25 @@ function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', classNa
     return () => { if (animationFrame) window.cancelAnimationFrame(animationFrame); };
   }, [value, isInView]);
 
-  const formattedValue = displayValue.toLocaleString('de-DE', {
+  const visibleValue = isInView ? displayValue : 0;
+  const formattedValue = visibleValue.toLocaleString('de-DE', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
 
-  return <Tag ref={ref} className={className}>{prefix}{formattedValue}{suffix}</Tag>;
+  return React.createElement(elementType, { ref, className }, `${prefix}${formattedValue}${suffix}`);
 }
 
 export default function Analytics() {
   const { t, lang } = useLanguage();
+  const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [activeRange, setActiveRange] = useState('1M');
+  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
+  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {}));
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
+  const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
   const chartRef = useRef(null);
   const isChartInView = useInView(chartRef, { once: false, amount: 0.4 });
   const activeChart = chartSeries[activeRange];
@@ -196,6 +263,82 @@ export default function Analytics() {
   const chartLinePath = buildSmoothLinePath(chartPoints);
   const chartAreaPath = `${chartLinePath} L${chartPoints[chartPoints.length - 1].x},${CHART_HEIGHT} L${chartPoints[0].x},${CHART_HEIGHT} Z`;
   const endPoint = chartPoints[chartPoints.length - 1];
+
+  useEffect(() => {
+    window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify(workoutSchedule));
+  }, [workoutSchedule]);
+
+  useEffect(() => {
+    const refreshWorkoutPlannerData = () => {
+      setCustomWorkouts(loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
+      setWorkoutSchedule(loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {}));
+    };
+
+    window.addEventListener('focus', refreshWorkoutPlannerData);
+    window.addEventListener('storage', refreshWorkoutPlannerData);
+
+    return () => {
+      window.removeEventListener('focus', refreshWorkoutPlannerData);
+      window.removeEventListener('storage', refreshWorkoutPlannerData);
+    };
+  }, []);
+
+  const openWorkoutPlanner = (date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    setSelectedCalendarDate(date);
+    setSelectedWorkoutId(workoutSchedule[dateKey]?.workoutId || '');
+    setShowReadyMadeOptions(false);
+  };
+
+  const closeWorkoutPlanner = () => {
+    setSelectedCalendarDate(null);
+    setSelectedWorkoutId('');
+    setShowReadyMadeOptions(false);
+  };
+
+  const saveScheduledWorkout = () => {
+    if (!selectedCalendarDate || !selectedWorkoutId) return;
+
+    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts].find((workout) => workout.id === selectedWorkoutId);
+    if (!selectedWorkout) return;
+
+    const dateKey = format(selectedCalendarDate, 'yyyy-MM-dd');
+    setWorkoutSchedule((currentSchedule) => ({
+      ...currentSchedule,
+      [dateKey]: {
+        workoutId: selectedWorkout.id,
+        title: selectedWorkout.title,
+        image: selectedWorkout.image,
+        badge: selectedWorkout.badge,
+        iconKey: selectedWorkout.iconKey,
+        exercises: [...selectedWorkout.exercises, ...(selectedWorkout.extraExercises || [])],
+      },
+    }));
+    closeWorkoutPlanner();
+  };
+
+  const removeScheduledWorkout = () => {
+    if (!selectedCalendarDate) return;
+
+    const dateKey = format(selectedCalendarDate, 'yyyy-MM-dd');
+    setWorkoutSchedule((currentSchedule) => {
+      const nextSchedule = { ...currentSchedule };
+      delete nextSchedule[dateKey];
+      return nextSchedule;
+    });
+    closeWorkoutPlanner();
+  };
+
+  useEffect(() => {
+    if (!selectedCalendarDate) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') closeWorkoutPlanner();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedCalendarDate]);
 
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -205,32 +348,43 @@ export default function Analytics() {
     const startDate = startOfWeek(monthStart);
     const dateFormat = 'd';
     const days = [];
-    let day = startDate;
 
     for (let i = 0; i < 42; i += 1) {
-      const formattedDate = format(day, dateFormat);
-      const isCurrentMonth = isSameMonth(day, monthStart);
-      const isToday = isSameDay(day, new Date());
-      const dayNumber = Number(formattedDate);
+      const calendarDay = addDays(startDate, i);
+      const formattedDate = format(calendarDay, dateFormat);
+      const dateKey = format(calendarDay, 'yyyy-MM-dd');
+      const isCurrentMonth = isSameMonth(calendarDay, monthStart);
+      const isToday = isSameDay(calendarDay, new Date());
+      const scheduledWorkout = workoutSchedule[dateKey];
 
       let className = 'cal-day';
       if (!isCurrentMonth) className += ' text-muted';
       if (isToday) className += ' active';
-      if (trainingDays.includes(dayNumber) && isCurrentMonth) className += ' completed';
+      if (scheduledWorkout && isCurrentMonth) className += ' completed scheduled';
 
       days.push(
-        <div
+        <button
+          type="button"
           className={className}
-          key={day.toISOString()}
+          key={calendarDay.toISOString()}
+          onClick={() => openWorkoutPlanner(calendarDay)}
           style={{ opacity: isCurrentMonth ? 1 : 0.3 }}
+          aria-label={`${formattedDate}${scheduledWorkout ? `, ${scheduledWorkout.title}` : ''}`}
         >
-          {formattedDate}
-        </div>
+          <span>{formattedDate}</span>
+          {scheduledWorkout && isCurrentMonth && <span className="cal-workout-dot"></span>}
+        </button>
       );
-      day = addDays(day, 1);
     }
     return days;
   };
+
+  const scheduledWorkoutCount = Object.keys(workoutSchedule).filter((dateKey) =>
+    isSameMonth(new Date(`${dateKey}T00:00:00`), startOfMonth(currentMonth))
+  ).length;
+  const availableWorkouts = customWorkouts.length > 0
+    ? customWorkouts
+    : (showReadyMadeOptions ? readyMadeCalendarWorkouts : []);
 
   return (
     <div className="analytics-page">
@@ -280,7 +434,7 @@ export default function Analytics() {
                 </linearGradient>
               </defs>
               <line x1="0" y1="279" x2="400" y2="279" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-              <motion.g
+              <MotionG
                 key={`area-${activeRange}`}
                 initial={{ clipPath: 'inset(0 100% 0 0)', opacity: 0 }}
                 animate={isChartInView ? { clipPath: 'inset(0 0% 0 0)', opacity: 1 } : { clipPath: 'inset(0 100% 0 0)', opacity: 0 }}
@@ -292,8 +446,8 @@ export default function Analytics() {
                 />
                 <rect x="334" y="0" width="66" height="280" fill="url(#strengthRightBlackFade)" />
                 <rect x="0" y="224" width="400" height="56" fill="url(#strengthBottomBlackFade)" />
-              </motion.g>
-              <motion.path
+              </MotionG>
+              <MotionPath
                 key={`line-${activeRange}`}
                 d={chartLinePath}
                 fill="none"
@@ -305,7 +459,7 @@ export default function Analytics() {
                 animate={isChartInView ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 1 }}
                 transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
               />
-              <motion.circle
+              <MotionCircle
                 key={`point-${activeRange}`}
                 cx={endPoint.x}
                 cy={endPoint.y}
@@ -386,7 +540,7 @@ export default function Analytics() {
           </div>
           <div className="schedule-footer">
             <span className="schedule-meta">
-              <span className="status-dot"></span> {t('CURRENT STREAK: 12 DAYS')}
+              <span className="status-dot"></span> {scheduledWorkoutCount} {t('PLANNED WORKOUTS')}
             </span>
             <span className="schedule-meta highlight">{t('78% MONTHLY COMPLETION RATE')}</span>
           </div>
@@ -403,6 +557,111 @@ export default function Analytics() {
           <p>{t('Your progress toward a perfect training week')}</p>
         </div>
       </div>
+
+      {selectedCalendarDate && (
+        <div
+          className="analytics-planner-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeWorkoutPlanner();
+          }}
+        >
+          <motion.div
+            className="analytics-planner-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="analytics-planner-title"
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <button className="analytics-planner-close" type="button" onClick={closeWorkoutPlanner} aria-label={t('Close planner')}>
+              <X size={18} />
+            </button>
+
+            <div className="analytics-planner-header">
+              <div className="metric-card-icon analytics-planner-icon">
+                <CalendarDays size={22} />
+              </div>
+              <div>
+                <span>{format(selectedCalendarDate, 'EEEE, dd MMMM yyyy', { locale: lang === 'de' ? de : undefined }).toUpperCase()}</span>
+                <h2 id="analytics-planner-title">{t('PLAN WORKOUT')}</h2>
+              </div>
+            </div>
+
+            <div className="analytics-current-workout">
+              {workoutSchedule[format(selectedCalendarDate, 'yyyy-MM-dd')] ? (
+                <>
+                  <span>{t('SCHEDULED WORKOUT')}</span>
+                  <strong>{workoutSchedule[format(selectedCalendarDate, 'yyyy-MM-dd')].title}</strong>
+                </>
+              ) : (
+                <>
+                  <span>{t('EMPTY DAY')}</span>
+                  <strong>{t('No workout planned yet.')}</strong>
+                </>
+              )}
+            </div>
+
+            <div className="analytics-workout-select-list">
+              {availableWorkouts.length > 0 ? (
+                availableWorkouts.map((workout) => {
+                  const WorkoutIcon = workoutIconMap[workout.iconKey] || Dumbbell;
+
+                  return (
+                    <button
+                      className={`analytics-workout-select-card ${selectedWorkoutId === workout.id ? 'active' : ''}`}
+                      type="button"
+                      key={workout.id}
+                      onClick={() => setSelectedWorkoutId(workout.id)}
+                    >
+                      <span
+                        className="analytics-workout-select-cover"
+                        style={{ backgroundImage: `url(${workout.image || '/hero-bg.png'})` }}
+                      >
+                        <WorkoutIcon size={18} />
+                      </span>
+                      <span className="analytics-workout-select-info">
+                        <strong>{workout.title}</strong>
+                        <small>{t(workout.badge)} · {[...workout.exercises, ...(workout.extraExercises || [])].length} {t('exercises')}</small>
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="analytics-workout-empty-state">
+                  <Dumbbell size={22} />
+                  <p>{t('Create a workout first, then schedule it here.')}</p>
+                  <button
+                    className="analytics-empty-workout-add-button"
+                    type="button"
+                    aria-label={t('CREATE WORKOUT')}
+                    onClick={() => navigate('/workouts')}
+                  >
+                    <PlusCircle size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {customWorkouts.length === 0 && !showReadyMadeOptions && (
+              <button className="analytics-ready-made-suggestion" type="button" onClick={() => setShowReadyMadeOptions(true)}>
+                <span>{t("No custom workout yet?")}</span>
+                <strong>{t('Pick a ready-made workout instead.')}</strong>
+              </button>
+            )}
+
+            <div className="analytics-planner-actions">
+              <button className="analytics-planner-remove-button" type="button" onClick={removeScheduledWorkout}>
+                <Trash2 size={16} /> {t('REMOVE')}
+              </button>
+              <button className="analytics-planner-save-button" type="button" onClick={saveScheduledWorkout} disabled={!selectedWorkoutId}>
+                {t('SAVE WORKOUT')}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

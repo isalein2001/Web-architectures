@@ -292,7 +292,7 @@
 .alerts-dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 50%;
   width: 310px;
   padding: 10px;
   border: 1px solid rgba(255,255,255,0.1);
@@ -302,7 +302,7 @@
   z-index: 100;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
+  transform: translateX(-50%) translateY(-8px);
   pointer-events: none;
   transition: all 0.2s ease;
 }
@@ -310,7 +310,7 @@
 .alerts-dropdown.open {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
   pointer-events: auto;
 }
 

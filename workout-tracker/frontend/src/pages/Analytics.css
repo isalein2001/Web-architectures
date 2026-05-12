@@ -461,9 +461,12 @@
 }
 
 .cal-day {
+  position: relative;
+  appearance: none;
   font-size: 0.95rem;
   color: #888;
   font-weight: 600;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -508,6 +511,21 @@
   box-shadow: 0 0 18px rgba(197, 254, 0, 0.18);
 }
 
+.cal-day.scheduled {
+  border-color: rgba(197, 254, 0, 0.35);
+}
+
+.cal-workout-dot {
+  position: absolute;
+  right: 7px;
+  bottom: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px rgba(197, 254, 0, 0.6);
+}
+
 .schedule-footer {
   display: flex;
   justify-content: space-between;
@@ -525,6 +543,300 @@
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+.analytics-planner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.analytics-planner-modal {
+  position: relative;
+  width: min(680px, 100%);
+  max-height: min(86vh, 760px);
+  overflow-y: auto;
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px solid rgba(197, 254, 0, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(197, 254, 0, 0.1), transparent 34%),
+    linear-gradient(145deg, #151515 0%, #0b0b0b 100%);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+}
+
+.analytics-planner-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+
+.analytics-planner-close:hover {
+  color: var(--color-primary);
+  border-color: rgba(197, 254, 0, 0.32);
+}
+
+.analytics-planner-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 48px;
+  margin-bottom: 24px;
+}
+
+.analytics-planner-icon {
+  flex: 0 0 auto;
+}
+
+.analytics-planner-header span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.analytics-planner-header h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.analytics-current-workout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.analytics-current-workout span {
+  color: #888;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.analytics-current-workout strong {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.analytics-workout-select-list {
+  display: grid;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.analytics-workout-select-card {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.analytics-workout-select-card:hover,
+.analytics-workout-select-card.active {
+  border-color: rgba(197, 254, 0, 0.38);
+  background: rgba(197, 254, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+.analytics-workout-select-cover {
+  display: grid;
+  place-items: center;
+  height: 62px;
+  border-radius: 10px;
+  color: var(--color-primary);
+  background-color: #0e0e0e;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.analytics-workout-select-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.analytics-workout-select-info strong {
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.analytics-workout-select-info small {
+  color: #888;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.analytics-workout-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.analytics-workout-empty-state svg {
+  color: var(--color-primary);
+}
+
+.analytics-workout-empty-state p {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.analytics-empty-workout-add-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.analytics-empty-workout-add-button:hover {
+  color: var(--color-primary);
+  border-color: rgba(197, 254, 0, 0.28);
+  transform: translateY(-1px);
+}
+
+.analytics-ready-made-suggestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 12px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.analytics-ready-made-suggestion:hover {
+  background: rgba(197, 254, 0, 0.04);
+  transform: translateY(-1px);
+}
+
+.analytics-ready-made-suggestion span,
+.analytics-ready-made-suggestion strong {
+  display: block;
+  text-transform: uppercase;
+}
+
+.analytics-ready-made-suggestion span {
+  color: #888;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.analytics-ready-made-suggestion strong {
+  color: #dadada;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-align: right;
+}
+
+.analytics-ready-made-suggestion:hover span,
+.analytics-ready-made-suggestion:hover strong {
+  color: var(--color-primary);
+}
+
+.analytics-planner-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.analytics-planner-remove-button,
+.analytics-planner-save-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.analytics-planner-remove-button {
+  border: 1px solid rgba(255, 122, 95, 0.2);
+  color: #ff7a5f;
+  background: rgba(108, 53, 42, 0.28);
+}
+
+.analytics-planner-save-button {
+  border: 0;
+  color: #050505;
+  background: var(--color-primary);
+}
+
+.analytics-planner-save-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .status-dot {

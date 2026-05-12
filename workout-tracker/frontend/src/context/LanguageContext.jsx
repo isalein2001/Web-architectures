@@ -123,6 +123,17 @@ export const LanguageProvider = ({ children }) => {
       "Enter reps for every set.": "Enter reps for every set.",
       "REPS PER SET": "REPS PER SET",
       "Customize each set individually": "Customize each set individually"
+      ,"PLAN WORKOUT": "PLAN WORKOUT",
+      "SCHEDULED WORKOUT": "SCHEDULED WORKOUT",
+      "EMPTY DAY": "EMPTY DAY",
+      "No workout planned yet.": "No workout planned yet.",
+      "Create a workout first, then schedule it here.": "Create a workout first, then schedule it here.",
+      "CREATE WORKOUT": "CREATE WORKOUT",
+      "No custom workout yet?": "No custom workout yet?",
+      "Pick a ready-made workout instead.": "Pick a ready-made workout instead.",
+      "Close planner": "Close planner",
+      "REMOVE": "REMOVE",
+      "PLANNED WORKOUTS": "PLANNED WORKOUTS"
     },
     de: {
       "GOOD MORNING": "GUTEN MORGEN",
@@ -455,6 +466,17 @@ export const LanguageProvider = ({ children }) => {
       "Reps (e.g. 8-12)": "Wdh. (z. B. 8-12)"
       ,"Sets": "Sätze",
       "Reps": "Wdh."
+      ,"PLAN WORKOUT": "WORKOUT PLANEN",
+      "SCHEDULED WORKOUT": "GEPLANTES WORKOUT",
+      "EMPTY DAY": "LEERER TAG",
+      "No workout planned yet.": "Noch kein Workout geplant.",
+      "Create a workout first, then schedule it here.": "Erstelle zuerst ein Workout, dann kannst du es hier einplanen.",
+      "CREATE WORKOUT": "WORKOUT ERSTELLEN",
+      "No custom workout yet?": "Noch kein eigenes Workout?",
+      "Pick a ready-made workout instead.": "Nimm stattdessen ein fertiges Workout.",
+      "Close planner": "Planer schließen",
+      "REMOVE": "ENTFERNEN",
+      "PLANNED WORKOUTS": "GEPLANTE WORKOUTS"
       ,"ABOUT US": "ÜBER UNS",
       "FOUNDERS": "GRÜNDER",
       "THE DEVELOPER": "DIE ENTWICKLERIN",

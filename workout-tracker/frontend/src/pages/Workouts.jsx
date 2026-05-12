@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Activity,
   Bike,
@@ -55,6 +55,17 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
 }, {});
 
 const initialExercises = [];
+const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
+const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+
+const loadSavedWorkoutPlans = () => {
+  try {
+    const savedPlans = window.localStorage.getItem(CUSTOM_WORKOUT_PLANS_STORAGE_KEY);
+    return savedPlans ? JSON.parse(savedPlans) : [];
+  } catch {
+    return [];
+  }
+};
 
 const emptyExercise = () => ({
   id: Date.now() + Math.random(),
@@ -100,7 +111,7 @@ export default function Workouts() {
   const [expandedPlans, setExpandedPlans] = useState({});
   const [coverImage, setCoverImage] = useState(null);
   const [selectedIconKey, setSelectedIconKey] = useState('dumbbell');
-  const [savedPlans, setSavedPlans] = useState([]);
+  const [savedPlans, setSavedPlans] = useState(loadSavedWorkoutPlans);
   const [editingPlanId, setEditingPlanId] = useState(null);
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
@@ -109,6 +120,10 @@ export default function Workouts() {
   });
   const exerciseCardRefs = useRef(new Map());
   const activeDrag = useRef({ id: null, startY: 0, lastY: 0 });
+
+  useEffect(() => {
+    window.localStorage.setItem(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, JSON.stringify(savedPlans));
+  }, [savedPlans]);
 
   const updateExercise = (id, field, value) => {
     setValidationErrors((currentErrors) => ({
@@ -300,6 +315,16 @@ export default function Workouts() {
     if (!editingPlanId) return;
 
     setSavedPlans((currentPlans) => currentPlans.filter((plan) => plan.id !== editingPlanId));
+    try {
+      const storedSchedule = window.localStorage.getItem(WORKOUT_SCHEDULE_STORAGE_KEY);
+      const currentSchedule = storedSchedule ? JSON.parse(storedSchedule) : {};
+      const nextSchedule = Object.fromEntries(
+        Object.entries(currentSchedule).filter(([, scheduledWorkout]) => scheduledWorkout.workoutId !== editingPlanId)
+      );
+      window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify(nextSchedule));
+    } catch {
+      window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify({}));
+    }
     resetBuilder();
   };
 

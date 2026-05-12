@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
-import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus } from 'lucide-react';
+import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   format, 
@@ -17,6 +18,54 @@ import { de } from 'date-fns/locale';
 import './Dashboard.css';
 
 const MotionDiv = motion.div;
+const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
+const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+const readyMadeCalendarWorkouts = [
+  {
+    id: 'ready-push-pull-legs',
+    title: 'PUSH PULL LEGS',
+    badge: 'ADVANCED PLAN',
+    image: '/slideshow-8.png',
+    iconKey: 'dumbbell',
+    exercises: ['Chest Press (3x12)', 'Incline Bench Press (3x12)', 'Shoulder Press (2x15)'],
+    extraExercises: ['Lat Pulldown (3x12)', 'Romanian Deadlift (3x10)', 'Cable Row (4x12)'],
+  },
+  {
+    id: 'ready-fat-loss',
+    title: 'FAT LOSS',
+    badge: 'BEGINNER PLAN',
+    image: '/slideshow-3.png',
+    iconKey: 'flame',
+    exercises: ['HIIT Intervals (15m)', 'Bodyweight Squats (4x20)', 'Mountain Climbers (4x30s)'],
+    extraExercises: [],
+  },
+  {
+    id: 'ready-full-body-workout',
+    title: 'FULL BODY WORKOUT',
+    badge: 'BEGINNER PLAN',
+    image: '/achievements-bg.png',
+    iconKey: 'activity',
+    exercises: ['Bench Press (3x12)', 'Lat Pulldown (3x12)', 'Lateral Raise (4x12)'],
+    extraExercises: ['Leg Press (4x10)', 'Seated Row (3x12)', 'Hamstring Curl (3x15)', 'Plank Hold (3x45s)'],
+  },
+];
+
+const workoutIconMap = {
+  dumbbell: Dumbbell,
+  flame: Flame,
+  activity: Activity,
+  bike: Bike,
+  yoga: Flower2,
+};
+
+const loadJsonFromStorage = (key, fallback) => {
+  try {
+    const storedValue = window.localStorage.getItem(key);
+    return storedValue ? JSON.parse(storedValue) : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 function AnimatedNumber({ value, useComma }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -111,9 +160,15 @@ function AnimatedMedal() {
 
 export default function Dashboard() {
   const { t, lang } = useLanguage();
+  const navigate = useNavigate();
   const [, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
+  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
+  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {}));
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
+  const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
   const [hydrationGoal, setHydrationGoal] = useState(() => {
     const savedGoal = window.localStorage.getItem('hydrationGoalLiters');
     return savedGoal ? Number(savedGoal) : 3.5;
@@ -130,6 +185,24 @@ export default function Dashboard() {
   }, [hydrationGoal]);
 
   useEffect(() => {
+    window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify(workoutSchedule));
+  }, [workoutSchedule]);
+
+  useEffect(() => {
+    const refreshWorkoutPlans = () => {
+      setCustomWorkouts(loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
+    };
+
+    window.addEventListener('focus', refreshWorkoutPlans);
+    window.addEventListener('storage', refreshWorkoutPlans);
+
+    return () => {
+      window.removeEventListener('focus', refreshWorkoutPlans);
+      window.removeEventListener('storage', refreshWorkoutPlans);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isHydrationModalOpen) return undefined;
 
     const handleKeyDown = (event) => {
@@ -144,6 +217,51 @@ export default function Dashboard() {
     setHydrationGoal((goal) => Number(Math.min(5, Math.max(1.5, goal + amount)).toFixed(1)));
   };
 
+  const openWorkoutPlanner = (date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    setSelectedCalendarDate(date);
+    setSelectedWorkoutId(workoutSchedule[dateKey]?.workoutId || '');
+    setShowReadyMadeOptions(false);
+  };
+
+  const closeWorkoutPlanner = () => {
+    setSelectedCalendarDate(null);
+    setSelectedWorkoutId('');
+    setShowReadyMadeOptions(false);
+  };
+
+  const saveScheduledWorkout = () => {
+    if (!selectedCalendarDate || !selectedWorkoutId) return;
+
+    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts].find((workout) => workout.id === selectedWorkoutId);
+    if (!selectedWorkout) return;
+
+    const dateKey = format(selectedCalendarDate, 'yyyy-MM-dd');
+    setWorkoutSchedule((currentSchedule) => ({
+      ...currentSchedule,
+      [dateKey]: {
+        workoutId: selectedWorkout.id,
+        title: selectedWorkout.title,
+        image: selectedWorkout.image,
+        badge: selectedWorkout.badge,
+        exercises: [...selectedWorkout.exercises, ...(selectedWorkout.extraExercises || [])],
+      },
+    }));
+    closeWorkoutPlanner();
+  };
+
+  const removeScheduledWorkout = () => {
+    if (!selectedCalendarDate) return;
+
+    const dateKey = format(selectedCalendarDate, 'yyyy-MM-dd');
+    setWorkoutSchedule((currentSchedule) => {
+      const nextSchedule = { ...currentSchedule };
+      delete nextSchedule[dateKey];
+      return nextSchedule;
+    });
+    closeWorkoutPlanner();
+  };
+
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
@@ -153,27 +271,33 @@ export default function Dashboard() {
 
     const dateFormat = "dd";
     const days = [];
-    let day = startDate;
 
     for (let i = 0; i < 42; i++) {
-      const formattedDate = format(day, dateFormat);
-      const isCurrentMonth = isSameMonth(day, monthStart);
-      const isToday = isSameDay(day, new Date());
+      const calendarDay = addDays(startDate, i);
+      const formattedDate = format(calendarDay, dateFormat);
+      const dateKey = format(calendarDay, 'yyyy-MM-dd');
+      const isCurrentMonth = isSameMonth(calendarDay, monthStart);
+      const isToday = isSameDay(calendarDay, new Date());
+      const scheduledWorkout = workoutSchedule[dateKey];
       
       let className = "cal-day";
       if (!isCurrentMonth) className += " text-muted";
       if (isToday) className += " active";
+      if (scheduledWorkout) className += " scheduled";
 
       days.push(
-        <div 
+        <button
+          type="button"
           className={className} 
-          key={day.toISOString()}
+          key={calendarDay.toISOString()}
+          onClick={() => openWorkoutPlanner(calendarDay)}
           style={{ opacity: isCurrentMonth ? 1 : 0.3 }}
+          aria-label={`${formattedDate}${scheduledWorkout ? `, ${scheduledWorkout.title}` : ''}`}
         >
-          {formattedDate}
-        </div>
+          <span>{formattedDate}</span>
+          {scheduledWorkout && <span className="cal-workout-dot" title={scheduledWorkout.title}></span>}
+        </button>
       );
-      day = addDays(day, 1);
     }
     return days;
   };
@@ -207,6 +331,9 @@ export default function Dashboard() {
   };
 
   const greeting = getGreetingData();
+  const availableWorkouts = customWorkouts.length > 0
+    ? customWorkouts
+    : (showReadyMadeOptions ? readyMadeCalendarWorkouts : []);
 
   return (
     <div className="dashboard-container">
@@ -474,6 +601,111 @@ export default function Dashboard() {
               </div>
 
               <p>{t('Go higher on intense training days, hot days or long cardio sessions.')}</p>
+            </div>
+          </MotionDiv>
+        </div>
+      )}
+
+      {selectedCalendarDate && (
+        <div
+          className="workout-planner-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeWorkoutPlanner();
+          }}
+        >
+          <MotionDiv
+            className="workout-planner-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="workout-planner-title"
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <button className="workout-planner-close" type="button" onClick={closeWorkoutPlanner} aria-label={t('Close planner')}>
+              <X size={18} />
+            </button>
+
+            <div className="workout-planner-header">
+              <div className="icon-circle solid-green">
+                <CalendarDays size={24} color="#000" />
+              </div>
+              <div>
+                <span>{format(selectedCalendarDate, 'EEEE, dd MMMM yyyy', { locale: lang === 'de' ? de : undefined }).toUpperCase()}</span>
+                <h2 id="workout-planner-title">{t('PLAN WORKOUT')}</h2>
+              </div>
+            </div>
+
+            <div className="scheduled-workout-current">
+              {workoutSchedule[format(selectedCalendarDate, 'yyyy-MM-dd')] ? (
+                <>
+                  <span>{t('SCHEDULED WORKOUT')}</span>
+                  <strong>{workoutSchedule[format(selectedCalendarDate, 'yyyy-MM-dd')].title}</strong>
+                </>
+              ) : (
+                <>
+                  <span>{t('EMPTY DAY')}</span>
+                  <strong>{t('No workout planned yet.')}</strong>
+                </>
+              )}
+            </div>
+
+            <div className="workout-select-list">
+              {availableWorkouts.length > 0 ? (
+                availableWorkouts.map((workout) => {
+                  const WorkoutIcon = workoutIconMap[workout.iconKey] || Dumbbell;
+
+                  return (
+                    <button
+                      className={`workout-select-card ${selectedWorkoutId === workout.id ? 'active' : ''}`}
+                      type="button"
+                      key={workout.id}
+                      onClick={() => setSelectedWorkoutId(workout.id)}
+                    >
+                      <span
+                        className="workout-select-cover"
+                        style={{ backgroundImage: `url(${workout.image || '/hero-bg.png'})` }}
+                      >
+                        <WorkoutIcon size={18} />
+                      </span>
+                      <span className="workout-select-info">
+                        <strong>{workout.title}</strong>
+                        <small>{t(workout.badge)} · {[...workout.exercises, ...(workout.extraExercises || [])].length} {t('exercises')}</small>
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="workout-empty-state">
+                  <Dumbbell size={22} />
+                  <p>{t('Create a workout first, then schedule it here.')}</p>
+                  <button
+                    className="empty-workout-add-button"
+                    type="button"
+                    aria-label={t('CREATE WORKOUT')}
+                    onClick={() => navigate('/workouts')}
+                  >
+                    <PlusCircle size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {customWorkouts.length === 0 && !showReadyMadeOptions && (
+              <button className="ready-made-suggestion" type="button" onClick={() => setShowReadyMadeOptions(true)}>
+                <span>{t("No custom workout yet?")}</span>
+                <strong>{t('Pick a ready-made workout instead.')}</strong>
+              </button>
+            )}
+
+            <div className="workout-planner-actions">
+              <button className="planner-remove-button" type="button" onClick={removeScheduledWorkout}>
+                <Trash2 size={16} /> {t('REMOVE')}
+              </button>
+              <button className="planner-save-button" type="button" onClick={saveScheduledWorkout} disabled={!selectedWorkoutId}>
+                {t('SAVE WORKOUT')}
+              </button>
             </div>
           </MotionDiv>
         </div>
