@@ -12,6 +12,7 @@ import {
   isSameDay,
   addDays,
 } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { useLanguage } from '../context/LanguageContext';
 import './Analytics.css';
 
@@ -185,7 +186,7 @@ function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', classNa
 }
 
 export default function Analytics() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [activeRange, setActiveRange] = useState('1M');
   const chartRef = useRef(null);
@@ -369,7 +370,7 @@ export default function Analytics() {
 
         <div className="schedule-card">
           <div className="calendar-header">
-            <h3>{format(currentMonth, 'MMMM yyyy').toUpperCase()}</h3>
+            <h3>{format(currentMonth, 'MMMM yyyy', { locale: lang === 'de' ? de : undefined }).toUpperCase()}</h3>
             <div className="calendar-nav">
               <ChevronLeft size={16} onClick={prevMonth} />
               <ChevronRight size={16} onClick={nextMonth} />

@@ -8,6 +8,7 @@ import Datenschutz from "./pages/Datenschutz";
 import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
 import Support from "./pages/Support";
+import About from "./pages/About";
 import "./index.css";
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
@@ -176,6 +177,7 @@ function AppLayout() {
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/about" element={<About />} />
           </Routes>
           
           {/* Global Footer */}

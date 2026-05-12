@@ -1,0 +1,318 @@
+.about-page {
+  display: flex;
+  flex-direction: column;
+  gap: 38px;
+  max-width: 1440px;
+  margin: 52px auto 0;
+}
+
+.about-hero h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 3.8rem;
+  font-weight: 950;
+  line-height: 0.95;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.about-hero h1 span,
+.team-copy h2 span,
+.team-copy p span,
+.philosophy-panel h2 span,
+.philosophy-item div {
+  color: var(--color-primary);
+}
+
+.founders-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.founder-card {
+  display: flex;
+  min-height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 34px;
+  background-color: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 24px;
+  box-shadow: var(--shadow-elevate);
+  text-align: center;
+}
+
+.founder-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.4) 0 4%, transparent 5%),
+    linear-gradient(150deg, #1c5261 0%, #102331 55%, #071013 100%);
+  border: 1px solid rgba(197, 254, 0, 0.6);
+  box-shadow:
+    0 0 0 4px rgba(197, 254, 0, 0.06),
+    0 0 26px rgba(197, 254, 0, 0.22);
+  overflow: hidden;
+}
+
+.founder-avatar::before,
+.founder-avatar::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  width: 24px;
+  height: 54px;
+  background: linear-gradient(180deg, #87e8ea, #1a5662);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  opacity: 0.85;
+}
+
+.founder-avatar::before {
+  left: 12px;
+  transform: rotate(-28deg);
+}
+
+.founder-avatar::after {
+  right: 12px;
+  transform: rotate(28deg);
+}
+
+.founder-avatar.marcel {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.38) 0 4%, transparent 5%),
+    linear-gradient(150deg, #20586b 0%, #111f31 58%, #090c12 100%);
+}
+
+.avatar-face {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 74px;
+  border-radius: 45% 45% 50% 50%;
+  background:
+    linear-gradient(90deg, rgba(4, 24, 31, 0.32), transparent 45%, rgba(255, 255, 255, 0.12)),
+    linear-gradient(180deg, #79dbe0 0%, #1c7c89 60%, #0c3139 100%);
+  box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.26);
+}
+
+.avatar-face::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 4px;
+  width: 48px;
+  height: 28px;
+  border-radius: 50% 50% 28% 28%;
+  background: linear-gradient(135deg, #0f2731, #7be4e4);
+}
+
+.avatar-eye {
+  position: absolute;
+  top: 30px;
+  width: 8px;
+  height: 5px;
+  border-radius: 999px;
+  background-color: #d8ff99;
+  box-shadow: 0 0 8px rgba(197, 254, 0, 0.75);
+}
+
+.avatar-eye.left {
+  left: 14px;
+}
+
+.avatar-eye.right {
+  right: 14px;
+}
+
+.avatar-nose {
+  position: absolute;
+  left: 27px;
+  top: 38px;
+  width: 2px;
+  height: 14px;
+  background-color: rgba(5, 24, 29, 0.5);
+}
+
+.avatar-mouth {
+  position: absolute;
+  left: 20px;
+  top: 58px;
+  width: 17px;
+  height: 2px;
+  background-color: rgba(5, 24, 29, 0.68);
+}
+
+.founder-card h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.founder-role {
+  margin-top: 6px;
+  color: var(--color-primary);
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.founder-card p {
+  max-width: 350px;
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.team-story {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 46px;
+  align-items: center;
+}
+
+.about-accent-line {
+  width: 56px;
+  height: 4px;
+  margin-bottom: 18px;
+  background-color: var(--color-primary);
+}
+
+.team-copy h2 {
+  margin: 0 0 16px;
+  color: #fff;
+  font-size: 1.55rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.team-copy p {
+  max-width: 850px;
+  margin: 0;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.about-stat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 92px;
+  padding: 20px 28px;
+  background-color: #121212;
+  border: 1px solid rgba(197, 254, 0, 0.28);
+  border-radius: 12px;
+  box-shadow:
+    var(--shadow-elevate),
+    0 0 22px rgba(197, 254, 0, 0.1);
+}
+
+.about-stat-card span,
+.about-stat-card small {
+  color: var(--color-text-muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.about-stat-card strong {
+  display: block;
+  color: var(--color-primary);
+  font-size: 2.5rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.about-stat-card svg {
+  color: rgba(197, 254, 0, 0.45);
+}
+
+.philosophy-panel {
+  padding: 56px 70px;
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 100% 10%, rgba(197, 254, 0, 0.16), transparent 34%),
+    linear-gradient(135deg, #151515 0%, #121212 62%, rgba(197, 254, 0, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: var(--shadow-elevate);
+}
+
+.philosophy-panel h2 {
+  margin: 0 0 70px;
+  color: #fff;
+  font-size: 4rem;
+  font-weight: 950;
+  line-height: 0.92;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 74px;
+}
+
+.philosophy-item div {
+  margin-bottom: 18px;
+  font-size: 2rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.philosophy-item h3 {
+  margin: 0 0 22px;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.philosophy-item p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 1120px) {
+  .founders-grid,
+  .team-story,
+  .philosophy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-stat-card {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 700px) {
+  .about-page {
+    margin-top: 24px;
+  }
+
+  .about-hero h1,
+  .philosophy-panel h2 {
+    font-size: 2.55rem;
+  }
+
+  .philosophy-panel {
+    padding: 34px 26px;
+    border-radius: 24px;
+  }
+}

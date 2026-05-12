@@ -29,6 +29,23 @@ export const LanguageProvider = ({ children }) => {
       "STAY HYDRATED": "STAY HYDRATED",
       "1.2L more for peak efficiency.": "1.2L more for peak efficiency.",
       "GOAL: 3.5L DAILY": "GOAL: 3.5L DAILY",
+      "{amount}L more for peak efficiency.": "{amount}L more for peak efficiency.",
+      "GOAL: {amount}L DAILY": "GOAL: {amount}L DAILY",
+      "Close hydration info": "Close hydration info",
+      "WATER FUELS PERFORMANCE": "WATER FUELS PERFORMANCE",
+      "Your body depends on hydration for muscle performance, recovery, focus and efficient energy use. Even slight dehydration can lower your output before you notice it.": "Your body depends on hydration for muscle performance, recovery, focus and efficient energy use. Even slight dehydration can lower your output before you notice it.",
+      "MUSCLE PERFORMANCE": "MUSCLE PERFORMANCE",
+      "Water supports strength, recovery and clean training output from warm-up to last set.": "Water supports strength, recovery and clean training output from warm-up to last set.",
+      "FAT METABOLISM": "FAT METABOLISM",
+      "Hydration helps your body process nutrients and burn energy more efficiently.": "Hydration helps your body process nutrients and burn energy more efficiently.",
+      "FOCUS & ENERGY": "FOCUS & ENERGY",
+      "Low hydration can reduce concentration, mood and physical performance.": "Low hydration can reduce concentration, mood and physical performance.",
+      "DAILY TARGET": "DAILY TARGET",
+      "Recommended: 2.5L - 3.5L": "Recommended: 2.5L - 3.5L",
+      "Decrease hydration goal": "Decrease hydration goal",
+      "Hydration goal in liters": "Hydration goal in liters",
+      "Increase hydration goal": "Increase hydration goal",
+      "Go higher on intense training days, hot days or long cardio sessions.": "Go higher on intense training days, hot days or long cardio sessions.",
       "STEPS": "STEPS",
       "ACTIVE FLOW": "ACTIVE FLOW",
       "CALORIES": "CALORIES",
@@ -82,6 +99,23 @@ export const LanguageProvider = ({ children }) => {
       "STAY HYDRATED": "BLEIB HYDRIERT",
       "1.2L more for peak efficiency.": "Noch 1.2L für maximale Effizienz.",
       "GOAL: 3.5L DAILY": "ZIEL: 3.5L TÄGLICH",
+      "{amount}L more for peak efficiency.": "Noch {amount}L für maximale Effizienz.",
+      "GOAL: {amount}L DAILY": "ZIEL: {amount}L TÄGLICH",
+      "Close hydration info": "Hydration-Info schließen",
+      "WATER FUELS PERFORMANCE": "WASSER TREIBT PERFORMANCE AN",
+      "Your body depends on hydration for muscle performance, recovery, focus and efficient energy use. Even slight dehydration can lower your output before you notice it.": "Dein Körper braucht Hydration für Muskelperformance, Regeneration, Fokus und effiziente Energienutzung. Schon leichte Dehydrierung kann deinen Output senken, bevor du es bewusst merkst.",
+      "MUSCLE PERFORMANCE": "MUSKELPERFORMANCE",
+      "Water supports strength, recovery and clean training output from warm-up to last set.": "Wasser unterstützt Kraft, Regeneration und saubere Trainingsleistung vom Warm-up bis zum letzten Satz.",
+      "FAT METABOLISM": "FETTSTOFFWECHSEL",
+      "Hydration helps your body process nutrients and burn energy more efficiently.": "Hydration hilft deinem Körper, Nährstoffe zu verarbeiten und Energie effizienter zu verbrennen.",
+      "FOCUS & ENERGY": "FOKUS & ENERGIE",
+      "Low hydration can reduce concentration, mood and physical performance.": "Zu wenig Flüssigkeit kann Konzentration, Stimmung und körperliche Leistung reduzieren.",
+      "DAILY TARGET": "TAGESZIEL",
+      "Recommended: 2.5L - 3.5L": "Empfohlen: 2.5L - 3.5L",
+      "Decrease hydration goal": "Trinkziel verringern",
+      "Hydration goal in liters": "Trinkziel in Litern",
+      "Increase hydration goal": "Trinkziel erhöhen",
+      "Go higher on intense training days, hot days or long cardio sessions.": "Setze es höher an intensiven Trainingstagen, heißen Tagen oder bei langen Cardio-Einheiten.",
       "STEPS": "SCHRITTE",
       "ACTIVE FLOW": "AKTIVER FLUSS",
       "CALORIES": "KALORIEN",
@@ -249,8 +283,7 @@ export const LanguageProvider = ({ children }) => {
       "Fire": "Feuer",
       "Activity": "Aktivität",
       "Cycle": "Fahrrad",
-      "Yoga": "Yoga"
-      ,"PRIVACY": "DATENSCHUTZ",
+      "Yoga": "Yoga",
       "POLICY": "RICHTLINIE",
       "DATA COLLECTION": "DATENERFASSUNG",
       "We capture essential performance metrics: heart rate, HRV, VO2 max, and spatial movement data during sessions.": "Wir erfassen wichtige Performance-Werte wie Herzfrequenz, HRV, VO2max und Bewegungsdaten während deiner Einheiten.",
@@ -331,10 +364,34 @@ export const LanguageProvider = ({ children }) => {
       "Reps (e.g. 8-12)": "Wdh. (z. B. 8-12)"
       ,"Sets": "Sätze",
       "Reps": "Wdh."
+      ,"ABOUT US": "ÜBER UNS",
+      "FOUNDERS": "GRÜNDER",
+      "THE DEVELOPER": "DIE ENTWICKLERIN",
+      "THE DESIGNER": "DER DESIGNER",
+      "Technical Lead - Focused on software architecture and data logic. She builds the robust engine behind PROGYM, ensuring every rep and set is recorded with precision and backed by reliable engineering.": "Technical Lead - Fokussiert auf Softwarearchitektur und Datenlogik. Sie baut den robusten Motor hinter PROGYM und sorgt dafür, dass jede Wiederholung und jeder Satz präzise erfasst und technisch zuverlässig verarbeitet wird.",
+      "Creative Lead - Specializing in UI/UX and visual strategy. He transforms complex workout data into a clean, intuitive experience, ensuring that tracking your progress is as seamless as the workout itself.": "Creative Lead - Spezialisiert auf UI/UX und visuelle Strategie. Er verwandelt komplexe Workout-Daten in eine klare, intuitive Erfahrung, damit dein Fortschritt so nahtlos getrackt wird wie das Workout selbst.",
+      "THE TEAM BEHIND": "DAS TEAM HINTER",
+      "started with a simple vision: we were tired of tattered notebooks and losing track of our progress between sets. We built this digital home to replace pens and paper with a seamless, intelligent platform for your hard work. From tracking every rep to visualizing long-term growth, we created the tool we always wanted for our own journey. No more guessing, just pure progress.": "entstand aus einer einfachen Vision: Wir hatten genug von zerfledderten Notizbüchern und davon, zwischen den Sätzen den Fortschritt aus den Augen zu verlieren. Wir haben dieses digitale Zuhause gebaut, um Stift und Papier durch eine nahtlose, intelligente Plattform für harte Arbeit zu ersetzen. Vom Tracken jeder Wiederholung bis zur Visualisierung langfristigen Wachstums haben wir das Tool geschaffen, das wir uns selbst immer gewünscht haben. Kein Rätselraten mehr, nur echter Fortschritt.",
+      "ACTIVE ATHLETES": "AKTIVE ATHLETEN",
+      "USERS": "NUTZER",
+      "OUR": "UNSERE",
+      "PHILOSOPHY": "PHILOSOPHIE",
+      "PRECISION": "PRÄZISION",
+      "Every rep is a data point. We don't guess - we calculate. Minimal effort for maximum metabolic disruption.": "Jede Wiederholung ist ein Datenpunkt. Wir raten nicht - wir berechnen. Minimaler Aufwand für maximale metabolische Wirkung.",
+      "INTENSITY": "INTENSITÄT",
+      "Comfort is the enemy of progress. We design for the threshold where physical limits are redefined.": "Komfort ist der Feind des Fortschritts. Wir gestalten für die Schwelle, an der körperliche Grenzen neu definiert werden.",
+      "EVOLUTION": "EVOLUTION",
+      "The body is a machine that must be upgraded constantly. Stagnation is not an option in the PROGYM ecosystem.": "Der Körper ist eine Maschine, die ständig verbessert werden muss. Stillstand ist im PROGYM-Ökosystem keine Option."
     }
   };
 
-  const t = (key) => dictionary[lang][key] || key;
+  const t = (key, params = {}) => {
+    const translation = dictionary[lang][key] || key;
+    return Object.entries(params).reduce(
+      (text, [paramKey, value]) => text.replaceAll(`{${paramKey}}`, value),
+      translation
+    );
+  };
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>

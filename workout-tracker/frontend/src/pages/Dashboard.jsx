@@ -1,21 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
-import { Activity, Flame, Clock, Trophy, Droplets, Calendar, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   format, 
   addMonths, 
   subMonths, 
   startOfMonth, 
-  endOfMonth, 
   startOfWeek, 
-  endOfWeek, 
   isSameMonth, 
   isSameDay, 
   addDays 
 } from 'date-fns';
+import { de } from 'date-fns/locale';
 import './Dashboard.css';
+
+const MotionDiv = motion.div;
 
 function AnimatedNumber({ value, useComma }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -23,10 +24,7 @@ function AnimatedNumber({ value, useComma }) {
   const isInView = useInView(ref, { once: false, amount: 0.5 });
 
   useEffect(() => {
-    if (!isInView) {
-      setDisplayValue(0);
-      return;
-    }
+    if (!isInView) return undefined;
 
     let startTimestamp = null;
     let animationFrame;
@@ -44,7 +42,9 @@ function AnimatedNumber({ value, useComma }) {
     return () => { if (animationFrame) window.cancelAnimationFrame(animationFrame); };
   }, [value, isInView]);
 
-  return <span ref={ref}>{useComma ? displayValue.toLocaleString('en-US') : displayValue}</span>;
+  const visibleValue = isInView ? displayValue : 0;
+
+  return <span ref={ref}>{useComma ? visibleValue.toLocaleString('en-US') : visibleValue}</span>;
 }
 
 function CircularProgress({ percentage }) {
@@ -93,7 +93,7 @@ function AnimatedMedal() {
   return (
     <div className="achievements-medal-area" ref={ref}>
       <div className="medal-glow-bg"></div>
-      <motion.div 
+      <MotionDiv 
         className="medal-icon"
         initial={{ scale: 0 }}
         animate={isInView ? { scale: [0, 1.3, 0.85, 1.15, 0.95, 1] } : { scale: 0 }}
@@ -104,19 +104,45 @@ function AnimatedMedal() {
         }}
       >
         <Award size={40} color="#000" />
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 }
 
 export default function Dashboard() {
-  const { t } = useLanguage();
-  const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
+  const { t, lang } = useLanguage();
+  const [, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
+  const [hydrationGoal, setHydrationGoal] = useState(() => {
+    const savedGoal = window.localStorage.getItem('hydrationGoalLiters');
+    return savedGoal ? Number(savedGoal) : 3.5;
+  });
+  const currentHydration = 2.3;
+  const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
 
   useEffect(() => {
     api.getStats().then(setStats).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('hydrationGoalLiters', hydrationGoal.toString());
+  }, [hydrationGoal]);
+
+  useEffect(() => {
+    if (!isHydrationModalOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsHydrationModalOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isHydrationModalOpen]);
+
+  const changeHydrationGoal = (amount) => {
+    setHydrationGoal((goal) => Number(Math.min(5, Math.max(1.5, goal + amount)).toFixed(1)));
+  };
 
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -230,27 +256,33 @@ export default function Dashboard() {
         {/* Right Stack */}
         <div className="top-grid-right-stack">
           {/* Hydration */}
-          <div className="card hydration-card">
+          <button
+            className="card hydration-card"
+            type="button"
+            onClick={() => setIsHydrationModalOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={isHydrationModalOpen}
+          >
             <div className="hydration-content">
               <div className="icon-circle solid-green">
                 <Droplets size={24} color="#000" />
               </div>
               <div className="hydration-text">
                 <h3>{t('STAY HYDRATED')}</h3>
-                <p>{t('1.2L more for peak efficiency.')}</p>
+                <p>{t('{amount}L more for peak efficiency.', { amount: remainingHydration.toFixed(1) })}</p>
               </div>
             </div>
             <div className="hydration-goal">
-              <Droplets size={16} /> {t('GOAL: 3.5L DAILY')}
+              <Droplets size={16} /> {t('GOAL: {amount}L DAILY', { amount: hydrationGoal.toFixed(1) })}
             </div>
             {/* Background decorative drop */}
             <Droplets className="bg-icon-drop" size={120} />
-          </div>
+          </button>
 
           {/* Calendar */}
           <div className="card calendar-card">
             <div className="calendar-header">
-              <h3>{format(currentMonth, "MMMM yyyy").toUpperCase()}</h3>
+              <h3>{format(currentMonth, "MMMM yyyy", { locale: lang === 'de' ? de : undefined }).toUpperCase()}</h3>
               <div className="calendar-nav">
                 <ChevronLeft size={16} onClick={prevMonth} />
                 <ChevronRight size={16} onClick={nextMonth} />
@@ -357,6 +389,95 @@ export default function Dashboard() {
           <AnimatedMedal />
         </div>
       </div>
+
+      {isHydrationModalOpen && (
+        <div
+          className="hydration-modal-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsHydrationModalOpen(false);
+          }}
+        >
+          <MotionDiv
+            className="hydration-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hydration-modal-title"
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <button className="hydration-modal-close" type="button" onClick={() => setIsHydrationModalOpen(false)} aria-label={t('Close hydration info')}>
+              <X size={18} />
+            </button>
+
+            <div className="hydration-modal-hero">
+              <div className="icon-circle solid-green">
+                <Droplets size={26} color="#000" />
+              </div>
+              <div>
+                <span className="hydration-kicker">{t('WATER FUELS PERFORMANCE')}</span>
+                <h2 id="hydration-modal-title">{t('STAY HYDRATED')}</h2>
+              </div>
+            </div>
+
+            <p className="hydration-modal-intro">
+              {t('Your body depends on hydration for muscle performance, recovery, focus and efficient energy use. Even slight dehydration can lower your output before you notice it.')}
+            </p>
+
+            <div className="hydration-impact-grid">
+              <div className="hydration-impact-item">
+                <Zap size={20} />
+                <h3>{t('MUSCLE PERFORMANCE')}</h3>
+                <p>{t('Water supports strength, recovery and clean training output from warm-up to last set.')}</p>
+              </div>
+              <div className="hydration-impact-item">
+                <Flame size={20} />
+                <h3>{t('FAT METABOLISM')}</h3>
+                <p>{t('Hydration helps your body process nutrients and burn energy more efficiently.')}</p>
+              </div>
+              <div className="hydration-impact-item">
+                <Brain size={20} />
+                <h3>{t('FOCUS & ENERGY')}</h3>
+                <p>{t('Low hydration can reduce concentration, mood and physical performance.')}</p>
+              </div>
+            </div>
+
+            <div className="hydration-goal-editor">
+              <div className="hydration-goal-editor-head">
+                <div>
+                  <span className="hydration-kicker">{t('DAILY TARGET')}</span>
+                  <h3>{hydrationGoal.toFixed(1)}L</h3>
+                </div>
+                <div className="hydration-target-badge">
+                  <Target size={16} />
+                  {t('Recommended: 2.5L - 3.5L')}
+                </div>
+              </div>
+
+              <div className="hydration-goal-controls">
+                <button type="button" onClick={() => changeHydrationGoal(-0.1)} aria-label={t('Decrease hydration goal')}>
+                  <Minus size={16} />
+                </button>
+                <input
+                  type="range"
+                  min="1.5"
+                  max="5"
+                  step="0.1"
+                  value={hydrationGoal}
+                  onChange={(event) => setHydrationGoal(Number(event.target.value))}
+                  aria-label={t('Hydration goal in liters')}
+                />
+                <button type="button" onClick={() => changeHydrationGoal(0.1)} aria-label={t('Increase hydration goal')}>
+                  <Plus size={16} />
+                </button>
+              </div>
+
+              <p>{t('Go higher on intense training days, hot days or long cardio sessions.')}</p>
+            </div>
+          </MotionDiv>
+        </div>
+      )}
 
     </div>
   );
