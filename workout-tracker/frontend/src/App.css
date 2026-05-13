@@ -147,6 +147,9 @@
 }
 
 .workout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: var(--color-primary);
   color: var(--color-primary-dark);
   border: none;
@@ -156,6 +159,7 @@
   font-size: 1rem;
   cursor: pointer;
   text-transform: uppercase;
+  text-decoration: none;
   transition: opacity 0.2s;
   width: 100%;
 }

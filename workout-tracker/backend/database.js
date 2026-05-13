@@ -44,6 +44,12 @@ async function initializeDb() {
       FOREIGN KEY (session_id) REFERENCES workout_sessions (id) ON DELETE CASCADE
     );
   `);
+
+  const workoutLogColumns = await db.all('PRAGMA table_info(workout_logs)');
+  const hasRestSeconds = workoutLogColumns.some((column) => column.name === 'rest_seconds');
+  if (!hasRestSeconds) {
+    await db.exec('ALTER TABLE workout_logs ADD COLUMN rest_seconds INTEGER');
+  }
   
   return db;
 }

@@ -214,7 +214,7 @@ export default function Dashboard() {
   }, [isHydrationModalOpen]);
 
   const changeHydrationGoal = (amount) => {
-    setHydrationGoal((goal) => Number(Math.min(5, Math.max(1.5, goal + amount)).toFixed(1)));
+    setHydrationGoal((goal) => Number(Math.min(7, Math.max(1.5, goal + amount)).toFixed(1)));
   };
 
   const openWorkoutPlanner = (date) => {
@@ -589,7 +589,7 @@ export default function Dashboard() {
                 <input
                   type="range"
                   min="1.5"
-                  max="5"
+                  max="7"
                   step="0.1"
                   value={hydrationGoal}
                   onChange={(event) => setHydrationGoal(Number(event.target.value))}

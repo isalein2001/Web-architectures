@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Activity,
   Bike,
@@ -103,6 +104,7 @@ const formatExerciseSummary = (exercise) => {
 
 export default function Workouts() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState(initialExercises);
   const [draggingExerciseId, setDraggingExerciseId] = useState(null);
@@ -219,6 +221,16 @@ export default function Workouts() {
       ...currentPlans,
       [title]: !currentPlans[title],
     }));
+  };
+
+  const startWorkoutPlan = (plan, source = 'custom') => {
+    const selectedPlan = {
+      ...plan,
+      id: plan.id || plan.title,
+      source,
+    };
+    window.sessionStorage.setItem('selectedWorkoutToStart', JSON.stringify(selectedPlan));
+    navigate('/start-workout', { state: { plan: selectedPlan } });
   };
 
   const handleCoverUpload = (event) => {
@@ -644,7 +656,15 @@ export default function Workouts() {
                           {isExpanded ? t('SHOW LESS') : plan.more.replace('MORE EXERCISES', t('MORE EXERCISES'))}
                         </button>
                       )}
-                      <button type="button" onClick={(event) => event.stopPropagation()}>{t('START WORKOUT')}</button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          startWorkoutPlan(plan, 'custom');
+                        }}
+                      >
+                        {t('START WORKOUT')}
+                      </button>
                     </div>
                   </article>
                 );
@@ -703,7 +723,15 @@ export default function Workouts() {
                       {isExpanded ? t('SHOW LESS') : plan.more.replace('MORE EXERCISES', t('MORE EXERCISES'))}
                     </button>
                   )}
-                  <button type="button" onClick={(event) => event.stopPropagation()}>{t('START WORKOUT')}</button>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      startWorkoutPlan(plan, 'ready');
+                    }}
+                  >
+                    {t('START WORKOUT')}
+                  </button>
                 </div>
               </article>
             );

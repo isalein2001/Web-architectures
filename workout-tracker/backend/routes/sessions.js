@@ -47,16 +47,17 @@ function createSessionsRouter(db) {
       const sessionId = result.lastID;
 
       if (logs.length > 0) {
-        const placeholders = logs.map(() => '(?, ?, ?, ?, ?)').join(',');
+        const placeholders = logs.map(() => '(?, ?, ?, ?, ?, ?)').join(',');
         const values = logs.flatMap((log) => [
           sessionId,
           log.exercise_name,
           log.set_number,
           log.reps,
           log.weight,
+          log.rest_seconds,
         ]);
         await db.run(
-          `INSERT INTO workout_logs (session_id, exercise_name, set_number, reps, weight) VALUES ${placeholders}`,
+          `INSERT INTO workout_logs (session_id, exercise_name, set_number, reps, weight, rest_seconds) VALUES ${placeholders}`,
           values
         );
       }

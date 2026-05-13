@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
 import Support from "./pages/Support";
 import About from "./pages/About";
+import WorkoutLogger from "./pages/WorkoutLogger";
 import "./index.css";
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
@@ -219,7 +220,7 @@ function AppLayout() {
           <NavLink to="/workouts" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             <NotebookPen size={20} /> {t('Workouts')}
           </NavLink>
-          <NavLink to="/workouts" className="mobile-start-workout-button">
+          <NavLink to="/start-workout" className="mobile-start-workout-button">
             <Activity size={18} />
             <span>{t('START')}</span>
           </NavLink>
@@ -241,7 +242,7 @@ function AppLayout() {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="workout-btn">{t('START WORKOUT')}</button>
+          <NavLink to="/start-workout" className="workout-btn">{t('START WORKOUT')}</NavLink>
         </div>
       </aside>
 
@@ -330,6 +331,7 @@ function AppLayout() {
             <Route path="/" element={<><Landing /><Dashboard /></>} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/workouts" element={<Workouts />} />
+            <Route path="/start-workout" element={<WorkoutLogger />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Profile />} />
             <Route path="/impressum" element={<Impressum />} />
