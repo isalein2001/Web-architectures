@@ -239,6 +239,16 @@ export default function WorkoutLogger() {
     });
   };
 
+  const cancelWorkout = () => {
+    setActivePlan(null);
+    setLogs([]);
+    setNotes('');
+    setCurrentExercise('');
+    setCountdown(3);
+    setSaveState('idle');
+    setPhase('select');
+  };
+
   const finishWorkout = async () => {
     if (!activePlan) return;
 
@@ -276,6 +286,9 @@ export default function WorkoutLogger() {
         </div>
         <h1>{activePlan?.title}</h1>
         <p>{t('GET READY TO TRAIN')}</p>
+        <button className="countdown-cancel-button" type="button" onClick={cancelWorkout}>
+          <X size={16} /> {t('CANCEL SESSION')}
+        </button>
       </div>
     );
   }
@@ -325,9 +338,14 @@ export default function WorkoutLogger() {
           <h1>{activePlan?.title}</h1>
           <p>{completedCount}/{logs.length || 1} {t('SETS COMPLETED')}</p>
         </div>
-        <button className="finish-workout-button" type="button" onClick={finishWorkout} disabled={saveState === 'saving'}>
-          <Save size={17} /> {saveState === 'saving' ? t('SAVING') : t('FINISH WORKOUT')}
-        </button>
+        <div className="active-workout-actions">
+          <button className="cancel-workout-button" type="button" onClick={cancelWorkout} disabled={saveState === 'saving'}>
+            <X size={17} /> {t('CANCEL SESSION')}
+          </button>
+          <button className="finish-workout-button" type="button" onClick={finishWorkout} disabled={saveState === 'saving'}>
+            <Save size={17} /> {saveState === 'saving' ? t('SAVING') : t('FINISH WORKOUT')}
+          </button>
+        </div>
       </header>
 
       <div className="active-workout-progress">

@@ -606,6 +606,18 @@
   background-color: rgba(197, 254, 0, 0.08);
 }
 
+.cal-day.trained {
+  color: #050505;
+  background: var(--color-primary);
+  box-shadow: 0 0 18px rgba(197, 254, 0, 0.24);
+}
+
+.cal-day.trained.scheduled {
+  color: #050505;
+  border-color: rgba(197, 254, 0, 0.6);
+  background: linear-gradient(135deg, var(--color-primary), #e0ff63);
+}
+
 .cal-workout-dot {
   position: absolute;
   right: 7px;
@@ -615,6 +627,17 @@
   border-radius: 50%;
   background: var(--color-primary);
   box-shadow: 0 0 8px rgba(197, 254, 0, 0.6);
+}
+
+.cal-completed-dot {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #050505;
+  box-shadow: 0 0 0 2px rgba(5, 5, 5, 0.14);
 }
 
 /* Workout Planner Modal */
@@ -705,6 +728,16 @@
   background: rgba(255, 255, 255, 0.035);
 }
 
+.scheduled-workout-current.completed {
+  border-color: rgba(197, 254, 0, 0.22);
+  background: rgba(197, 254, 0, 0.07);
+}
+
+.scheduled-workout-current.completed span,
+.scheduled-workout-current.completed strong {
+  color: var(--color-primary);
+}
+
 .scheduled-workout-current span {
   color: #888;
   font-size: 0.68rem;
@@ -719,6 +752,226 @@
   font-weight: 900;
   text-transform: uppercase;
   text-align: right;
+}
+
+.scheduled-workout-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.scheduled-workout-copy strong {
+  text-align: left;
+}
+
+.planner-details-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.planner-details-button:hover {
+  background: var(--color-primary);
+  color: #050505;
+  transform: translateY(-1px);
+}
+
+.workout-session-details {
+  display: grid;
+  gap: 12px;
+  margin: -6px 0 18px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.workout-session-card {
+  position: relative;
+  padding: 16px;
+  padding-bottom: 58px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+}
+
+.workout-session-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.workout-session-head div {
+  display: grid;
+  gap: 5px;
+}
+
+.workout-session-head span,
+.session-notes span {
+  color: var(--color-primary);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.workout-session-head strong {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.workout-session-head small {
+  color: #9b9b9b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.session-trash-button {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.session-trash-button:hover {
+  border-color: rgba(255, 122, 95, 0.42);
+  color: #ff7a5f;
+  background: rgba(255, 122, 95, 0.08);
+}
+
+.session-delete-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 122, 95, 0.08);
+}
+
+.session-delete-confirm p {
+  margin: 0;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.session-delete-confirm div {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.session-delete-confirm button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.session-delete-confirm button.danger {
+  color: #050505;
+  background: #ff7a5f;
+}
+
+.session-delete-confirm button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.workout-session-exercise {
+  display: grid;
+  gap: 9px;
+}
+
+.workout-session-exercise + .workout-session-exercise {
+  margin-top: 14px;
+}
+
+.workout-session-exercise h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.workout-session-log-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.workout-session-log-grid span,
+.workout-session-log-grid strong {
+  min-height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  text-align: center;
+}
+
+.workout-session-log-grid span {
+  color: #8d8d8d;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.workout-session-log-grid strong {
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.session-empty-details,
+.session-notes {
+  margin: 0;
+  color: #a7a7a7;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.session-notes {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
 }
 
 .workout-select-list {
@@ -1339,6 +1592,10 @@
   .ready-made-suggestion {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .planner-details-button {
+    width: 100%;
   }
 
   .scheduled-workout-current strong,

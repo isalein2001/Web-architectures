@@ -20,6 +20,18 @@ import './Dashboard.css';
 const MotionDiv = motion.div;
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+const getSessionDateKey = (date) => {
+  const parsedDate = new Date(date);
+  if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
+  return format(parsedDate, 'yyyy-MM-dd');
+};
+const groupLogsByExercise = (logs = []) => logs.reduce((groups, log) => {
+  const exerciseName = log.exercise_name || 'Workout';
+  return {
+    ...groups,
+    [exerciseName]: [...(groups[exerciseName] || []), log],
+  };
+}, {});
 const readyMadeCalendarWorkouts = [
   {
     id: 'ready-push-pull-legs',
@@ -161,7 +173,8 @@ function AnimatedMedal() {
 export default function Dashboard() {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
-  const [, setStats] = useState({ totalSessions: 0, sessionDates: [] });
+  const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
+  const [sessions, setSessions] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
   const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
@@ -169,6 +182,9 @@ export default function Dashboard() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
+  const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
+  const [confirmingSessionId, setConfirmingSessionId] = useState(null);
+  const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [hydrationGoal, setHydrationGoal] = useState(() => {
     const savedGoal = window.localStorage.getItem('hydrationGoalLiters');
     return savedGoal ? Number(savedGoal) : 3.5;
@@ -176,8 +192,22 @@ export default function Dashboard() {
   const currentHydration = 2.3;
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
 
+  const completedWorkoutDates = new Set((stats.sessionDates || []).map(getSessionDateKey));
+
+  const refreshSessionData = async () => {
+    const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
+    setStats(nextStats);
+    setSessions(Array.isArray(nextSessions) ? nextSessions : []);
+  };
+
   useEffect(() => {
-    api.getStats().then(setStats).catch(console.error);
+    const refreshStats = () => {
+      refreshSessionData().catch(console.error);
+    };
+
+    refreshStats();
+    window.addEventListener('focus', refreshStats);
+    return () => window.removeEventListener('focus', refreshStats);
   }, []);
 
   useEffect(() => {
@@ -222,12 +252,18 @@ export default function Dashboard() {
     setSelectedCalendarDate(date);
     setSelectedWorkoutId(workoutSchedule[dateKey]?.workoutId || '');
     setShowReadyMadeOptions(false);
+    setShowWorkoutDetails(false);
+    setConfirmingSessionId(null);
+    setDeletingSessionId(null);
   };
 
   const closeWorkoutPlanner = () => {
     setSelectedCalendarDate(null);
     setSelectedWorkoutId('');
     setShowReadyMadeOptions(false);
+    setShowWorkoutDetails(false);
+    setConfirmingSessionId(null);
+    setDeletingSessionId(null);
   };
 
   const saveScheduledWorkout = () => {
@@ -262,6 +298,22 @@ export default function Dashboard() {
     closeWorkoutPlanner();
   };
 
+  const deleteCompletedSession = async (sessionToDelete) => {
+    if (!sessionToDelete?.id) return;
+
+    setDeletingSessionId(sessionToDelete.id);
+    try {
+      await api.deleteSession(sessionToDelete.id);
+      await refreshSessionData();
+      setShowWorkoutDetails(selectedDateSessions.length > 1);
+      setConfirmingSessionId(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeletingSessionId(null);
+    }
+  };
+
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
@@ -279,11 +331,13 @@ export default function Dashboard() {
       const isCurrentMonth = isSameMonth(calendarDay, monthStart);
       const isToday = isSameDay(calendarDay, new Date());
       const scheduledWorkout = workoutSchedule[dateKey];
+      const isWorkoutCompleted = completedWorkoutDates.has(dateKey);
       
       let className = "cal-day";
       if (!isCurrentMonth) className += " text-muted";
       if (isToday) className += " active";
       if (scheduledWorkout) className += " scheduled";
+      if (isWorkoutCompleted && isCurrentMonth) className += " trained";
 
       days.push(
         <button
@@ -292,9 +346,10 @@ export default function Dashboard() {
           key={calendarDay.toISOString()}
           onClick={() => openWorkoutPlanner(calendarDay)}
           style={{ opacity: isCurrentMonth ? 1 : 0.3 }}
-          aria-label={`${formattedDate}${scheduledWorkout ? `, ${scheduledWorkout.title}` : ''}`}
+          aria-label={`${formattedDate}${scheduledWorkout ? `, ${scheduledWorkout.title}` : ''}${isWorkoutCompleted ? `, ${t('WORKOUT COMPLETED')}` : ''}`}
         >
           <span>{formattedDate}</span>
+          {isWorkoutCompleted && isCurrentMonth && <span className="cal-completed-dot" title={t('WORKOUT COMPLETED')}></span>}
           {scheduledWorkout && <span className="cal-workout-dot" title={scheduledWorkout.title}></span>}
         </button>
       );
@@ -334,6 +389,13 @@ export default function Dashboard() {
   const availableWorkouts = customWorkouts.length > 0
     ? customWorkouts
     : (showReadyMadeOptions ? readyMadeCalendarWorkouts : []);
+  const selectedDateKey = selectedCalendarDate ? format(selectedCalendarDate, 'yyyy-MM-dd') : '';
+  const selectedScheduledWorkout = selectedDateKey ? workoutSchedule[selectedDateKey] : null;
+  const isSelectedDateCompleted = selectedDateKey ? completedWorkoutDates.has(selectedDateKey) : false;
+  const selectedDateSessions = selectedDateKey
+    ? sessions.filter((session) => getSessionDateKey(session.date) === selectedDateKey)
+    : [];
+  const hasWorkoutDetails = selectedDateSessions.length > 0;
 
   return (
     <div className="dashboard-container">
@@ -637,19 +699,140 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="scheduled-workout-current">
-              {workoutSchedule[format(selectedCalendarDate, 'yyyy-MM-dd')] ? (
-                <>
+            <div className={`scheduled-workout-current ${isSelectedDateCompleted && !selectedScheduledWorkout ? 'completed' : ''}`}>
+              {selectedScheduledWorkout ? (
+                <div className="scheduled-workout-copy">
                   <span>{t('SCHEDULED WORKOUT')}</span>
-                  <strong>{workoutSchedule[format(selectedCalendarDate, 'yyyy-MM-dd')].title}</strong>
-                </>
+                  <strong>{selectedScheduledWorkout.title}</strong>
+                </div>
+              ) : isSelectedDateCompleted ? (
+                <div className="scheduled-workout-copy">
+                  <span>{t('WORKOUT DONE')}</span>
+                  <strong>{t('Ready for another round?')}</strong>
+                </div>
               ) : (
-                <>
+                <div className="scheduled-workout-copy">
                   <span>{t('EMPTY DAY')}</span>
                   <strong>{t('No workout planned yet.')}</strong>
-                </>
+                </div>
+              )}
+
+              {isSelectedDateCompleted && hasWorkoutDetails && (
+                <button
+                  className="planner-details-button"
+                  type="button"
+                  onClick={() => setShowWorkoutDetails((isOpen) => !isOpen)}
+                >
+                  {showWorkoutDetails ? t('HIDE DETAILS') : t('VIEW SESSION')}
+                </button>
               )}
             </div>
+
+            {showWorkoutDetails && hasWorkoutDetails && (
+              <div className="workout-session-details">
+                {selectedDateSessions.map((session, sessionIndex) => {
+                  const groupedLogs = groupLogsByExercise(session.logs || []);
+                  const sessionTime = new Date(session.date).toLocaleTimeString(lang === 'de' ? 'de-DE' : 'en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+
+                  return (
+                    <div className="workout-session-card" key={session.id || `${session.date}-${sessionIndex}`}>
+                      <div className="workout-session-head">
+                        <div>
+                          <span>{t('SESSION DETAILS')}</span>
+                          <strong>{session.plan_name || t('FREESTYLE WORKOUT')}</strong>
+                        </div>
+                        <small>{sessionTime}</small>
+                      </div>
+
+                      {confirmingSessionId === session.id && (
+                        <div className="session-delete-confirm">
+                          <p>{t('Delete this completed workout?')}</p>
+                          <div>
+                            <button
+                              type="button"
+                              onMouseDown={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setConfirmingSessionId(null);
+                              }}
+                            >
+                              {t('CANCEL')}
+                            </button>
+                            <button
+                              type="button"
+                              className="danger"
+                              disabled={deletingSessionId === session.id}
+                              onMouseDown={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                deleteCompletedSession(session);
+                              }}
+                            >
+                              {deletingSessionId === session.id ? t('DELETING') : t('DELETE')}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {Object.keys(groupedLogs).length > 0 ? (
+                        Object.entries(groupedLogs).map(([exerciseName, logs]) => (
+                          <div className="workout-session-exercise" key={exerciseName}>
+                            <h3>{exerciseName}</h3>
+                            <div className="workout-session-log-grid">
+                              <span>{t('SET')}</span>
+                              <span>{t('REPS')}</span>
+                              <span>{t('WEIGHT')}</span>
+                              <span>{t('REST')}</span>
+                              {logs.map((log) => (
+                                <React.Fragment key={`${exerciseName}-${log.id || log.set_number}`}>
+                                  <strong>{log.set_number || '-'}</strong>
+                                  <strong>{log.reps ?? '-'}</strong>
+                                  <strong>{log.weight ? `${log.weight} kg` : '-'}</strong>
+                                  <strong>{log.rest_seconds ? `${log.rest_seconds} ${t('SEC')}` : '-'}</strong>
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="session-empty-details">{t('No set details saved for this session.')}</p>
+                      )}
+
+                      {session.notes && (
+                        <p className="session-notes">
+                          <span>{t('SESSION NOTES')}</span>
+                          {session.notes}
+                        </p>
+                      )}
+
+                      <button
+                        className="session-trash-button"
+                        type="button"
+                        aria-label={t('DELETE SESSION')}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          setConfirmingSessionId(session.id);
+                        }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="workout-select-list">
               {availableWorkouts.length > 0 ? (
@@ -700,9 +883,11 @@ export default function Dashboard() {
             )}
 
             <div className="workout-planner-actions">
-              <button className="planner-remove-button" type="button" onClick={removeScheduledWorkout}>
-                <Trash2 size={16} /> {t('REMOVE')}
-              </button>
+              {selectedScheduledWorkout && (
+                <button className="planner-remove-button" type="button" onClick={removeScheduledWorkout}>
+                  <Trash2 size={16} /> {t('REMOVE')}
+                </button>
+              )}
               <button className="planner-save-button" type="button" onClick={saveScheduledWorkout} disabled={!selectedWorkoutId}>
                 {t('SAVE WORKOUT')}
               </button>

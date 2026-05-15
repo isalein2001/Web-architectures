@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000/api';
+const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+const API_URL = `http://${API_HOST}:3000/api`;
 
 export const api = {
   // Plans
@@ -31,6 +32,16 @@ export const api = {
       body: JSON.stringify(sessionData),
     });
     return res.json();
+  },
+  deleteSession: async (id) => {
+    const res = await fetch(`${API_URL}/sessions/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Could not delete session');
+    }
+    return true;
   },
 
   // Progress & Stats
