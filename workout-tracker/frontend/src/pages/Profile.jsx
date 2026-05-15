@@ -3,6 +3,7 @@ import {
   Bell,
   Download,
   Droplets,
+  LogOut,
   Lock,
   Minus,
   Plus,
@@ -18,48 +19,74 @@ import {
   X,
 } from 'lucide-react';
 import { LanguageContext } from '../context/LanguageContext';
+import { getUserDisplayName, getUserInitials, getUserStorageKey } from '../userStorage';
+import { api } from '../api';
 import './Profile.css';
 
-export default function Profile() {
+export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   const { t } = useContext(LanguageContext);
+  const userDisplayName = getUserDisplayName(currentUser);
+  const userInitials = getUserInitials(currentUser);
+  const storageKey = (key) => getUserStorageKey(key, currentUser);
+  const [accountFirstName, setAccountFirstName] = useState(currentUser?.firstName || userDisplayName.split(/\s+/)[0] || '');
+  const [accountLastName, setAccountLastName] = useState(currentUser?.lastName || userDisplayName.split(/\s+/).slice(1).join(' ') || '');
+  const [accountEmail, setAccountEmail] = useState(currentUser?.email || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [accountStatus, setAccountStatus] = useState({ type: '', message: '' });
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [hydrationGoal, setHydrationGoal] = useState(() => {
-    const savedGoal = window.localStorage.getItem('hydrationGoalLiters');
-    return savedGoal ? Number(savedGoal) : 3.5;
+    const savedGoal = window.localStorage.getItem(storageKey('hydrationGoalLiters'));
+    return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
   });
   const [workoutRemindersEnabled, setWorkoutRemindersEnabled] = useState(() => (
-    window.localStorage.getItem('workoutRemindersEnabled') !== 'false'
+    window.localStorage.getItem(storageKey('workoutRemindersEnabled')) !== 'false'
   ));
   const [hydrationAlertsEnabled, setHydrationAlertsEnabled] = useState(() => (
-    window.localStorage.getItem('hydrationAlertsEnabled') === 'true'
+    window.localStorage.getItem(storageKey('hydrationAlertsEnabled')) === 'true'
   ));
   const [activeReminder, setActiveReminder] = useState(null);
   const [isBmiInfoOpen, setIsBmiInfoOpen] = useState(false);
-  const [gender, setGender] = useState(() => window.localStorage.getItem('profileGender') || 'Male');
-  const [height, setHeight] = useState(() => window.localStorage.getItem('profileHeightCm') || '185');
-  const [weight, setWeight] = useState(() => window.localStorage.getItem('profileWeightKg') || '85');
+  const [gender, setGender] = useState(() => window.localStorage.getItem(storageKey('profileGender')) || 'Male');
+  const [height, setHeight] = useState(() => window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
+  const [weight, setWeight] = useState(() => window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
   const [isBmiTrackingEnabled, setIsBmiTrackingEnabled] = useState(() => (
-    window.localStorage.getItem('bmiTrackingEnabled') !== 'false'
+    window.localStorage.getItem(storageKey('bmiTrackingEnabled')) !== 'false'
   ));
-  const [bmiValue, setBmiValue] = useState(() => window.localStorage.getItem('profileBmi') || '24.8');
+  const [bmiValue, setBmiValue] = useState(() => window.localStorage.getItem(storageKey('profileBmi')) || '24.8');
   const [hasUnsavedBiometrics, setHasUnsavedBiometrics] = useState(false);
 
   useEffect(() => {
-    window.localStorage.setItem('hydrationGoalLiters', hydrationGoal.toString());
-  }, [hydrationGoal]);
+    const nextDisplayName = getUserDisplayName(currentUser);
+    setAccountFirstName(currentUser?.firstName || nextDisplayName.split(/\s+/)[0] || '');
+    setAccountLastName(currentUser?.lastName || nextDisplayName.split(/\s+/).slice(1).join(' ') || '');
+    setAccountEmail(currentUser?.email || '');
+    setCurrentPassword('');
+    setNewPassword('');
+    setAccountStatus({ type: '', message: '' });
+    setHydrationGoal(Number(window.localStorage.getItem(storageKey('hydrationGoalLiters')) || currentUser?.hydrationGoalLiters || 3.5));
+    setHeight(window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
+    setWeight(window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
+  }, [currentUser]);
 
   useEffect(() => {
-    window.localStorage.setItem('workoutRemindersEnabled', workoutRemindersEnabled.toString());
+    window.localStorage.setItem(storageKey('hydrationGoalLiters'), hydrationGoal.toString());
+  }, [hydrationGoal, currentUser?.id]);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey('workoutRemindersEnabled'), workoutRemindersEnabled.toString());
     window.dispatchEvent(new CustomEvent('alert-preferences-change', {
       detail: { workoutRemindersEnabled },
     }));
-  }, [workoutRemindersEnabled]);
+  }, [workoutRemindersEnabled, currentUser?.id]);
 
   useEffect(() => {
-    window.localStorage.setItem('hydrationAlertsEnabled', hydrationAlertsEnabled.toString());
+    window.localStorage.setItem(storageKey('hydrationAlertsEnabled'), hydrationAlertsEnabled.toString());
     window.dispatchEvent(new CustomEvent('alert-preferences-change', {
       detail: { hydrationAlertsEnabled },
     }));
-  }, [hydrationAlertsEnabled]);
+  }, [hydrationAlertsEnabled, currentUser?.id]);
 
   useEffect(() => {
     const handleAlertPreferenceChange = (event) => {
@@ -101,10 +128,10 @@ export default function Profile() {
   };
 
   const saveBiometrics = () => {
-    window.localStorage.setItem('profileGender', gender);
-    window.localStorage.setItem('profileHeightCm', height);
-    window.localStorage.setItem('profileWeightKg', weight);
-    window.localStorage.setItem('bmiTrackingEnabled', isBmiTrackingEnabled.toString());
+    window.localStorage.setItem(storageKey('profileGender'), gender);
+    window.localStorage.setItem(storageKey('profileHeightCm'), height);
+    window.localStorage.setItem(storageKey('profileWeightKg'), weight);
+    window.localStorage.setItem(storageKey('bmiTrackingEnabled'), isBmiTrackingEnabled.toString());
 
     if (!isBmiTrackingEnabled) {
       setHasUnsavedBiometrics(false);
@@ -118,7 +145,7 @@ export default function Profile() {
     }
 
     setBmiValue(nextBmi);
-    window.localStorage.setItem('profileBmi', nextBmi);
+    window.localStorage.setItem(storageKey('profileBmi'), nextBmi);
     setHasUnsavedBiometrics(false);
   };
 
@@ -130,6 +157,77 @@ export default function Profile() {
   const toggleBmiTracking = () => {
     setIsBmiTrackingEnabled((enabled) => !enabled);
     setHasUnsavedBiometrics(true);
+  };
+
+  const saveAccountProfile = async () => {
+    setAccountStatus({ type: '', message: '' });
+
+    if (!accountFirstName.trim() || !accountLastName.trim() || !accountEmail.trim()) {
+      setAccountStatus({ type: 'error', message: t('Please fill in first name, last name and email.') });
+      return;
+    }
+
+    setIsSavingAccount(true);
+
+    try {
+      const data = await api.updateCurrentUser({
+        firstName: accountFirstName,
+        lastName: accountLastName,
+        email: accountEmail,
+        currentPassword: currentPassword || undefined,
+        newPassword: newPassword || undefined,
+      });
+      onUserUpdate(data.user);
+      setCurrentPassword('');
+      setNewPassword('');
+      setAccountStatus({ type: 'success', message: t('Account updated.') });
+    } catch (error) {
+      setAccountStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsSavingAccount(false);
+    }
+  };
+
+  const updateProfileImage = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setAccountStatus({ type: 'error', message: t('Please choose an image file.') });
+      return;
+    }
+
+    if (file.size > 1_000_000) {
+      setAccountStatus({ type: 'error', message: t('Please choose an image under 1 MB.') });
+      return;
+    }
+
+    setIsSavingAvatar(true);
+    setAccountStatus({ type: '', message: '' });
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const data = await api.updateCurrentUser({
+          firstName: accountFirstName,
+          lastName: accountLastName,
+          email: accountEmail,
+          profileImage: reader.result,
+        });
+        onUserUpdate(data.user);
+        setAccountStatus({ type: 'success', message: t('Profile image updated.') });
+      } catch (error) {
+        setAccountStatus({ type: 'error', message: error.message });
+      } finally {
+        setIsSavingAvatar(false);
+        event.target.value = '';
+      }
+    };
+    reader.onerror = () => {
+      setIsSavingAvatar(false);
+      setAccountStatus({ type: 'error', message: t('Could not read image file.') });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -145,32 +243,64 @@ export default function Profile() {
             <div className="profile-panel-heading">
               <span className="profile-heading-icon"><User size={20} /></span>
               <h2>{t('ACCOUNT PROFILE')}</h2>
+              <button className="biometrics-save-button unsaved" type="button" onClick={saveAccountProfile} disabled={isSavingAccount}>
+                <Save size={14} /> {isSavingAccount ? t('SAVING') : t('SAVE')}
+              </button>
             </div>
 
             <div className="account-profile-body">
               <div className="profile-avatar-edit">
                 <div className="profile-avatar-ring">
-                  <div className="profile-avatar-face">JA</div>
+                  <div
+                    className={`profile-avatar-face ${currentUser?.profileImage ? 'has-image' : ''}`}
+                    style={currentUser?.profileImage ? { backgroundImage: `url(${currentUser.profileImage})` } : undefined}
+                  >
+                    {!currentUser?.profileImage && userInitials}
+                  </div>
                 </div>
-                <button type="button" aria-label={t('CHANGE')}><Plus size={14} /></button>
+                <label className="profile-avatar-upload" aria-label={t('CHANGE')}>
+                  <input type="file" accept="image/png,image/jpeg,image/webp" onChange={updateProfileImage} disabled={isSavingAvatar} />
+                  <Plus size={14} />
+                </label>
               </div>
 
               <div className="account-form-grid">
                 <label className="profile-form-field">
-                  <span>{t('DISPLAY NAME')}</span>
-                  <input type="text" defaultValue="Jonas Arnold" />
+                  <span>{t('FIRST NAME')}</span>
+                  <input type="text" value={accountFirstName} onChange={(event) => setAccountFirstName(event.target.value)} />
+                </label>
+                <label className="profile-form-field">
+                  <span>{t('LAST NAME')}</span>
+                  <input type="text" value={accountLastName} onChange={(event) => setAccountLastName(event.target.value)} />
                 </label>
                 <label className="profile-form-field">
                   <span>{t('EMAIL ADDRESS')}</span>
-                  <input type="email" defaultValue="JonasArnold@gmail.com" />
+                  <input type="email" value={accountEmail} onChange={(event) => setAccountEmail(event.target.value)} />
                 </label>
                 <label className="profile-form-field password-field">
-                  <span>{t('PASSWORD')}</span>
+                  <span>{t('CHANGE PASSWORD')}</span>
                   <div className="profile-password-row">
-                    <input type="password" defaultValue="password1234" readOnly />
-                    <button type="button">{t('CHANGE')}</button>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(event) => setCurrentPassword(event.target.value)}
+                      placeholder={t('Current password')}
+                      autoComplete="current-password"
+                    />
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      placeholder={t('New password')}
+                      autoComplete="new-password"
+                    />
                   </div>
                 </label>
+                {accountStatus.message && (
+                  <div className={`profile-account-status ${accountStatus.type}`}>
+                    {accountStatus.message}
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -327,6 +457,7 @@ export default function Profile() {
               <h2>{t('PRIVACY')}</h2>
             </div>
             <button className="profile-outline-action" type="button"><Download size={14} /> {t('EXPORT PERSONAL DATA')}</button>
+            <button className="profile-outline-action" type="button" onClick={onLogout}><LogOut size={14} /> {t('LOG OUT')}</button>
             <button className="profile-danger-action" type="button">{t('DELETE ACCOUNT')}</button>
           </section>
 

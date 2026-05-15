@@ -43,6 +43,7 @@ function createWorkoutsRouter() {
   router.get('/', async (req, res) => {
     try {
       const plans = await prisma.plan.findMany({
+        where: { userId: req.user.userId },
         include: { exercises: true },
         orderBy: { id: 'asc' },
       });
@@ -73,6 +74,7 @@ function createWorkoutsRouter() {
         data: {
           name: name.trim(),
           description,
+          userId: req.user.userId,
           exercises: {
             create: exercises.map((exercise) => ({
               exerciseName: exercise.exercise_name.trim(),
@@ -96,7 +98,7 @@ function createWorkoutsRouter() {
     if (!planId) return res.status(404).json({ error: 'Workout not found' });
 
     try {
-      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      const plan = await prisma.plan.findFirst({ where: { id: planId, userId: req.user.userId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
       const exercises = await prisma.planExercise.findMany({
@@ -117,7 +119,7 @@ function createWorkoutsRouter() {
     if (!planId) return res.status(404).json({ error: 'Workout not found' });
 
     try {
-      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      const plan = await prisma.plan.findFirst({ where: { id: planId, userId: req.user.userId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
       const exercise = await prisma.planExercise.create({
@@ -143,7 +145,7 @@ function createWorkoutsRouter() {
 
     try {
       const exercise = await prisma.planExercise.findFirst({
-        where: { id: exerciseId, planId },
+        where: { id: exerciseId, planId, plan: { userId: req.user.userId } },
       });
       if (!exercise) return res.status(404).json({ error: 'Exercise not found' });
 
@@ -163,7 +165,7 @@ function createWorkoutsRouter() {
 
     try {
       const exercise = await prisma.planExercise.findFirst({
-        where: { id: exerciseId, planId },
+        where: { id: exerciseId, planId, plan: { userId: req.user.userId } },
       });
       if (!exercise) return res.status(404).json({ error: 'Exercise not found' });
 
@@ -191,7 +193,7 @@ function createWorkoutsRouter() {
 
     try {
       const exercise = await prisma.planExercise.findFirst({
-        where: { id: exerciseId, planId },
+        where: { id: exerciseId, planId, plan: { userId: req.user.userId } },
       });
       if (!exercise) return res.status(404).json({ error: 'Exercise not found' });
 
@@ -211,7 +213,7 @@ function createWorkoutsRouter() {
         where: { id: planId },
         include: { exercises: true },
       });
-      if (!plan) return res.status(404).json({ error: 'Workout not found' });
+      if (!plan || plan.userId !== req.user.userId) return res.status(404).json({ error: 'Workout not found' });
 
       res.status(200).json(serializePlan(plan));
     } catch (error) {
@@ -239,7 +241,7 @@ function createWorkoutsRouter() {
     if (!planId) return res.status(404).json({ error: 'Workout not found' });
 
     try {
-      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      const plan = await prisma.plan.findFirst({ where: { id: planId, userId: req.user.userId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
       const updatedPlan = await prisma.$transaction(async (tx) => {
@@ -274,7 +276,7 @@ function createWorkoutsRouter() {
     if (!planId) return res.status(404).json({ error: 'Workout not found' });
 
     try {
-      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      const plan = await prisma.plan.findFirst({ where: { id: planId, userId: req.user.userId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
       await prisma.plan.delete({ where: { id: planId } });

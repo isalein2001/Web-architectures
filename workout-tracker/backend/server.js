@@ -1,22 +1,30 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const createAuthRouter = require('./routes/auth');
 const createWorkoutsRouter = require('./routes/workouts');
 const createSessionsRouter = require('./routes/sessions');
 const createProgressRouter = require('./routes/progress');
 const createStatsRouter = require('./routes/stats');
+const { authenticate } = require('./middleware/authenticate');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 const PORT = process.env.PORT || 3000;
 
 const workoutsRouter = createWorkoutsRouter();
 
-app.use('/api/plans', workoutsRouter);
-app.use('/api/workouts', workoutsRouter);
-app.use('/api/sessions', createSessionsRouter());
-app.use('/api/progress', createProgressRouter());
-app.use('/api/stats', createStatsRouter());
+app.use('/api/auth', createAuthRouter());
+app.use('/api/plans', authenticate, workoutsRouter);
+app.use('/api/workouts', authenticate, workoutsRouter);
+app.use('/api/sessions', authenticate, createSessionsRouter());
+app.use('/api/progress', authenticate, createProgressRouter());
+app.use('/api/stats', authenticate, createStatsRouter());
 
 app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));

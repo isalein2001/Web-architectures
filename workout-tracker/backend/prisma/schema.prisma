@@ -6,13 +6,38 @@ datasource db {
   provider = "sqlite"
 }
 
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  firstName    String?  @map("first_name")
+  lastName     String?  @map("last_name")
+  emailVerified Boolean @default(false) @map("email_verified")
+  verificationCode String? @map("verification_code")
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+  heightCm     Int?     @map("height_cm")
+  weightKg     Float?   @map("weight_kg")
+  hydrationGoalLiters Float? @map("hydration_goal_liters")
+  fitnessGoal  String?  @map("fitness_goal")
+  profileImage  String?  @map("profile_image")
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  plans        Plan[]
+  sessions     WorkoutSession[]
+
+  @@map("users")
+}
+
 model Plan {
   id          Int              @id @default(autoincrement())
   name        String
   description String?
+  userId      Int?             @map("user_id")
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercises   PlanExercise[]
   sessions    WorkoutSession[]
 
+  @@index([userId])
   @@map("plans")
 }
 
@@ -31,10 +56,13 @@ model WorkoutSession {
   id     Int          @id @default(autoincrement())
   date   String
   planId Int?         @map("plan_id")
+  userId Int?         @map("user_id")
   notes  String?
   plan   Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+  user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs   WorkoutLog[]
 
+  @@index([userId])
   @@map("workout_sessions")
 }
 

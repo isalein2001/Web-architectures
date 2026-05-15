@@ -31,6 +31,7 @@ function createSessionsRouter() {
   router.get('/', async (req, res) => {
     try {
       const sessions = await prisma.workoutSession.findMany({
+        where: { userId: req.user.userId },
         include: {
           plan: true,
           logs: {
@@ -49,9 +50,14 @@ function createSessionsRouter() {
 
   router.post('/', async (req, res) => {
     const { date, plan_id, notes = '', logs = [] } = req.body;
+    const planId = plan_id === undefined || plan_id === null ? null : toNumberId(plan_id);
 
     if (!date || typeof date !== 'string') {
       return res.status(400).json({ error: 'Session date is required' });
+    }
+
+    if (plan_id !== undefined && plan_id !== null && !planId) {
+      return res.status(404).json({ error: 'Workout not found' });
     }
 
     if (!Array.isArray(logs)) {
@@ -64,10 +70,18 @@ function createSessionsRouter() {
     }
 
     try {
+      if (planId) {
+        const plan = await prisma.plan.findFirst({
+          where: { id: planId, userId: req.user.userId },
+        });
+        if (!plan) return res.status(404).json({ error: 'Workout not found' });
+      }
+
       const session = await prisma.workoutSession.create({
         data: {
           date,
-          planId: plan_id ?? null,
+          planId,
+          userId: req.user.userId,
           notes,
           logs: {
             create: logs.map((log) => ({
@@ -92,7 +106,9 @@ function createSessionsRouter() {
     if (!sessionId) return res.status(404).json({ error: 'Session not found' });
 
     try {
-      const session = await prisma.workoutSession.findUnique({ where: { id: sessionId } });
+      const session = await prisma.workoutSession.findFirst({
+        where: { id: sessionId, userId: req.user.userId },
+      });
       if (!session) return res.status(404).json({ error: 'Session not found' });
 
       await prisma.workoutLog.deleteMany({ where: { sessionId } });

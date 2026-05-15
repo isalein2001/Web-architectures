@@ -559,12 +559,23 @@
 }
 
 .user-avatar {
+  display: grid;
+  place-items: center;
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  color: var(--color-primary);
   background-color: var(--color-surface);
   border: 2px solid var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 950;
   transition: all 0.2s ease;
+  background-position: center;
+  background-size: cover;
+}
+
+.user-avatar.has-image {
+  color: transparent;
 }
 
 .main-content {

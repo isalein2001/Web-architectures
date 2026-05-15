@@ -12,6 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getUserStorageKey } from '../userStorage';
 import './Workouts.css';
 
 const readyPlans = [
@@ -59,9 +60,9 @@ const initialExercises = [];
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 
-const loadSavedWorkoutPlans = () => {
+const loadSavedWorkoutPlans = (storageKey) => {
   try {
-    const savedPlans = window.localStorage.getItem(CUSTOM_WORKOUT_PLANS_STORAGE_KEY);
+    const savedPlans = window.localStorage.getItem(storageKey);
     return savedPlans ? JSON.parse(savedPlans) : [];
   } catch {
     return [];
@@ -102,9 +103,11 @@ const formatExerciseSummary = (exercise) => {
   return `${exercise.name.trim()} (${exercise.sets.trim()}x${repSummary})`;
 };
 
-export default function Workouts() {
+export default function Workouts({ currentUser }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
+  const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState(initialExercises);
   const [draggingExerciseId, setDraggingExerciseId] = useState(null);
@@ -113,7 +116,7 @@ export default function Workouts() {
   const [expandedPlans, setExpandedPlans] = useState({});
   const [coverImage, setCoverImage] = useState(null);
   const [selectedIconKey, setSelectedIconKey] = useState('dumbbell');
-  const [savedPlans, setSavedPlans] = useState(loadSavedWorkoutPlans);
+  const [savedPlans, setSavedPlans] = useState(() => loadSavedWorkoutPlans(customPlansStorageKey));
   const [editingPlanId, setEditingPlanId] = useState(null);
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
@@ -124,8 +127,12 @@ export default function Workouts() {
   const activeDrag = useRef({ id: null, startY: 0, lastY: 0 });
 
   useEffect(() => {
-    window.localStorage.setItem(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, JSON.stringify(savedPlans));
-  }, [savedPlans]);
+    window.localStorage.setItem(customPlansStorageKey, JSON.stringify(savedPlans));
+  }, [savedPlans, customPlansStorageKey]);
+
+  useEffect(() => {
+    setSavedPlans(loadSavedWorkoutPlans(customPlansStorageKey));
+  }, [customPlansStorageKey]);
 
   const updateExercise = (id, field, value) => {
     setValidationErrors((currentErrors) => ({
@@ -328,14 +335,14 @@ export default function Workouts() {
 
     setSavedPlans((currentPlans) => currentPlans.filter((plan) => plan.id !== editingPlanId));
     try {
-      const storedSchedule = window.localStorage.getItem(WORKOUT_SCHEDULE_STORAGE_KEY);
+      const storedSchedule = window.localStorage.getItem(workoutScheduleStorageKey);
       const currentSchedule = storedSchedule ? JSON.parse(storedSchedule) : {};
       const nextSchedule = Object.fromEntries(
         Object.entries(currentSchedule).filter(([, scheduledWorkout]) => scheduledWorkout.workoutId !== editingPlanId)
       );
-      window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify(nextSchedule));
+      window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(nextSchedule));
     } catch {
-      window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify({}));
+      window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({}));
     }
     resetBuilder();
   };

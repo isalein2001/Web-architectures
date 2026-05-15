@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
+import { getUserStorageKey } from '../userStorage';
 import './WorkoutLogger.css';
 
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
@@ -114,10 +115,11 @@ const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
   }))
 );
 
-export default function WorkoutLogger() {
+export default function WorkoutLogger({ currentUser }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const initialSelectedPlan = useMemo(() => {
     const selectedPlan = location.state?.plan || loadJson(SELECTED_WORKOUT_STORAGE_KEY, null);
     return selectedPlan ? normalizePlan(selectedPlan, selectedPlan.source || 'custom') : null;
@@ -151,7 +153,7 @@ export default function WorkoutLogger() {
   }, [t]);
 
   useEffect(() => {
-    const customPlans = loadJson(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []).map((plan) => normalizePlan(plan, 'custom'));
+    const customPlans = loadJson(customPlansStorageKey, []).map((plan) => normalizePlan(plan, 'custom'));
 
     api.getPlans()
       .then((backendPlans) => {
@@ -173,7 +175,7 @@ export default function WorkoutLogger() {
           ...readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready')),
         ].filter(Boolean));
       });
-  }, []);
+  }, [customPlansStorageKey]);
 
   useEffect(() => {
     window.sessionStorage.removeItem(SELECTED_WORKOUT_STORAGE_KEY);

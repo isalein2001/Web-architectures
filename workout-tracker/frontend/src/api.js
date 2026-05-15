@@ -1,56 +1,112 @@
 const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
 const API_URL = `http://${API_HOST}:3000/api`;
 
+export const authFetch = async (url, options = {}) => {
+  const { redirectOnUnauthorized = true, ...fetchOptions } = options;
+  const res = await fetch(url, {
+    credentials: 'include',
+    ...fetchOptions,
+    headers: {
+      ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(fetchOptions.headers || {}),
+    },
+  });
+
+  if (res.status === 401 && redirectOnUnauthorized && typeof window !== 'undefined') {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => null);
+    window.location.assign('/login');
+  }
+
+  return res;
+};
+
+const requestJson = async (url, options = {}) => {
+  const res = await authFetch(url, options);
+
+  if (res.status === 204) return null;
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Request failed');
+  }
+  return data;
+};
+
 export const api = {
+  register: async (credentials) => requestJson(`${API_URL}/auth/register`, {
+    method: 'POST',
+    body: JSON.stringify(credentials),
+    redirectOnUnauthorized: false,
+  }),
+  login: async (credentials) => requestJson(`${API_URL}/auth/login`, {
+    method: 'POST',
+    body: JSON.stringify(credentials),
+    redirectOnUnauthorized: false,
+  }),
+  getCurrentUser: async () => requestJson(`${API_URL}/auth/me`, {
+    redirectOnUnauthorized: false,
+  }),
+  updateCurrentUser: async (profileData) => requestJson(`${API_URL}/auth/me`, {
+    method: 'PUT',
+    body: JSON.stringify(profileData),
+    redirectOnUnauthorized: false,
+  }),
+  verifyEmail: async (code) => requestJson(`${API_URL}/auth/verify-email`, {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+    redirectOnUnauthorized: false,
+  }),
+  resendVerification: async () => requestJson(`${API_URL}/auth/resend-verification`, {
+    method: 'POST',
+    redirectOnUnauthorized: false,
+  }),
+  completeOnboarding: async (onboardingData) => requestJson(`${API_URL}/auth/onboarding`, {
+    method: 'POST',
+    body: JSON.stringify(onboardingData),
+  }),
+  logout: async () => requestJson(`${API_URL}/auth/logout`, {
+    method: 'POST',
+  }),
+
   // Plans
   getPlans: async () => {
-    const res = await fetch(`${API_URL}/plans`);
-    return res.json();
+    return requestJson(`${API_URL}/plans`);
   },
   getPlan: async (id) => {
-    const res = await fetch(`${API_URL}/plans/${id}`);
-    return res.json();
+    return requestJson(`${API_URL}/plans/${id}`);
   },
   createPlan: async (planData) => {
-    const res = await fetch(`${API_URL}/plans`, {
+    return requestJson(`${API_URL}/plans`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(planData),
     });
-    return res.json();
   },
 
   // Sessions / Logs
   getSessions: async () => {
-    const res = await fetch(`${API_URL}/sessions`);
-    return res.json();
+    return requestJson(`${API_URL}/sessions`);
   },
   logSession: async (sessionData) => {
-    const res = await fetch(`${API_URL}/sessions`, {
+    return requestJson(`${API_URL}/sessions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sessionData),
     });
-    return res.json();
   },
   deleteSession: async (id) => {
-    const res = await fetch(`${API_URL}/sessions/${id}`, {
+    await requestJson(`${API_URL}/sessions/${id}`, {
       method: 'DELETE',
     });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(errorText || 'Could not delete session');
-    }
     return true;
   },
 
   // Progress & Stats
   getProgress: async (exerciseName) => {
-    const res = await fetch(`${API_URL}/progress/${encodeURIComponent(exerciseName)}`);
-    return res.json();
+    return requestJson(`${API_URL}/progress/${encodeURIComponent(exerciseName)}`);
   },
   getStats: async () => {
-    const res = await fetch(`${API_URL}/stats`);
-    return res.json();
+    return requestJson(`${API_URL}/stats`);
   }
 };

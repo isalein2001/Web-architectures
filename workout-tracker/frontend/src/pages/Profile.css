@@ -186,24 +186,25 @@
   border-radius: 50%;
   color: rgba(197, 254, 0, 0.88);
   background:
-    radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.13) 0 16%, transparent 17%),
-    radial-gradient(circle at 50% 82%, rgba(255, 255, 255, 0.12) 0 28%, transparent 29%),
+    radial-gradient(circle at 50% 50%, rgba(197, 254, 0, 0.08), transparent 62%),
     #050505;
-  font-size: 0;
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
   overflow: hidden;
+  background-position: center;
+  background-size: cover;
+}
+
+.profile-avatar-face.has-image {
+  color: transparent;
 }
 
 .profile-avatar-face::before {
-  content: '';
-  width: 34px;
-  height: 34px;
-  margin-top: 12px;
-  border-radius: 50%;
-  background: #222;
-  box-shadow: 0 46px 0 18px #222;
+  content: none;
 }
 
-.profile-avatar-edit button {
+.profile-avatar-upload {
   position: absolute;
   right: -8px;
   bottom: 8px;
@@ -217,6 +218,13 @@
   background: #121212;
   cursor: pointer;
   box-shadow: 0 0 14px rgba(197, 254, 0, 0.14);
+}
+
+.profile-avatar-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .account-form-grid {
@@ -274,7 +282,7 @@
 
 .profile-password-row {
   display: grid;
-  grid-template-columns: 1fr 110px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -295,6 +303,27 @@
   border: 0;
   color: #FFF;
   background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-account-status {
+  grid-column: 1 / -1;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.profile-account-status.success {
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.07);
+}
+
+.profile-account-status.error {
+  color: #ff7a5f;
+  background: rgba(108, 53, 42, 0.22);
 }
 
 .profile-password-row button:hover,

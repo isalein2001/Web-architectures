@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
+import { getUserFirstName, getUserStorageKey } from '../userStorage';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
@@ -170,15 +171,19 @@ function AnimatedMedal() {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ currentUser }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
+  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
+  const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
+  const hydrationGoalStorageKey = getUserStorageKey('hydrationGoalLiters', currentUser);
+  const firstName = getUserFirstName(currentUser);
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [sessions, setSessions] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
-  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
-  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {}));
+  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
+  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(workoutScheduleStorageKey, {}));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
@@ -186,11 +191,16 @@ export default function Dashboard() {
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [hydrationGoal, setHydrationGoal] = useState(() => {
-    const savedGoal = window.localStorage.getItem('hydrationGoalLiters');
-    return savedGoal ? Number(savedGoal) : 3.5;
+    const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
+    return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
   });
-  const currentHydration = 2.3;
+  const hasWorkoutData = stats.totalSessions > 0;
+  const currentHydration = hasWorkoutData ? 2.3 : 0;
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
+  const dailyGoalCompletion = hasWorkoutData ? 75 : 0;
+  const stepsValue = hasWorkoutData ? 12482 : 0;
+  const caloriesValue = hasWorkoutData ? 2140 : 0;
+  const minutesValue = hasWorkoutData ? 84 : 0;
 
   const completedWorkoutDates = new Set((stats.sessionDates || []).map(getSessionDateKey));
 
@@ -211,16 +221,23 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem('hydrationGoalLiters', hydrationGoal.toString());
-  }, [hydrationGoal]);
+    window.localStorage.setItem(hydrationGoalStorageKey, hydrationGoal.toString());
+  }, [hydrationGoal, hydrationGoalStorageKey]);
 
   useEffect(() => {
-    window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify(workoutSchedule));
-  }, [workoutSchedule]);
+    window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(workoutSchedule));
+  }, [workoutSchedule, workoutScheduleStorageKey]);
+
+  useEffect(() => {
+    setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
+    setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
+    const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
+    setHydrationGoal(savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5));
+  }, [customPlansStorageKey, workoutScheduleStorageKey, hydrationGoalStorageKey, currentUser?.hydrationGoalLiters]);
 
   useEffect(() => {
     const refreshWorkoutPlans = () => {
-      setCustomWorkouts(loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
+      setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
     };
 
     window.addEventListener('focus', refreshWorkoutPlans);
@@ -230,7 +247,7 @@ export default function Dashboard() {
       window.removeEventListener('focus', refreshWorkoutPlans);
       window.removeEventListener('storage', refreshWorkoutPlans);
     };
-  }, []);
+  }, [customPlansStorageKey]);
 
   useEffect(() => {
     if (!isHydrationModalOpen) return undefined;
@@ -416,7 +433,7 @@ export default function Dashboard() {
         <div className="hero-gradient-overlay" />
 
         <div className="hero-content">
-          <h1>{greeting.text}, <span>JONAS</span></h1>
+          <h1>{greeting.text}, <span>{firstName.toUpperCase()}</span></h1>
           <p>{t('WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.')}</p>
         </div>
       </div>
@@ -434,7 +451,7 @@ export default function Dashboard() {
           </div>
           
           <div className="daily-goal-chart">
-            <CircularProgress percentage={75} />
+            <CircularProgress percentage={dailyGoalCompletion} />
           </div>
           
           <div className="quote-of-day">
@@ -501,11 +518,11 @@ export default function Dashboard() {
           </div>
           <div className="stat-info">
             <div className="stat-value">
-              <AnimatedNumber value={12482} useComma={true} />
+              <AnimatedNumber value={stepsValue} useComma={true} />
             </div>
             <div className="stat-details">
               <span>{t('ACTIVE FLOW')}</span>
-              <span className="stat-badge">+2.4k</span>
+              <span className="stat-badge">{hasWorkoutData ? '+2.4k' : '+0'}</span>
             </div>
           </div>
           <div className="stat-title-side">{t('STEPS')}</div>
@@ -518,11 +535,11 @@ export default function Dashboard() {
           </div>
           <div className="stat-info">
             <div className="stat-value">
-              <AnimatedNumber value={2140} useComma={true} />
+              <AnimatedNumber value={caloriesValue} useComma={true} />
             </div>
             <div className="stat-details">
               <span>{t('BURN RATE')}</span>
-              <span className="stat-badge">{t('OPTIMAL')}</span>
+              <span className="stat-badge">{hasWorkoutData ? t('OPTIMAL') : t('NEW')}</span>
             </div>
           </div>
           <div className="stat-title-side">{t('CALORIES')}</div>
@@ -535,7 +552,7 @@ export default function Dashboard() {
           </div>
           <div className="stat-info">
             <div className="stat-value">
-              <AnimatedNumber value={84} useComma={false} />
+              <AnimatedNumber value={minutesValue} useComma={false} />
             </div>
             <div className="stat-details">
               <span>{t('TIME IN ZONE')}</span>

@@ -18,21 +18,27 @@ Die Entwicklungsdatenbank ist eine lokale SQLite-Datenbank unter `backend/databa
 Tabellen-Skizze:
 
 ```text
-plans                 plan_exercises              workout_sessions           workout_logs
-------------------    ------------------------    ----------------------     -------------------------
-id                    id                          id                         id
-name                  plan_id (FK -> plans.id)    date                       session_id (FK -> workout_sessions.id)
-description           exercise_name               plan_id (FK -> plans.id)   exercise_name
-                      target_sets                 notes                      set_number
-                      target_reps                                            reps
-                                                                             weight
-                                                                             rest_seconds
+users                 plans                       plan_exercises              workout_sessions           workout_logs
+------------------    -----------------------     ------------------------    ----------------------     -------------------------
+id                    id                          id                          id                         id
+email                 name                        plan_id (FK -> plans.id)    date                       session_id (FK -> workout_sessions.id)
+password_hash         description                 exercise_name               plan_id (FK -> plans.id)   exercise_name
+created_at            user_id (FK -> users.id)    target_sets                 user_id (FK -> users.id)   set_number
+                                                   target_reps                 notes                      reps
+                                                                                                         weight
+                                                                                                         rest_seconds
 ```
 
 ### Beziehungen
 
 - `plans` zu `plan_exercises`: 1:n  
   Ein Workout-Plan kann mehrere Übungen enthalten. Jede Plan-Übung gehört zu genau einem Plan. Wird ein Plan gelöscht, werden seine Plan-Übungen mitgelöscht (`ON DELETE CASCADE`).
+
+- `users` zu `plans`: 1:n  
+  Ein Nutzer kann mehrere Workout-Pläne besitzen. Jeder neu erstellte Plan wird über `user_id` dem eingeloggten Nutzer zugeordnet.
+
+- `users` zu `workout_sessions`: 1:n  
+  Ein Nutzer kann mehrere abgeschlossene Trainingseinheiten besitzen. Jede neu gespeicherte Session wird über `user_id` dem eingeloggten Nutzer zugeordnet.
 
 - `plans` zu `workout_sessions`: 1:n, optional auf Session-Seite  
   Ein Workout-Plan kann in mehreren Trainingseinheiten verwendet werden. Eine Trainingseinheit kann aber auch ohne Plan existieren, z. B. als Freestyle-Workout. Wenn ein Plan gelöscht wird, bleibt die Session erhalten und `plan_id` wird auf `NULL` gesetzt (`ON DELETE SET NULL`).
@@ -45,6 +51,8 @@ description           exercise_name               plan_id (FK -> plans.id)   exe
 ### Pflichtfelder
 
 - `plans.name` darf nicht leer sein.
+- `users.email` darf nicht leer sein und muss eindeutig sein.
+- `users.password_hash` darf nicht leer sein.
 - `plan_exercises.exercise_name` darf nicht leer sein.
 - `workout_sessions.date` darf nicht leer sein.
 - `workout_logs.exercise_name` darf nicht leer sein.
@@ -107,9 +115,11 @@ npx prisma migrate resolve --applied 0_init
 
 - `@id`: markiert den Primärschlüssel einer Tabelle.
 - `@default(autoincrement())`: SQLite vergibt die ID automatisch.
+- `@unique`: der Wert darf in der Tabelle nur einmal vorkommen, z. B. bei `users.email`.
 - `String?`, `Int?`, `Float?`: Das Feld ist optional und darf `NULL` sein.
 - `@map("plan_id")`: Der Prisma-Feldname heißt z. B. `planId`, die echte Spalte in SQLite heißt aber `plan_id`.
 - `@@map("plans")`: Der Prisma-Modelname heißt `Plan`, die echte Tabelle heißt `plans`.
+- `@@index([userId])`: legt einen Index auf `user_id` an, damit Owner-Filter schneller abgefragt werden können.
 - `@relation(fields: [planId], references: [id])`: beschreibt einen Foreign Key zwischen zwei Tabellen.
 - `onDelete: Cascade`: Beim Löschen des Eltern-Datensatzes werden abhängige Datensätze mitgelöscht.
 - `onDelete: SetNull`: Beim Löschen des Plans bleibt die Session erhalten, aber `planId` wird `NULL`.
@@ -242,6 +252,143 @@ Ergebnis: Der Eintrag war nach dem Stoppen und Neustarten des Servers weiterhin 
 In der Datenbank sollten langfristig alle fachlichen Nutzerdaten liegen: Workout-Pläne, Übungen, geplante Kalendereinträge, abgeschlossene Sessions, geloggte Sätze, Profilwerte, BMI-Daten und Trinkziele. Diese Daten brauchen Beziehungen, Abfragen und dauerhafte Speicherung, deshalb passen sie gut in eine relationale Datenbank mit Prisma.
 
 Redis wäre eher sinnvoll für kurzlebige Daten wie aktive Reminder, temporäre UI-Zustände, Rate-Limits oder Session-/Cache-Daten, weil diese Informationen schnell gelesen werden müssen, aber nicht zwingend dauerhaft historisiert werden. Ein Cloud Object Store wie S3 wäre sinnvoll für große Dateien wie hochgeladene Workout-Coverbilder, Profilbilder oder andere Medien, weil solche Binärdaten nicht ideal direkt in einer relationalen Datenbank gespeichert werden.
+
+## Aktuelle Sicherheitslücken der API
+
+Die API ist aktuell noch nicht durch Login, JWT oder eine User-Zuordnung geschützt. Dadurch kann ein anonymer Nutzer ohne Token direkt auf die Endpunkte zugreifen.
+
+Konkrete Risiken:
+
+1. Ein anonymer Nutzer kann alle Workout-Pläne lesen.  
+   Beispiel: `GET /api/plans` gibt aktuell alle gespeicherten Pläne inklusive Übungen zurück. Es gibt keine Prüfung, ob der anfragende Nutzer diese Pläne überhaupt besitzen darf.
+
+2. Ein anonymer Nutzer kann Trainingsdaten und Fortschritt anderer Nutzer lesen.  
+   Beispiel: `GET /api/sessions`, `GET /api/stats` und `GET /api/progress/:exercise_name` geben abgeschlossene Sessions, Trainingsdaten und Fortschrittswerte zurück. Diese Daten können persönliche Fitness- und Leistungsinformationen enthalten.
+
+3. Ein anonymer Nutzer kann Daten verändern oder löschen.  
+   Beispiel: `DELETE /api/plans/:id`, `DELETE /api/sessions/:id` oder `DELETE /api/plans/:planId/exercises/:exerciseId` löschen aktuell Datensätze nur anhand der ID. Ohne Authentifizierung und `userId`-Filter könnte jeder Nutzer fremde Workouts oder Sessions löschen.
+
+## JWT Authenticate Middleware
+
+Für die geschützten API-Routen wurde eine Express-Middleware `authenticate` ergänzt:
+
+- Datei: `backend/middleware/authenticate.js`
+- Sie liest den JWT aus dem HttpOnly-Cookie `progym_token`.
+- Optional akzeptiert sie auch einen `Authorization: Bearer <token>` Header.
+- Sie prüft den Token mit `jwt.verify(token, process.env.JWT_SECRET)`.
+- Bei Erfolg wird der entschlüsselte Payload in `req.user` gespeichert.
+- Bei fehlendem oder ungültigem Token antwortet die API mit `401`.
+
+Aktuell geschützt sind:
+
+- `GET/POST/PUT/DELETE /api/plans`
+- `GET/POST/PUT/DELETE /api/workouts`
+- `GET/POST/DELETE /api/sessions`
+- `GET /api/progress/:exercise_name`
+- `GET /api/stats`
+- `GET /api/auth/me`
+
+Öffentlich bleiben nur die Auth-Routen, die ohne Login erreichbar sein müssen:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+
+### Was passiert bei manipuliertem JWT-Payload?
+
+Wenn jemand den JWT-Payload manuell verändert, zum Beispiel `userId` von `1` auf `2`, passt die digitale Signatur des Tokens nicht mehr zum Inhalt. `jwt.verify()` berechnet die Signatur mit dem geheimen `JWT_SECRET` erneut und vergleicht sie mit der Signatur im Token.
+
+Da ein Angreifer das Secret nicht kennt, kann er nach der Änderung keine gültige neue Signatur erzeugen. Der Token wird deshalb als ungültig erkannt und die Middleware antwortet mit `401 Nicht autorisiert.`
+
+## Ownership-Checks in den DB-Queries
+
+Authentifizierung allein reicht nicht aus: Die API muss zusätzlich prüfen, ob ein eingeloggter Nutzer wirklich Eigentümer der angefragten Ressource ist. Deshalb verwenden die geschützten Prisma-Queries jetzt die `userId` aus `req.user`.
+
+Beispiele:
+
+```js
+const plans = await prisma.plan.findMany({
+  where: { userId: req.user.userId },
+});
+```
+
+```js
+const plan = await prisma.plan.findFirst({
+  where: { id: planId, userId: req.user.userId },
+});
+```
+
+Dadurch kann ein Nutzer fremde Ressourcen nicht lesen, ändern oder löschen. Wenn eine Ressource zwar existiert, aber einem anderen Nutzer gehört, antwortet die API bewusst mit `404`, damit nicht verraten wird, dass dieser Datensatz überhaupt existiert.
+
+Umgesetzt wurde der Owner-Check für:
+
+- Workout-Pläne: `GET`, `POST`, `PUT`, `DELETE /api/plans`
+- Alias-Routen: `GET`, `POST`, `PUT`, `DELETE /api/workouts`
+- Nested Exercises über den zugehörigen Plan: `/api/plans/:planId/exercises`
+- Workout-Sessions: `GET`, `POST`, `DELETE /api/sessions`
+- Progress: `GET /api/progress/:exercise_name`
+- Stats: `GET /api/stats`
+
+Bei `POST /api/sessions` wird außerdem geprüft, ob `plan_id` zu einem Plan des eingeloggten Nutzers gehört. Ein Nutzer kann also keine Session auf Basis eines fremden Workout-Plans speichern.
+
+### Frontend authFetch
+
+Im Frontend gibt es jetzt eine zentrale Hilfsfunktion `authFetch(url, options)` in `frontend/src/api.js`.
+
+Sie macht drei Dinge:
+
+- Sie sendet bei jedem API-Request automatisch Cookies mit (`credentials: 'include'`).
+- Sie setzt bei JSON-Bodies automatisch den `Content-Type`.
+- Wenn der Server `401` zurückgibt, ruft sie `/api/auth/logout` auf und leitet den Nutzer zur Login-Seite weiter.
+
+Login, Registrierung und `GET /api/auth/me` nutzen dieselbe Hilfsfunktion, deaktivieren aber die automatische Weiterleitung bei `401`, damit Login-Fehler normal im Formular angezeigt werden können.
+
+### Ownership-Test
+
+Manueller Test mit zwei Testnutzern:
+
+1. Nutzer A registriert sich.
+2. Nutzer B registriert sich.
+3. Nutzer A erstellt per `POST /api/plans` einen Workout-Plan.
+4. Nutzer A kann den Plan per `GET /api/plans/:id` lesen: `200`.
+5. Nutzer B versucht denselben Plan zu lesen: `404`.
+6. Nutzer B versucht denselben Plan zu löschen: `404`.
+7. Nutzer B versucht eine Session mit der fremden `plan_id` zu speichern: `404`.
+
+Ergebnis: Der Zugriff ist nicht mehr nur authentifiziert, sondern auch an den Eigentümer der Ressource gebunden.
+
+Folge: Als nächster Schritt braucht das Backend echte Authentifizierung mit bcrypt-Passwort-Hashing, JWT-Login und eine Autorisierung pro Query, z. B. `where: { id, userId: req.user.id }`.
+
+## Authentifizierung mit bcrypt und JWT
+
+Das Backend hat neue Auth-Routen unter `/api/auth`:
+
+| Method | Endpoint | Beschreibung | Erfolg |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/register` | Neuen Nutzer mit E-Mail und Passwort registrieren | `201` |
+| `POST` | `/api/auth/login` | Nutzer einloggen und JWT-Cookie setzen | `200` |
+| `GET` | `/api/auth/me` | Aktuellen Nutzer über HttpOnly Cookie prüfen | `200` |
+| `POST` | `/api/auth/logout` | Auth-Cookie löschen | `204` |
+
+Sicherheitsmechanismen:
+
+- Passwörter werden mit `bcrypt` gehasht gespeichert und nie im Klartext persistiert.
+- Der JWT enthält `userId` und `email` im Payload.
+- Der Token läuft nach `24h` ab.
+- Der JWT wird als `HttpOnly` Cookie gespeichert, damit JavaScript im Browser den Token nicht direkt auslesen kann.
+- Das Secret kommt aus `JWT_SECRET` in `backend/.env`.
+- Bei bereits vergebener E-Mail antwortet `POST /api/auth/register` mit `409`.
+- Bei falscher E-Mail oder falschem Passwort antwortet `POST /api/auth/login` immer mit `401` und derselben Meldung: `E-Mail oder Passwort ungültig.`
+
+Frontend:
+
+- Neue Seite `/login`
+- Neue Seite `/register`
+- Nicht eingeloggte Nutzer werden auf `/login` umgeleitet.
+- Nach erfolgreichem Login oder Register wird der Nutzer auf `/dashboard` weitergeleitet.
+- Frontend-Requests senden Cookies mit `credentials: 'include'`.
+
+Hinweis: Die Authentifizierung ist jetzt vorhanden. Der nächste Security-Schritt ist die Autorisierung auf Datensatzebene, also z. B. `userId` an Workout-Plänen und Sessions und Prisma-Queries mit `where: { userId: req.user.id }`.
 
 ## API Architecture
 

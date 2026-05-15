@@ -29,6 +29,7 @@ import {
 import { de } from 'date-fns/locale';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
+import { getUserStorageKey } from '../userStorage';
 import './Analytics.css';
 
 const MotionG = motion.g;
@@ -108,6 +109,11 @@ const chartSeries = {
     labels: ['JAN', 'JUN', 'DEC'],
     values: [0.08, 0.11, 0.16, 0.24, 0.31, 0.45, 0.51, 0.58, 0.70, 0.79, 0.88, 0.98],
   },
+};
+const emptyChartSeries = {
+  '1W': { change: 0, compareLabel: 'No workout data yet', labels: ['START', 'NOW', 'NEXT'], values: [0, 0, 0, 0, 0, 0, 0] },
+  '1M': { change: 0, compareLabel: 'No workout data yet', labels: ['START', 'NOW', 'NEXT'], values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  '1Y': { change: 0, compareLabel: 'No workout data yet', labels: ['START', 'NOW', 'NEXT'], values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
 };
 
 const loadJsonFromStorage = (key, fallback) => {
@@ -259,13 +265,15 @@ function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', classNa
   return React.createElement(elementType, { ref, className }, `${prefix}${formattedValue}${suffix}`);
 }
 
-export default function Analytics() {
+export default function Analytics({ currentUser }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
+  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
+  const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [activeRange, setActiveRange] = useState('1M');
-  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
-  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {}));
+  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
+  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(workoutScheduleStorageKey, {}));
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [sessions, setSessions] = useState([]);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
@@ -276,7 +284,8 @@ export default function Analytics() {
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const chartRef = useRef(null);
   const isChartInView = useInView(chartRef, { once: false, amount: 0.4 });
-  const activeChart = chartSeries[activeRange];
+  const visibleChartSeries = stats.totalSessions > 0 ? chartSeries : emptyChartSeries;
+  const activeChart = visibleChartSeries[activeRange];
   const chartPoints = getChartPoints(activeChart.values);
   const chartLinePath = buildSmoothLinePath(chartPoints);
   const chartAreaPath = `${chartLinePath} L${chartPoints[chartPoints.length - 1].x},${CHART_HEIGHT} L${chartPoints[0].x},${CHART_HEIGHT} Z`;
@@ -289,13 +298,18 @@ export default function Analytics() {
   };
 
   useEffect(() => {
-    window.localStorage.setItem(WORKOUT_SCHEDULE_STORAGE_KEY, JSON.stringify(workoutSchedule));
-  }, [workoutSchedule]);
+    window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(workoutSchedule));
+  }, [workoutSchedule, workoutScheduleStorageKey]);
+
+  useEffect(() => {
+    setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
+    setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
+  }, [customPlansStorageKey, workoutScheduleStorageKey]);
 
   useEffect(() => {
     const refreshWorkoutPlannerData = () => {
-      setCustomWorkouts(loadJsonFromStorage(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, []));
-      setWorkoutSchedule(loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {}));
+      setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
+      setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
       refreshSessionData().catch(console.error);
     };
 
@@ -307,7 +321,7 @@ export default function Analytics() {
       window.removeEventListener('focus', refreshWorkoutPlannerData);
       window.removeEventListener('storage', refreshWorkoutPlannerData);
     };
-  }, []);
+  }, [customPlansStorageKey, workoutScheduleStorageKey]);
 
   const openWorkoutPlanner = (date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
@@ -464,7 +478,7 @@ export default function Analytics() {
               <p>{t(activeChart.compareLabel)}</p>
             </div>
             <div className="chart-filters">
-              {Object.keys(chartSeries).map((range) => (
+              {Object.keys(visibleChartSeries).map((range) => (
                 <button
                   key={range}
                   className={activeRange === range ? 'active' : ''}

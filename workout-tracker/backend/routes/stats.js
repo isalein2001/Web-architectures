@@ -7,6 +7,7 @@ function createStatsRouter() {
   router.get('/', async (req, res) => {
     try {
       const sessions = await prisma.workoutSession.findMany({
+        where: { userId: req.user.userId },
         select: { date: true },
         orderBy: { date: 'desc' },
       });

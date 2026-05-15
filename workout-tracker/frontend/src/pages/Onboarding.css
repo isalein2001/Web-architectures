@@ -1,0 +1,206 @@
+.onboarding-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 22px;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.62)),
+    url('/auth-gym-bg.png') center / cover;
+}
+
+.onboarding-shell {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 520px);
+  gap: 48px;
+  align-items: center;
+}
+
+.onboarding-hero > span {
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.onboarding-hero h1 {
+  margin: 12px 0 20px;
+  font-size: clamp(3rem, 6vw, 5.6rem);
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.onboarding-title span {
+  display: block;
+  opacity: 0;
+  color: #fff;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
+  line-height: inherit;
+  transform: translateX(-64px);
+  animation: onboardingTitleIn 1120ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.onboarding-title span:nth-child(2) {
+  animation-delay: 180ms;
+}
+
+.onboarding-title span:nth-child(3) {
+  animation-delay: 360ms;
+}
+
+.onboarding-title span:nth-child(4) {
+  animation-delay: 540ms;
+}
+
+.onboarding-hero strong {
+  color: var(--color-primary);
+}
+
+.onboarding-hero p {
+  max-width: 560px;
+  color: #aaa;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.onboarding-card {
+  display: grid;
+  gap: 24px;
+  padding: 34px;
+  border: 1px solid rgba(197, 254, 0, 0.16);
+  border-radius: 24px;
+  background: rgba(18, 18, 18, 0.86);
+  box-shadow: 0 0 26px rgba(197, 254, 0, 0.14);
+}
+
+.onboarding-fields {
+  display: grid;
+  gap: 16px;
+}
+
+.onboarding-fields label,
+.onboarding-goals {
+  display: grid;
+  gap: 10px;
+}
+
+.onboarding-fields span,
+.onboarding-goals > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #aaa;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.onboarding-unit-field {
+  position: relative;
+}
+
+.onboarding-fields input {
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 0 78px 0 18px;
+  color: #fff;
+  background: #0b0b0b;
+  font: inherit;
+}
+
+.onboarding-unit-field small {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.onboarding-goals > div {
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-goals button {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
+  cursor: pointer;
+}
+
+.onboarding-goals button.active,
+.onboarding-goals button:hover {
+  border-color: rgba(197, 254, 0, 0.36);
+  color: var(--color-primary);
+}
+
+.onboarding-goals small {
+  color: #8e8e8e;
+  line-height: 1.45;
+}
+
+.onboarding-error {
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #ff7a5f;
+  background: rgba(108, 53, 42, 0.22);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.onboarding-submit {
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  color: #050505;
+  background: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .onboarding-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes onboardingTitleIn {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateX(-64px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-title span {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

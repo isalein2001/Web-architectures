@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";
@@ -10,6 +10,12 @@ import Landing from "./pages/Landing";
 import Support from "./pages/Support";
 import About from "./pages/About";
 import WorkoutLogger from "./pages/WorkoutLogger";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
+import Onboarding from "./pages/Onboarding";
+import { api } from "./api";
+import { getUserDisplayName, getUserInitials } from "./userStorage";
 import "./index.css";
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
@@ -36,6 +42,10 @@ const getNextReminderDelay = ({ hour, minute }) => {
 
 function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  const isVerificationPage = location.pathname === "/verify-email";
+  const isOnboardingPage = location.pathname === "/onboarding";
   const isLanding = location.pathname === "/";
   const { t, lang, setLang } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
@@ -47,6 +57,8 @@ function AppLayout() {
     window.localStorage.getItem('hydrationAlertsEnabled') === 'true'
   ));
   const [activeReminder, setActiveReminder] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const langRef = useRef(null);
   const alertsRef = useRef(null);
   const pageTitleKey = location.pathname === '/dashboard'
@@ -64,6 +76,29 @@ function AppLayout() {
               : location.pathname === '/support'
                 ? 'Support'
                 : 'PROGYM';
+  const userDisplayName = getUserDisplayName(currentUser);
+  const userInitials = getUserInitials(currentUser);
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // The local auth state should still be cleared if the server is already logged out.
+    }
+    setCurrentUser(null);
+    navigate('/login', { replace: true });
+  };
+
+  const handleUserUpdate = (nextUser) => {
+    setCurrentUser(nextUser);
+  };
+
+  useEffect(() => {
+    api.getCurrentUser()
+      .then((data) => setCurrentUser(data.user))
+      .catch(() => setCurrentUser(null))
+      .finally(() => setIsAuthLoading(false));
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -191,6 +226,57 @@ function AppLayout() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
 
+  if (isAuthLoading) {
+    return (
+      <div className="auth-page">
+        <section className="auth-card">
+          <div className="auth-brand">
+            <Activity size={24} />
+            <span>PROGYM</span>
+          </div>
+          <h1>Loading</h1>
+          <p>Checking your session.</p>
+        </section>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login onLogin={setCurrentUser} />} />
+        <Route path="/register" element={<Register onLogin={setCurrentUser} />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  if (currentUser && isAuthPage) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (currentUser.emailVerified && currentUser.onboardingCompleted && (isVerificationPage || isOnboardingPage)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (!currentUser.emailVerified) {
+    return (
+      <Routes>
+        <Route path="/verify-email" element={<VerifyEmail currentUser={currentUser} onUserUpdate={handleUserUpdate} />} />
+        <Route path="*" element={<Navigate to="/verify-email" replace />} />
+      </Routes>
+    );
+  }
+
+  if (!currentUser.onboardingCompleted) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<Onboarding currentUser={currentUser} onUserUpdate={handleUserUpdate} />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <div className="app-container">
       {/* Left Sidebar */}
@@ -317,9 +403,14 @@ function AppLayout() {
                 <div className="user-profile" style={{ cursor: 'pointer' }}>
                   <div className="user-info">
                     <span className="user-role">{t('Member')}</span>
-                    <span className="user-name">Jonas Arnold</span>
+                    <span className="user-name">{userDisplayName}</span>
                   </div>
-                  <div className="user-avatar"></div>
+                  <div
+                    className={`user-avatar ${currentUser?.profileImage ? 'has-image' : ''}`}
+                    style={currentUser?.profileImage ? { backgroundImage: `url(${currentUser.profileImage})` } : undefined}
+                  >
+                    {!currentUser?.profileImage && userInitials}
+                  </div>
                 </div>
               </NavLink>
             </div>
@@ -329,14 +420,14 @@ function AppLayout() {
         <main className={`main-content ${isLanding ? 'main-content--landing' : ''}`}>
           <Routes>
             <Route path="/" element={<><Landing /><Dashboard /></>} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/workouts" element={<Workouts />} />
-            <Route path="/start-workout" element={<WorkoutLogger />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Profile />} />
+            <Route path="/dashboard" element={<Dashboard currentUser={currentUser} />} />
+            <Route path="/workouts" element={<Workouts currentUser={currentUser} />} />
+            <Route path="/start-workout" element={<WorkoutLogger currentUser={currentUser} />} />
+            <Route path="/analytics" element={<Analytics currentUser={currentUser} />} />
+            <Route path="/settings" element={<Profile currentUser={currentUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<Profile currentUser={currentUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />} />
             <Route path="/support" element={<Support />} />
             <Route path="/about" element={<About />} />
           </Routes>

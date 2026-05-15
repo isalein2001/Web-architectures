@@ -24,7 +24,10 @@ function createProgressRouter() {
 
     try {
       const logs = await prisma.workoutLog.findMany({
-        where: { exerciseName },
+        where: {
+          exerciseName,
+          session: { userId: req.user.userId },
+        },
         include: { session: true },
         orderBy: {
           session: {
