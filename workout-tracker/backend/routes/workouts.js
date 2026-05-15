@@ -1,4 +1,25 @@
 const express = require('express');
+const { prisma } = require('../prismaClient');
+
+const toNumberId = (id) => {
+  const parsedId = Number(id);
+  return Number.isInteger(parsedId) ? parsedId : null;
+};
+
+const serializeExercise = (exercise) => ({
+  id: exercise.id,
+  plan_id: exercise.planId,
+  exercise_name: exercise.exerciseName,
+  target_sets: exercise.targetSets,
+  target_reps: exercise.targetReps,
+});
+
+const serializePlan = (plan) => ({
+  id: plan.id,
+  name: plan.name,
+  description: plan.description,
+  exercises: (plan.exercises || []).map(serializeExercise),
+});
 
 const validateExerciseInput = (exercise) => {
   if (!exercise.exercise_name || typeof exercise.exercise_name !== 'string') {
@@ -16,17 +37,16 @@ const validateExerciseInput = (exercise) => {
   return null;
 };
 
-function createWorkoutsRouter(db) {
+function createWorkoutsRouter() {
   const router = express.Router();
 
   router.get('/', async (req, res) => {
     try {
-      const plans = await db.all('SELECT * FROM plans');
-      for (const plan of plans) {
-        const exercises = await db.all('SELECT * FROM plan_exercises WHERE plan_id = ?', [plan.id]);
-        plan.exercises = exercises;
-      }
-      res.status(200).json(plans);
+      const plans = await prisma.plan.findMany({
+        include: { exercises: true },
+        orderBy: { id: 'asc' },
+      });
+      res.status(200).json(plans.map(serializePlan));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -49,42 +69,41 @@ function createWorkoutsRouter(db) {
     }
 
     try {
-      const result = await db.run(
-        'INSERT INTO plans (name, description) VALUES (?, ?)',
-        [name.trim(), description]
-      );
-      const planId = result.lastID;
+      const plan = await prisma.plan.create({
+        data: {
+          name: name.trim(),
+          description,
+          exercises: {
+            create: exercises.map((exercise) => ({
+              exerciseName: exercise.exercise_name.trim(),
+              targetSets: exercise.target_sets === undefined || exercise.target_sets === null
+                ? null
+                : Number(exercise.target_sets),
+              targetReps: exercise.target_reps ?? null,
+            })),
+          },
+        },
+      });
 
-      if (exercises.length > 0) {
-        const placeholders = exercises.map(() => '(?, ?, ?, ?)').join(',');
-        const values = exercises.flatMap((exercise) => [
-          planId,
-          exercise.exercise_name,
-          exercise.target_sets,
-          exercise.target_reps,
-        ]);
-        await db.run(
-          `INSERT INTO plan_exercises (plan_id, exercise_name, target_sets, target_reps) VALUES ${placeholders}`,
-          values
-        );
-      }
-
-      res.status(201).json({ id: planId, name: name.trim(), description });
+      res.status(201).json({ id: plan.id, name: plan.name, description: plan.description });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
   router.get('/:planId/exercises', async (req, res) => {
+    const planId = toNumberId(req.params.planId);
+    if (!planId) return res.status(404).json({ error: 'Workout not found' });
+
     try {
-      const plan = await db.get('SELECT id FROM plans WHERE id = ?', [req.params.planId]);
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
-      const exercises = await db.all(
-        'SELECT * FROM plan_exercises WHERE plan_id = ?',
-        [req.params.planId]
-      );
-      res.status(200).json(exercises);
+      const exercises = await prisma.planExercise.findMany({
+        where: { planId },
+        orderBy: { id: 'asc' },
+      });
+      res.status(200).json(exercises.map(serializeExercise));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -94,30 +113,41 @@ function createWorkoutsRouter(db) {
     const validationError = validateExerciseInput(req.body);
     if (validationError) return res.status(400).json({ error: validationError });
 
+    const planId = toNumberId(req.params.planId);
+    if (!planId) return res.status(404).json({ error: 'Workout not found' });
+
     try {
-      const plan = await db.get('SELECT id FROM plans WHERE id = ?', [req.params.planId]);
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
-      const result = await db.run(
-        'INSERT INTO plan_exercises (plan_id, exercise_name, target_sets, target_reps) VALUES (?, ?, ?, ?)',
-        [req.params.planId, req.body.exercise_name.trim(), req.body.target_sets, req.body.target_reps]
-      );
-      const exercise = await db.get('SELECT * FROM plan_exercises WHERE id = ?', [result.lastID]);
-      res.status(201).json(exercise);
+      const exercise = await prisma.planExercise.create({
+        data: {
+          planId,
+          exerciseName: req.body.exercise_name.trim(),
+          targetSets: req.body.target_sets === undefined || req.body.target_sets === null
+            ? null
+            : Number(req.body.target_sets),
+          targetReps: req.body.target_reps ?? null,
+        },
+      });
+      res.status(201).json(serializeExercise(exercise));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
   router.get('/:planId/exercises/:exerciseId', async (req, res) => {
+    const planId = toNumberId(req.params.planId);
+    const exerciseId = toNumberId(req.params.exerciseId);
+    if (!planId || !exerciseId) return res.status(404).json({ error: 'Exercise not found' });
+
     try {
-      const exercise = await db.get(
-        'SELECT * FROM plan_exercises WHERE id = ? AND plan_id = ?',
-        [req.params.exerciseId, req.params.planId]
-      );
+      const exercise = await prisma.planExercise.findFirst({
+        where: { id: exerciseId, planId },
+      });
       if (!exercise) return res.status(404).json({ error: 'Exercise not found' });
 
-      res.status(200).json(exercise);
+      res.status(200).json(serializeExercise(exercise));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -127,48 +157,45 @@ function createWorkoutsRouter(db) {
     const validationError = validateExerciseInput(req.body);
     if (validationError) return res.status(400).json({ error: validationError });
 
+    const planId = toNumberId(req.params.planId);
+    const exerciseId = toNumberId(req.params.exerciseId);
+    if (!planId || !exerciseId) return res.status(404).json({ error: 'Exercise not found' });
+
     try {
-      const exercise = await db.get(
-        'SELECT id FROM plan_exercises WHERE id = ? AND plan_id = ?',
-        [req.params.exerciseId, req.params.planId]
-      );
+      const exercise = await prisma.planExercise.findFirst({
+        where: { id: exerciseId, planId },
+      });
       if (!exercise) return res.status(404).json({ error: 'Exercise not found' });
 
-      await db.run(
-        `UPDATE plan_exercises
-         SET exercise_name = ?, target_sets = ?, target_reps = ?
-         WHERE id = ? AND plan_id = ?`,
-        [
-          req.body.exercise_name.trim(),
-          req.body.target_sets,
-          req.body.target_reps,
-          req.params.exerciseId,
-          req.params.planId,
-        ]
-      );
+      const updatedExercise = await prisma.planExercise.update({
+        where: { id: exerciseId },
+        data: {
+          exerciseName: req.body.exercise_name.trim(),
+          targetSets: req.body.target_sets === undefined || req.body.target_sets === null
+            ? null
+            : Number(req.body.target_sets),
+          targetReps: req.body.target_reps ?? null,
+        },
+      });
 
-      const updatedExercise = await db.get(
-        'SELECT * FROM plan_exercises WHERE id = ? AND plan_id = ?',
-        [req.params.exerciseId, req.params.planId]
-      );
-      res.status(200).json(updatedExercise);
+      res.status(200).json(serializeExercise(updatedExercise));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
   router.delete('/:planId/exercises/:exerciseId', async (req, res) => {
+    const planId = toNumberId(req.params.planId);
+    const exerciseId = toNumberId(req.params.exerciseId);
+    if (!planId || !exerciseId) return res.status(404).json({ error: 'Exercise not found' });
+
     try {
-      const exercise = await db.get(
-        'SELECT id FROM plan_exercises WHERE id = ? AND plan_id = ?',
-        [req.params.exerciseId, req.params.planId]
-      );
+      const exercise = await prisma.planExercise.findFirst({
+        where: { id: exerciseId, planId },
+      });
       if (!exercise) return res.status(404).json({ error: 'Exercise not found' });
 
-      await db.run(
-        'DELETE FROM plan_exercises WHERE id = ? AND plan_id = ?',
-        [req.params.exerciseId, req.params.planId]
-      );
+      await prisma.planExercise.delete({ where: { id: exerciseId } });
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -176,12 +203,17 @@ function createWorkoutsRouter(db) {
   });
 
   router.get('/:id', async (req, res) => {
+    const planId = toNumberId(req.params.id);
+    if (!planId) return res.status(404).json({ error: 'Workout not found' });
+
     try {
-      const plan = await db.get('SELECT * FROM plans WHERE id = ?', [req.params.id]);
+      const plan = await prisma.plan.findUnique({
+        where: { id: planId },
+        include: { exercises: true },
+      });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
-      const exercises = await db.all('SELECT * FROM plan_exercises WHERE plan_id = ?', [req.params.id]);
-      res.status(200).json({ ...plan, exercises });
+      res.status(200).json(serializePlan(plan));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -203,47 +235,49 @@ function createWorkoutsRouter(db) {
       return res.status(400).json({ error: invalidExerciseMessage });
     }
 
+    const planId = toNumberId(req.params.id);
+    if (!planId) return res.status(404).json({ error: 'Workout not found' });
+
     try {
-      const plan = await db.get('SELECT id FROM plans WHERE id = ?', [req.params.id]);
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
-      await db.exec('BEGIN');
-      await db.run(
-        'UPDATE plans SET name = ?, description = ? WHERE id = ?',
-        [name.trim(), description, req.params.id]
-      );
-      await db.run('DELETE FROM plan_exercises WHERE plan_id = ?', [req.params.id]);
+      const updatedPlan = await prisma.$transaction(async (tx) => {
+        await tx.planExercise.deleteMany({ where: { planId } });
+        return tx.plan.update({
+          where: { id: planId },
+          data: {
+            name: name.trim(),
+            description,
+            exercises: {
+              create: exercises.map((exercise) => ({
+                exerciseName: exercise.exercise_name.trim(),
+                targetSets: exercise.target_sets === undefined || exercise.target_sets === null
+                  ? null
+                  : Number(exercise.target_sets),
+                targetReps: exercise.target_reps ?? null,
+              })),
+            },
+          },
+          include: { exercises: true },
+        });
+      });
 
-      if (exercises.length > 0) {
-        const placeholders = exercises.map(() => '(?, ?, ?, ?)').join(',');
-        const values = exercises.flatMap((exercise) => [
-          req.params.id,
-          exercise.exercise_name,
-          exercise.target_sets,
-          exercise.target_reps,
-        ]);
-        await db.run(
-          `INSERT INTO plan_exercises (plan_id, exercise_name, target_sets, target_reps) VALUES ${placeholders}`,
-          values
-        );
-      }
-      await db.exec('COMMIT');
-
-      const updatedPlan = await db.get('SELECT * FROM plans WHERE id = ?', [req.params.id]);
-      const updatedExercises = await db.all('SELECT * FROM plan_exercises WHERE plan_id = ?', [req.params.id]);
-      res.status(200).json({ ...updatedPlan, exercises: updatedExercises });
+      res.status(200).json(serializePlan(updatedPlan));
     } catch (error) {
-      await db.exec('ROLLBACK').catch(() => {});
       res.status(500).json({ error: error.message });
     }
   });
 
   router.delete('/:id', async (req, res) => {
+    const planId = toNumberId(req.params.id);
+    if (!planId) return res.status(404).json({ error: 'Workout not found' });
+
     try {
-      const plan = await db.get('SELECT id FROM plans WHERE id = ?', [req.params.id]);
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
-      await db.run('DELETE FROM plans WHERE id = ?', [req.params.id]);
+      await prisma.plan.delete({ where: { id: planId } });
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: error.message });

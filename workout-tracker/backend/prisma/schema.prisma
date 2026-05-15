@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Plan {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  exercises   PlanExercise[]
+  sessions    WorkoutSession[]
+
+  @@map("plans")
+}
+
+model PlanExercise {
+  id           Int     @id @default(autoincrement())
+  planId       Int?    @map("plan_id")
+  exerciseName String  @map("exercise_name")
+  targetSets   Int?    @map("target_sets")
+  targetReps   String? @map("target_reps")
+  plan         Plan?   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("plan_exercises")
+}
+
+model WorkoutSession {
+  id     Int          @id @default(autoincrement())
+  date   String
+  planId Int?         @map("plan_id")
+  notes  String?
+  plan   Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+  logs   WorkoutLog[]
+
+  @@map("workout_sessions")
+}
+
+model WorkoutLog {
+  id           Int             @id @default(autoincrement())
+  sessionId    Int?            @map("session_id")
+  exerciseName String          @map("exercise_name")
+  setNumber    Int?            @map("set_number")
+  reps         Int?
+  weight       Float?
+  restSeconds  Int?            @map("rest_seconds")
+  session      WorkoutSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("workout_logs")
+}
