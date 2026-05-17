@@ -8,12 +8,16 @@ const createProgressRouter = require('./routes/progress');
 const createStatsRouter = require('./routes/stats');
 const { authenticate } = require('./middleware/authenticate');
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set in backend/.env');
+}
+
 const app = express();
 app.use(cors({
   origin: true,
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
 app.use(cookieParser());
 
 const PORT = process.env.PORT || 3000;

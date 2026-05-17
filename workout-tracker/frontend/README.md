@@ -559,6 +559,17 @@ The third backend prompt completed the bonus REST requirement:
 - Test nested create, read, update and delete behavior.
 - Keep the frontend unchanged.
 
+## OWASP Security Audit
+
+| OWASP point | Status | Code-Stellen | Ergebnis / Fix |
+| --- | --- | --- | --- |
+| A01 Broken Access Control | Abgedeckt | `backend/server.js`, `backend/middleware/authenticate.js`, `backend/routes/workouts.js`, `backend/routes/sessions.js`, `backend/routes/progress.js`, `backend/routes/stats.js` | Fachliche Routen sind mit `authenticate` geschützt. Nutzerbezogene Queries filtern über `req.user.userId`; fremde Ressourcen liefern `404`. |
+| A02 Cryptographic Failures | Abgedeckt | `backend/routes/auth.js`, `backend/server.js`, `backend/.env` | Passwörter werden mit `bcrypt.hash(..., 12)` gespeichert. JWT läuft nach 24h ab. `JWT_SECRET` kommt aus `.env` und wird beim Serverstart erzwungen. |
+| A03 Injection / XSS | Verbesserungswürdig, gefixt | `backend/routes/*.js`, `backend/routes/auth.js` | DB-Zugriffe laufen über Prisma statt SQL-String-Konkatenation. React escaped Textausgaben. Profilbilder werden jetzt nur noch als `png`, `jpg`, `jpeg` oder `webp` Data-URL bis ca. 10 MB akzeptiert, keine allgemeinen `data:image/*` Werte mehr. |
+| A07 Authentication Failures | Verbesserungswürdig, gefixt | `backend/routes/auth.js` | Login-Fehler sind einheitlich: `E-Mail oder Passwort ungültig.` gegen User Enumeration. Neue echte Accounts brauchen jetzt starke Passwörter mit mindestens 8 Zeichen, Buchstaben und Zahlen. Der Demo-Account `jonasarnold@gmail.com` bleibt als bewusst dokumentierte Ausnahme mit Passwort `123` bestehen. Verification-Codes werden mit `crypto.randomInt` erzeugt. |
+
+Zusätzlicher Hinweis: In Development wird der Verification-Code sichtbar ausgegeben, damit der Flow ohne echten Mailprovider getestet werden kann. Für Produktion müsste diese Dev-Ausgabe entfernt und durch einen echten Mailservice ersetzt werden.
+
 ## Verification
 
 Backend checks:

@@ -15,7 +15,7 @@ import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import Onboarding from "./pages/Onboarding";
 import { api } from "./api";
-import { getUserDisplayName, getUserInitials } from "./userStorage";
+import { getUserDisplayName, getUserInitials, getUserStorageKey } from "./userStorage";
 import "./index.css";
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
@@ -54,7 +54,7 @@ function AppLayout() {
     window.localStorage.getItem('workoutRemindersEnabled') !== 'false'
   ));
   const [hydrationAlertsEnabled, setHydrationAlertsEnabled] = useState(() => (
-    window.localStorage.getItem('hydrationAlertsEnabled') === 'true'
+    window.localStorage.getItem('hydrationAlertsEnabled') !== 'false'
   ));
   const [activeReminder, setActiveReminder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -78,6 +78,8 @@ function AppLayout() {
                 : 'PROGYM';
   const userDisplayName = getUserDisplayName(currentUser);
   const userInitials = getUserInitials(currentUser);
+  const workoutRemindersStorageKey = getUserStorageKey('workoutRemindersEnabled', currentUser);
+  const hydrationAlertsStorageKey = getUserStorageKey('hydrationAlertsEnabled', currentUser);
 
   const handleLogout = async () => {
     try {
@@ -99,6 +101,12 @@ function AppLayout() {
       .catch(() => setCurrentUser(null))
       .finally(() => setIsAuthLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    setWorkoutRemindersEnabled(window.localStorage.getItem(workoutRemindersStorageKey) !== 'false');
+    setHydrationAlertsEnabled(window.localStorage.getItem(hydrationAlertsStorageKey) !== 'false');
+  }, [currentUser?.id, workoutRemindersStorageKey, hydrationAlertsStorageKey]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -128,18 +136,18 @@ function AppLayout() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem('workoutRemindersEnabled', workoutRemindersEnabled.toString());
+    window.localStorage.setItem(workoutRemindersStorageKey, workoutRemindersEnabled.toString());
     window.dispatchEvent(new CustomEvent('alert-preferences-change', {
       detail: { workoutRemindersEnabled },
     }));
-  }, [workoutRemindersEnabled]);
+  }, [workoutRemindersEnabled, workoutRemindersStorageKey]);
 
   useEffect(() => {
-    window.localStorage.setItem('hydrationAlertsEnabled', hydrationAlertsEnabled.toString());
+    window.localStorage.setItem(hydrationAlertsStorageKey, hydrationAlertsEnabled.toString());
     window.dispatchEvent(new CustomEvent('alert-preferences-change', {
       detail: { hydrationAlertsEnabled },
     }));
-  }, [hydrationAlertsEnabled]);
+  }, [hydrationAlertsEnabled, hydrationAlertsStorageKey]);
 
   useEffect(() => {
     if (!workoutRemindersEnabled) return undefined;

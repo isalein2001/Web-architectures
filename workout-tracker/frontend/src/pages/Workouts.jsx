@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey } from '../userStorage';
+import { api } from '../api';
 import './Workouts.css';
 
 const readyPlans = [
@@ -92,6 +93,34 @@ const normalizeSetReps = (exercise) => {
   return Array.from({ length: setCount }, (_, index) => currentSetReps[index] ?? fallbackReps);
 };
 
+const mapBackendPlanToSavedPlan = (plan) => {
+  const formattedExercises = (plan.exercises || []).map((exercise) =>
+    `${exercise.exercise_name} (${exercise.target_sets || 1}x${exercise.target_reps || ''})`
+  );
+
+  return {
+    id: plan.id,
+    backendPlanId: plan.id,
+    title: plan.name,
+    badge: 'SAVED PLAN',
+    image: '/hero-bg.png',
+    iconKey: 'dumbbell',
+    builderExercises: (plan.exercises || []).map((exercise) => ({
+      id: exercise.id || Date.now() + Math.random(),
+      name: exercise.exercise_name,
+      sets: String(exercise.target_sets || 1),
+      reps: exercise.target_reps || '',
+      setReps: String(exercise.target_reps || '').split('/').filter(Boolean),
+      rest: '',
+      notes: '',
+    })),
+    exercises: formattedExercises.slice(0, 3),
+    extraExercises: formattedExercises.slice(3),
+    more: formattedExercises.length > 3 ? `+ ${formattedExercises.length - 3} MORE EXERCISES` : '',
+    editable: true,
+  };
+};
+
 const shouldShowSetRepsPanel = (exercise) => getSetCount(exercise.sets) > 1;
 
 const formatExerciseSummary = (exercise) => {
@@ -132,6 +161,20 @@ export default function Workouts({ currentUser }) {
 
   useEffect(() => {
     setSavedPlans(loadSavedWorkoutPlans(customPlansStorageKey));
+  }, [customPlansStorageKey]);
+
+  useEffect(() => {
+    api.getPlans()
+      .then((plans) => {
+        const backendPlans = plans.map(mapBackendPlanToSavedPlan);
+        setSavedPlans((currentPlans) => {
+          const localOnlyPlans = currentPlans.filter((plan) =>
+            !plan.backendPlanId || !backendPlans.some((backendPlan) => backendPlan.backendPlanId === plan.backendPlanId)
+          );
+          return [...backendPlans, ...localOnlyPlans];
+        });
+      })
+      .catch(() => null);
   }, [customPlansStorageKey]);
 
   const updateExercise = (id, field, value) => {
@@ -252,7 +295,7 @@ export default function Workouts({ currentUser }) {
     setValidationErrors((currentErrors) => ({ ...currentErrors, workoutName: false }));
   };
 
-  const saveWorkout = () => {
+  const saveWorkout = async () => {
     const nextErrors = {
       workoutName: !workoutName.trim(),
       noExercises: false,
@@ -286,9 +329,30 @@ export default function Workouts({ currentUser }) {
     }
 
     const formattedExercises = enteredExercises.map(formatExerciseSummary);
+    const planPayload = {
+      name: workoutName.trim().toUpperCase(),
+      description: t('CUSTOM PLAN'),
+      exercises: enteredExercises.map((exercise) => ({
+        exercise_name: exercise.name.trim(),
+        target_sets: Number.parseInt(exercise.sets, 10) || 1,
+        target_reps: normalizeSetReps(exercise).filter(Boolean).join('/'),
+      })),
+    };
+
+    let persistedPlan = null;
+    try {
+      const currentBackendId = savedPlans.find((plan) => plan.id === editingPlanId)?.backendPlanId;
+      persistedPlan = currentBackendId
+        ? await api.updatePlan(currentBackendId, planPayload)
+        : await api.createPlan(planPayload);
+    } catch (error) {
+      setValidationErrors((currentErrors) => ({ ...currentErrors, workoutName: true }));
+      return;
+    }
 
     const savedPlan = {
-      id: editingPlanId || `custom-${Date.now()}`,
+      id: editingPlanId || persistedPlan?.id || `custom-${Date.now()}`,
+      backendPlanId: persistedPlan?.id || savedPlans.find((plan) => plan.id === editingPlanId)?.backendPlanId || null,
       title: workoutName.trim().toUpperCase(),
       badge: t('CUSTOM PLAN'),
       image: coverImage || '/hero-bg.png',
@@ -330,8 +394,17 @@ export default function Workouts({ currentUser }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const deleteSavedPlan = () => {
+  const deleteSavedPlan = async () => {
     if (!editingPlanId) return;
+    const planToDelete = savedPlans.find((plan) => plan.id === editingPlanId);
+
+    if (planToDelete?.backendPlanId) {
+      try {
+        await api.deletePlan(planToDelete.backendPlanId);
+      } catch {
+        // Keep the local cleanup so the UI can recover even if the backend entry was already gone.
+      }
+    }
 
     setSavedPlans((currentPlans) => currentPlans.filter((plan) => plan.id !== editingPlanId));
     try {

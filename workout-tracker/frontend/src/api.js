@@ -84,6 +84,18 @@ export const api = {
       body: JSON.stringify(planData),
     });
   },
+  updatePlan: async (id, planData) => {
+    return requestJson(`${API_URL}/plans/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(planData),
+    });
+  },
+  deletePlan: async (id) => {
+    await requestJson(`${API_URL}/plans/${id}`, {
+      method: 'DELETE',
+    });
+    return true;
+  },
 
   // Sessions / Logs
   getSessions: async () => {

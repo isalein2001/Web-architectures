@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prismaClient');
 const { AUTH_COOKIE_NAME, authenticate } = require('../middleware/authenticate');
@@ -10,8 +11,26 @@ const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
 const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
 const DEMO_EMAIL = 'jonasarnold@gmail.com';
+const MIN_PASSWORD_LENGTH = 8;
 
-const createVerificationCode = () => String(Math.floor(100000 + Math.random() * 900000));
+const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
+
+const isDemoAccount = (email) => email === DEMO_EMAIL;
+
+const isStrongPassword = (password) => (
+  typeof password === 'string'
+  && password.length >= MIN_PASSWORD_LENGTH
+  && /[A-Za-z]/.test(password)
+  && /\d/.test(password)
+);
+
+const isAllowedProfileImage = (profileImage) => (
+  profileImage === null
+  || profileImage === ''
+  || (typeof profileImage === 'string'
+    && /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(profileImage)
+    && profileImage.length <= 15_000_000)
+);
 
 const selectPublicUser = {
   id: true,
@@ -23,6 +42,7 @@ const selectPublicUser = {
   onboardingCompleted: true,
   heightCm: true,
   weightKg: true,
+  gender: true,
   hydrationGoalLiters: true,
   fitnessGoal: true,
   profileImage: true,
@@ -61,6 +81,10 @@ function createAuthRouter() {
       return res.status(400).json({ error: 'Vorname, Nachname, E-Mail und Passwort sind erforderlich.' });
     }
 
+    if (!isDemoAccount(email) && !isStrongPassword(password)) {
+      return res.status(400).json({ error: 'Passwort muss mindestens 8 Zeichen haben und Buchstaben sowie Zahlen enthalten.' });
+    }
+
     try {
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
@@ -68,17 +92,16 @@ function createAuthRouter() {
       }
 
       const passwordHash = await bcrypt.hash(password, 12);
-      const isDemoAccount = email === DEMO_EMAIL;
-      const verificationCode = isDemoAccount ? null : createVerificationCode();
+      const verificationCode = isDemoAccount(email) ? null : createVerificationCode();
       const user = await prisma.user.create({
         data: {
           email,
           name: name || null,
           firstName,
           lastName,
-          emailVerified: isDemoAccount,
+          emailVerified: isDemoAccount(email),
           verificationCode,
-          onboardingCompleted: isDemoAccount,
+          onboardingCompleted: isDemoAccount(email),
           passwordHash,
         },
         select: selectPublicUser,
@@ -133,6 +156,7 @@ function createAuthRouter() {
           onboardingCompleted: user.onboardingCompleted,
           heightCm: user.heightCm,
           weightKg: user.weightKg,
+          gender: user.gender,
           hydrationGoalLiters: user.hydrationGoalLiters,
           fitnessGoal: user.fitnessGoal,
           profileImage: user.profileImage,
@@ -165,8 +189,8 @@ function createAuthRouter() {
       return res.status(400).json({ error: 'Vorname, Nachname und E-Mail sind erforderlich.' });
     }
 
-    if (newPassword && (typeof newPassword !== 'string' || newPassword.length < 6)) {
-      return res.status(400).json({ error: 'Das neue Passwort muss mindestens 6 Zeichen lang sein.' });
+    if (newPassword && !isStrongPassword(newPassword)) {
+      return res.status(400).json({ error: 'Das neue Passwort muss mindestens 8 Zeichen haben und Buchstaben sowie Zahlen enthalten.' });
     }
 
     if (newPassword && !currentPassword) {
@@ -194,8 +218,8 @@ function createAuthRouter() {
       };
 
       if (email !== currentUser.email) {
-        updateData.emailVerified = email === DEMO_EMAIL;
-        updateData.verificationCode = email === DEMO_EMAIL ? null : createVerificationCode();
+        updateData.emailVerified = isDemoAccount(email);
+        updateData.verificationCode = isDemoAccount(email) ? null : createVerificationCode();
         if (updateData.verificationCode) {
           console.log(`[DEV EMAIL] Verification code for ${email}: ${updateData.verificationCode}`);
         }
@@ -203,17 +227,43 @@ function createAuthRouter() {
 
       if (hasProfileImageUpdate) {
         const { profileImage } = req.body;
-        const isValidImage = profileImage === null
-          || profileImage === ''
-          || (typeof profileImage === 'string'
-            && profileImage.startsWith('data:image/')
-            && profileImage.length <= 1_500_000);
-
-        if (!isValidImage) {
-          return res.status(400).json({ error: 'Profilbild muss ein Bild unter ca. 1 MB sein.' });
+        if (!isAllowedProfileImage(profileImage)) {
+          return res.status(400).json({ error: 'Profilbild muss ein Bild unter ca. 10 MB sein.' });
         }
 
         updateData.profileImage = profileImage || null;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'gender')) {
+        const gender = normalizeText(req.body.gender);
+        if (!['Male', 'Female', 'Other'].includes(gender)) {
+          return res.status(400).json({ error: 'Please choose a valid gender.' });
+        }
+        updateData.gender = gender;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'heightCm')) {
+        const heightCm = Number(req.body.heightCm);
+        if (!Number.isFinite(heightCm) || heightCm < 100 || heightCm > 240) {
+          return res.status(400).json({ error: 'Please enter a valid height.' });
+        }
+        updateData.heightCm = heightCm;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'weightKg')) {
+        const weightKg = Number(req.body.weightKg);
+        if (!Number.isFinite(weightKg) || weightKg < 30 || weightKg > 250) {
+          return res.status(400).json({ error: 'Please enter a valid weight.' });
+        }
+        updateData.weightKg = weightKg;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'hydrationGoalLiters')) {
+        const hydrationGoalLiters = Number(req.body.hydrationGoalLiters);
+        if (!Number.isFinite(hydrationGoalLiters) || hydrationGoalLiters < 1.5 || hydrationGoalLiters > 7) {
+          return res.status(400).json({ error: 'Please enter a hydration goal between 1.5L and 7L.' });
+        }
+        updateData.hydrationGoalLiters = hydrationGoalLiters;
       }
 
       if (newPassword) {
@@ -247,7 +297,7 @@ function createAuthRouter() {
       const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
 
-      if (currentUser.email === DEMO_EMAIL || currentUser.emailVerified) {
+      if (isDemoAccount(currentUser.email) || currentUser.emailVerified) {
         const user = await prisma.user.update({
           where: { id: currentUser.id },
           data: { emailVerified: true, verificationCode: null },
@@ -277,7 +327,7 @@ function createAuthRouter() {
       const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
 
-      if (currentUser.email === DEMO_EMAIL || currentUser.emailVerified) {
+      if (isDemoAccount(currentUser.email) || currentUser.emailVerified) {
         return res.status(200).json({ message: 'Already verified.' });
       }
 
@@ -300,6 +350,7 @@ function createAuthRouter() {
   router.post('/onboarding', authenticate, async (req, res) => {
     const heightCm = Number(req.body.heightCm);
     const weightKg = Number(req.body.weightKg);
+    const gender = normalizeText(req.body.gender);
     const hydrationGoalLiters = Number(req.body.hydrationGoalLiters);
     const fitnessGoal = normalizeText(req.body.fitnessGoal);
 
@@ -309,6 +360,10 @@ function createAuthRouter() {
 
     if (!Number.isFinite(weightKg) || weightKg < 30 || weightKg > 250) {
       return res.status(400).json({ error: 'Please enter a valid weight.' });
+    }
+
+    if (!['Male', 'Female', 'Other'].includes(gender)) {
+      return res.status(400).json({ error: 'Please choose a valid gender.' });
     }
 
     if (!Number.isFinite(hydrationGoalLiters) || hydrationGoalLiters < 1.5 || hydrationGoalLiters > 7) {
@@ -329,6 +384,7 @@ function createAuthRouter() {
         data: {
           heightCm,
           weightKg,
+          gender,
           hydrationGoalLiters,
           fitnessGoal,
           onboardingCompleted: true,

@@ -44,11 +44,11 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     window.localStorage.getItem(storageKey('workoutRemindersEnabled')) !== 'false'
   ));
   const [hydrationAlertsEnabled, setHydrationAlertsEnabled] = useState(() => (
-    window.localStorage.getItem(storageKey('hydrationAlertsEnabled')) === 'true'
+    window.localStorage.getItem(storageKey('hydrationAlertsEnabled')) !== 'false'
   ));
   const [activeReminder, setActiveReminder] = useState(null);
   const [isBmiInfoOpen, setIsBmiInfoOpen] = useState(false);
-  const [gender, setGender] = useState(() => window.localStorage.getItem(storageKey('profileGender')) || 'Male');
+  const [gender, setGender] = useState(() => window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
   const [height, setHeight] = useState(() => window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
   const [weight, setWeight] = useState(() => window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
   const [isBmiTrackingEnabled, setIsBmiTrackingEnabled] = useState(() => (
@@ -66,6 +66,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setNewPassword('');
     setAccountStatus({ type: '', message: '' });
     setHydrationGoal(Number(window.localStorage.getItem(storageKey('hydrationGoalLiters')) || currentUser?.hydrationGoalLiters || 3.5));
+    setGender(window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
     setHeight(window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
     setWeight(window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
   }, [currentUser]);
@@ -127,26 +128,34 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     return (parsedWeight / (heightMeters * heightMeters)).toFixed(1);
   };
 
-  const saveBiometrics = () => {
+  const saveBiometrics = async () => {
     window.localStorage.setItem(storageKey('profileGender'), gender);
     window.localStorage.setItem(storageKey('profileHeightCm'), height);
     window.localStorage.setItem(storageKey('profileWeightKg'), weight);
+    window.localStorage.setItem(storageKey('hydrationGoalLiters'), hydrationGoal.toString());
     window.localStorage.setItem(storageKey('bmiTrackingEnabled'), isBmiTrackingEnabled.toString());
 
-    if (!isBmiTrackingEnabled) {
-      setHasUnsavedBiometrics(false);
-      return;
-    }
-
     const nextBmi = calculateBmi(height, weight);
-    if (!nextBmi) {
-      setHasUnsavedBiometrics(false);
-      return;
+    if (isBmiTrackingEnabled && nextBmi) {
+      setBmiValue(nextBmi);
+      window.localStorage.setItem(storageKey('profileBmi'), nextBmi);
     }
 
-    setBmiValue(nextBmi);
-    window.localStorage.setItem(storageKey('profileBmi'), nextBmi);
-    setHasUnsavedBiometrics(false);
+    try {
+      const data = await api.updateCurrentUser({
+        firstName: accountFirstName,
+        lastName: accountLastName,
+        email: accountEmail,
+        gender,
+        heightCm: height,
+        weightKg: weight,
+        hydrationGoalLiters: hydrationGoal,
+      });
+      onUserUpdate(data.user);
+      setHasUnsavedBiometrics(false);
+    } catch (error) {
+      setAccountStatus({ type: 'error', message: error.message });
+    }
   };
 
   const updateBiometricField = (setter) => (value) => {
@@ -197,8 +206,8 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
       return;
     }
 
-    if (file.size > 1_000_000) {
-      setAccountStatus({ type: 'error', message: t('Please choose an image under 1 MB.') });
+    if (file.size > 10_000_000) {
+      setAccountStatus({ type: 'error', message: t('Please choose an image under 10 MB.') });
       return;
     }
 

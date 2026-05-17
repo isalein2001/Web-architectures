@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Droplets, Goal, Ruler, Scale } from 'lucide-react';
+import { Droplets, Goal, Ruler, Scale, UserRound } from 'lucide-react';
 import { api } from '../api';
 import { getUserFirstName } from '../userStorage';
 import './Onboarding.css';
@@ -13,6 +13,7 @@ const goals = [
 export default function Onboarding({ currentUser, onUserUpdate }) {
   const [heightCm, setHeightCm] = useState(currentUser?.heightCm || '');
   const [weightKg, setWeightKg] = useState(currentUser?.weightKg || '');
+  const [gender, setGender] = useState(currentUser?.gender || 'Female');
   const [hydrationGoalLiters, setHydrationGoalLiters] = useState(currentUser?.hydrationGoalLiters || 3);
   const [fitnessGoal, setFitnessGoal] = useState(currentUser?.fitnessGoal || 'definition');
   const [error, setError] = useState('');
@@ -28,11 +29,13 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
       const data = await api.completeOnboarding({
         heightCm,
         weightKg,
+        gender,
         hydrationGoalLiters,
         fitnessGoal,
       });
       window.localStorage.setItem(`profileHeightCm:user:${data.user.id}`, String(heightCm));
       window.localStorage.setItem(`profileWeightKg:user:${data.user.id}`, String(weightKg));
+      window.localStorage.setItem(`profileGender:user:${data.user.id}`, gender);
       window.localStorage.setItem(`hydrationGoalLiters:user:${data.user.id}`, String(hydrationGoalLiters));
       onUserUpdate(data.user);
     } catch (requestError) {
@@ -58,6 +61,14 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
 
         <form className="onboarding-card" onSubmit={submitOnboarding}>
           <div className="onboarding-fields">
+            <label>
+              <span><UserRound size={16} /> Gender</span>
+              <select value={gender} onChange={(event) => setGender(event.target.value)} required>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
             <label>
               <span><Ruler size={16} /> Height</span>
               <div className="onboarding-unit-field">

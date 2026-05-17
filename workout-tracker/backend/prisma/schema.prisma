@@ -17,6 +17,7 @@ model User {
   onboardingCompleted Boolean @default(false) @map("onboarding_completed")
   heightCm     Int?     @map("height_cm")
   weightKg     Float?   @map("weight_kg")
+  gender       String?
   hydrationGoalLiters Float? @map("hydration_goal_liters")
   fitnessGoal  String?  @map("fitness_goal")
   profileImage  String?  @map("profile_image")
