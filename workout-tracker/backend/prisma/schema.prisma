@@ -25,8 +25,26 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   plans        Plan[]
   sessions     WorkoutSession[]
+  dailyActivities DailyActivity[]
 
   @@map("users")
+}
+
+model DailyActivity {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  date          String
+  waterIntakeMl Int      @default(0) @map("water_intake_ml")
+  waterGoalMl   Int      @default(3000) @map("water_goal_ml")
+  steps         Int      @default(0)
+  stepGoal      Int      @default(10000) @map("step_goal")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([date])
+  @@map("daily_activities")
 }
 
 model Plan {
@@ -59,6 +77,9 @@ model WorkoutSession {
   planId Int?         @map("plan_id")
   userId Int?         @map("user_id")
   notes  String?
+  caloriesBurned Int? @map("calories_burned")
+  durationSeconds Int? @map("duration_seconds")
+  intensity String?
   plan   Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
   user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs   WorkoutLog[]

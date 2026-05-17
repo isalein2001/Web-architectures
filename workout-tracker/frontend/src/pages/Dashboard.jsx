@@ -21,6 +21,9 @@ import './Dashboard.css';
 const MotionDiv = motion.div;
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+const DAILY_STEP_GOAL_STORAGE_KEY = 'dailyStepGoal';
+const DAILY_CALORIE_GOAL_STORAGE_KEY = 'dailyCalorieGoal';
+const DAILY_TRAINING_MINUTES_GOAL_STORAGE_KEY = 'dailyTrainingMinutesGoal';
 const getSessionDateKey = (date) => {
   const parsedDate = new Date(date);
   if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
@@ -171,12 +174,15 @@ function AnimatedMedal() {
   );
 }
 
-export default function Dashboard({ currentUser }) {
+export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
   const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const hydrationGoalStorageKey = getUserStorageKey('hydrationGoalLiters', currentUser);
+  const dailyStepGoalStorageKey = getUserStorageKey(DAILY_STEP_GOAL_STORAGE_KEY, currentUser);
+  const dailyCalorieGoalStorageKey = getUserStorageKey(DAILY_CALORIE_GOAL_STORAGE_KEY, currentUser);
+  const dailyTrainingMinutesGoalStorageKey = getUserStorageKey(DAILY_TRAINING_MINUTES_GOAL_STORAGE_KEY, currentUser);
   const firstName = getUserFirstName(currentUser);
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [sessions, setSessions] = useState([]);
@@ -188,19 +194,43 @@ export default function Dashboard({ currentUser }) {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
   const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
+  const [isDailyGoalsModalOpen, setIsDailyGoalsModalOpen] = useState(false);
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
+  const [todayActivity, setTodayActivity] = useState(dailyActivity || null);
   const [hydrationGoal, setHydrationGoal] = useState(() => {
     const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
     return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
   });
+  const [dailyGoals, setDailyGoals] = useState(() => ({
+    steps: Number(window.localStorage.getItem(dailyStepGoalStorageKey)) || 10000,
+    calories: Number(window.localStorage.getItem(dailyCalorieGoalStorageKey)) || 450,
+    trainingMinutes: Number(window.localStorage.getItem(dailyTrainingMinutesGoalStorageKey)) || 45,
+  }));
+  const [draftDailyGoals, setDraftDailyGoals] = useState(dailyGoals);
   const hasWorkoutData = stats.totalSessions > 0;
-  const currentHydration = hasWorkoutData ? 2.3 : 0;
+  const waterIntakeMl = todayActivity?.water_intake_ml || 0;
+  const waterGoalMl = todayActivity?.water_goal_ml || Math.round(hydrationGoal * 1000);
+  const stepGoal = dailyGoals.steps || todayActivity?.step_goal || 10000;
+  const currentHydration = waterIntakeMl / 1000;
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
-  const dailyGoalCompletion = hasWorkoutData ? 75 : 0;
-  const stepsValue = hasWorkoutData ? 12482 : 0;
-  const caloriesValue = hasWorkoutData ? 2140 : 0;
-  const minutesValue = hasWorkoutData ? 84 : 0;
+  const stepsValue = todayActivity?.steps || 0;
+  const waterProgress = Math.min(100, Math.round((waterIntakeMl / Math.max(waterGoalMl, 1)) * 100));
+  const workoutCalories = sessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
+  const stepCalories = Math.round(stepsValue * (Number(currentUser?.weightKg) || 75) * 0.00055);
+  const caloriesValue = workoutCalories + stepCalories;
+  const minutesValue = Math.round(sessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
+  const stepsProgress = Math.min(100, Math.round((stepsValue / Math.max(stepGoal, 1)) * 100));
+  const caloriesProgress = Math.min(100, Math.round((caloriesValue / Math.max(dailyGoals.calories || 1, 1)) * 100));
+  const minutesProgress = Math.min(100, Math.round((minutesValue / Math.max(dailyGoals.trainingMinutes || 1, 1)) * 100));
+  const dailyGoalCompletion = Math.round((stepsProgress + caloriesProgress + minutesProgress) / 3);
+  const dailyGoalStatus = dailyGoalCompletion >= 100
+    ? 'GOAL COMPLETE'
+    : dailyGoalCompletion >= 60
+      ? 'ON TRACK'
+      : dailyGoalCompletion >= 25
+        ? 'BUILDING MOMENTUM'
+        : 'GETTING STARTED';
 
   const completedWorkoutDates = new Set((stats.sessionDates || []).map(getSessionDateKey));
 
@@ -213,6 +243,7 @@ export default function Dashboard({ currentUser }) {
   useEffect(() => {
     const refreshStats = () => {
       refreshSessionData().catch(console.error);
+      api.getTodayActivity().then(setTodayActivity).catch(console.error);
     };
 
     refreshStats();
@@ -222,7 +253,38 @@ export default function Dashboard({ currentUser }) {
 
   useEffect(() => {
     window.localStorage.setItem(hydrationGoalStorageKey, hydrationGoal.toString());
+    api.updateTodayActivity({ water_goal_ml: Math.round(hydrationGoal * 1000) })
+      .then(setTodayActivity)
+      .catch(() => null);
   }, [hydrationGoal, hydrationGoalStorageKey]);
+
+  useEffect(() => {
+    if (dailyActivity) setTodayActivity(dailyActivity);
+  }, [dailyActivity]);
+
+  useEffect(() => {
+    const handleDailyActivityChange = (event) => {
+      setTodayActivity(event.detail);
+    };
+
+    window.addEventListener('daily-activity-change', handleDailyActivityChange);
+    return () => window.removeEventListener('daily-activity-change', handleDailyActivityChange);
+  }, []);
+
+  useEffect(() => {
+    const handleDailyGoalsChange = (event) => {
+      const nextGoals = {
+        steps: Number(event.detail?.steps) || Number(window.localStorage.getItem(dailyStepGoalStorageKey)) || 10000,
+        calories: Number(event.detail?.calories) || Number(window.localStorage.getItem(dailyCalorieGoalStorageKey)) || 450,
+        trainingMinutes: Number(event.detail?.trainingMinutes) || Number(window.localStorage.getItem(dailyTrainingMinutesGoalStorageKey)) || 45,
+      };
+      setDailyGoals(nextGoals);
+      setDraftDailyGoals(nextGoals);
+    };
+
+    window.addEventListener('daily-goals-change', handleDailyGoalsChange);
+    return () => window.removeEventListener('daily-goals-change', handleDailyGoalsChange);
+  }, [dailyStepGoalStorageKey, dailyCalorieGoalStorageKey, dailyTrainingMinutesGoalStorageKey]);
 
   useEffect(() => {
     window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(workoutSchedule));
@@ -233,7 +295,22 @@ export default function Dashboard({ currentUser }) {
     setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
     const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
     setHydrationGoal(savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5));
-  }, [customPlansStorageKey, workoutScheduleStorageKey, hydrationGoalStorageKey, currentUser?.hydrationGoalLiters]);
+    const nextDailyGoals = {
+      steps: Number(window.localStorage.getItem(dailyStepGoalStorageKey)) || 10000,
+      calories: Number(window.localStorage.getItem(dailyCalorieGoalStorageKey)) || 450,
+      trainingMinutes: Number(window.localStorage.getItem(dailyTrainingMinutesGoalStorageKey)) || 45,
+    };
+    setDailyGoals(nextDailyGoals);
+    setDraftDailyGoals(nextDailyGoals);
+  }, [
+    customPlansStorageKey,
+    workoutScheduleStorageKey,
+    hydrationGoalStorageKey,
+    dailyStepGoalStorageKey,
+    dailyCalorieGoalStorageKey,
+    dailyTrainingMinutesGoalStorageKey,
+    currentUser?.hydrationGoalLiters,
+  ]);
 
   useEffect(() => {
     const refreshWorkoutPlans = () => {
@@ -262,6 +339,41 @@ export default function Dashboard({ currentUser }) {
 
   const changeHydrationGoal = (amount) => {
     setHydrationGoal((goal) => Number(Math.min(7, Math.max(1.5, goal + amount)).toFixed(1)));
+  };
+
+  const openDailyGoalsModal = () => {
+    setDraftDailyGoals(dailyGoals);
+    setIsDailyGoalsModalOpen(true);
+  };
+
+  const updateDraftDailyGoal = (field, value) => {
+    setDraftDailyGoals((currentGoals) => ({
+      ...currentGoals,
+      [field]: value,
+    }));
+  };
+
+  const saveDailyGoals = async () => {
+    const nextGoals = {
+      steps: Math.max(1000, Math.min(100000, Math.round(Number(draftDailyGoals.steps) || 10000))),
+      calories: Math.max(100, Math.min(8000, Math.round(Number(draftDailyGoals.calories) || 450))),
+      trainingMinutes: Math.max(5, Math.min(300, Math.round(Number(draftDailyGoals.trainingMinutes) || 45))),
+    };
+
+    window.localStorage.setItem(dailyStepGoalStorageKey, String(nextGoals.steps));
+    window.localStorage.setItem(dailyCalorieGoalStorageKey, String(nextGoals.calories));
+    window.localStorage.setItem(dailyTrainingMinutesGoalStorageKey, String(nextGoals.trainingMinutes));
+    setDailyGoals(nextGoals);
+    setDraftDailyGoals(nextGoals);
+    window.dispatchEvent(new CustomEvent('daily-goals-change', { detail: nextGoals }));
+    setIsDailyGoalsModalOpen(false);
+
+    try {
+      const activity = await api.updateTodayActivity({ step_goal: nextGoals.steps });
+      setTodayActivity(activity);
+    } catch {
+      // Local goals still apply if the API is temporarily unavailable.
+    }
   };
 
   const openWorkoutPlanner = (date) => {
@@ -436,6 +548,10 @@ export default function Dashboard({ currentUser }) {
           <h1>{greeting.text}, <span>{firstName.toUpperCase()}</span></h1>
           <p>{t('WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.')}</p>
         </div>
+        <button className="hero-quick-log-button" type="button" onClick={() => onOpenQuickLog?.('water')}>
+          <Plus size={17} />
+          <span>{t('LOG')}</span>
+        </button>
       </div>
 
       {/* Top Grid: Daily Goal & Widgets */}
@@ -445,17 +561,35 @@ export default function Dashboard({ currentUser }) {
           <div className="card-header-flex">
             <h2>{t('DAILY GOAL')}</h2>
             <div className="goal-badges">
-              <span className="badge badge-outline">{t('ACTIVE RECOVERY')}</span>
-              <span className="badge badge-solid">{t('ELITE TRACK')}</span>
+              <span className="badge badge-outline">{t(dailyGoalStatus)}</span>
+              <span className="badge badge-solid">{t('DAILY BALANCE')}</span>
             </div>
           </div>
           
           <div className="daily-goal-chart">
             <CircularProgress percentage={dailyGoalCompletion} />
           </div>
-          
-          <div className="quote-of-day">
-            {t('Quote of the day: Consistency beats motivation')}
+
+          <div className="daily-goal-actions">
+            <button type="button" onClick={openDailyGoalsModal}>{t('EDIT GOALS')}</button>
+          </div>
+
+          <div className="daily-goal-breakdown">
+            <div>
+              <span>{t('STEPS')}</span>
+              <strong>{stepsValue.toLocaleString()} / {stepGoal.toLocaleString()}</strong>
+              <small>{stepsProgress}%</small>
+            </div>
+            <div>
+              <span>{t('CALORIES')}</span>
+              <strong>{caloriesValue.toLocaleString()} / {dailyGoals.calories.toLocaleString()} kcal</strong>
+              <small>{caloriesProgress}%</small>
+            </div>
+            <div>
+              <span>{t('MINUTES')}</span>
+              <strong>{minutesValue} / {dailyGoals.trainingMinutes} min</strong>
+              <small>{minutesProgress}%</small>
+            </div>
           </div>
         </div>
 
@@ -479,7 +613,7 @@ export default function Dashboard({ currentUser }) {
               </div>
             </div>
             <div className="hydration-goal">
-              <Droplets size={16} /> {t('GOAL: {amount}L DAILY', { amount: hydrationGoal.toFixed(1) })}
+              <Droplets size={16} /> {(currentHydration).toFixed(2)}L / {hydrationGoal.toFixed(1)}L
             </div>
             {/* Background decorative drop */}
             <Droplets className="bg-icon-drop" size={120} />
@@ -522,7 +656,7 @@ export default function Dashboard({ currentUser }) {
             </div>
             <div className="stat-details">
               <span>{t('ACTIVE FLOW')}</span>
-              <span className="stat-badge">{hasWorkoutData ? '+2.4k' : '+0'}</span>
+              <span className="stat-badge">{stepsProgress}%</span>
             </div>
           </div>
           <div className="stat-title-side">{t('STEPS')}</div>
@@ -681,6 +815,73 @@ export default function Dashboard({ currentUser }) {
 
               <p>{t('Go higher on intense training days, hot days or long cardio sessions.')}</p>
             </div>
+          </MotionDiv>
+        </div>
+      )}
+
+      {isDailyGoalsModalOpen && (
+        <div
+          className="daily-goals-modal-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsDailyGoalsModalOpen(false);
+          }}
+        >
+          <MotionDiv
+            className="daily-goals-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="daily-goals-modal-title"
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <button className="daily-goals-modal-close" type="button" onClick={() => setIsDailyGoalsModalOpen(false)} aria-label={t('Close daily goals')}>
+              <X size={18} />
+            </button>
+            <div className="daily-goals-modal-header">
+              <span>{t('DAILY GOALS')}</span>
+              <h2 id="daily-goals-modal-title">{t('TUNE YOUR TARGETS')}</h2>
+              <p>{t('Your completion circle averages steps, calories and training minutes.')}</p>
+            </div>
+            <div className="daily-goals-form">
+              <label>
+                <span><Activity size={15} /> {t('STEPS')}</span>
+                <input
+                  type="number"
+                  min="1000"
+                  max="100000"
+                  step="500"
+                  value={draftDailyGoals.steps}
+                  onChange={(event) => updateDraftDailyGoal('steps', event.target.value)}
+                />
+              </label>
+              <label>
+                <span><Flame size={15} /> {t('CALORIES')}</span>
+                <input
+                  type="number"
+                  min="100"
+                  max="8000"
+                  step="50"
+                  value={draftDailyGoals.calories}
+                  onChange={(event) => updateDraftDailyGoal('calories', event.target.value)}
+                />
+              </label>
+              <label>
+                <span><Clock size={15} /> {t('MINUTES')}</span>
+                <input
+                  type="number"
+                  min="5"
+                  max="300"
+                  step="5"
+                  value={draftDailyGoals.trainingMinutes}
+                  onChange={(event) => updateDraftDailyGoal('trainingMinutes', event.target.value)}
+                />
+              </label>
+            </div>
+            <button className="daily-goals-save-button" type="button" onClick={saveDailyGoals}>
+              {t('SAVE GOALS')}
+            </button>
           </MotionDiv>
         </div>
       )}

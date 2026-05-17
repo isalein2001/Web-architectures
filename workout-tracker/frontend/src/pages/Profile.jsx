@@ -1,8 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
+  Activity,
   Bell,
+  Clock,
   Download,
   Droplets,
+  Flame,
   LogOut,
   Lock,
   Minus,
@@ -40,6 +43,10 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     const savedGoal = window.localStorage.getItem(storageKey('hydrationGoalLiters'));
     return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
   });
+  const [dailyStepGoal, setDailyStepGoal] = useState(() => Number(window.localStorage.getItem(storageKey('dailyStepGoal'))) || 10000);
+  const [dailyCalorieGoal, setDailyCalorieGoal] = useState(() => Number(window.localStorage.getItem(storageKey('dailyCalorieGoal'))) || 450);
+  const [dailyTrainingMinutesGoal, setDailyTrainingMinutesGoal] = useState(() => Number(window.localStorage.getItem(storageKey('dailyTrainingMinutesGoal'))) || 45);
+  const [dailyGoalsStatus, setDailyGoalsStatus] = useState('');
   const [workoutRemindersEnabled, setWorkoutRemindersEnabled] = useState(() => (
     window.localStorage.getItem(storageKey('workoutRemindersEnabled')) !== 'false'
   ));
@@ -66,6 +73,10 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setNewPassword('');
     setAccountStatus({ type: '', message: '' });
     setHydrationGoal(Number(window.localStorage.getItem(storageKey('hydrationGoalLiters')) || currentUser?.hydrationGoalLiters || 3.5));
+    setDailyStepGoal(Number(window.localStorage.getItem(storageKey('dailyStepGoal'))) || 10000);
+    setDailyCalorieGoal(Number(window.localStorage.getItem(storageKey('dailyCalorieGoal'))) || 450);
+    setDailyTrainingMinutesGoal(Number(window.localStorage.getItem(storageKey('dailyTrainingMinutesGoal'))) || 45);
+    setDailyGoalsStatus('');
     setGender(window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
     setHeight(window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
     setWeight(window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
@@ -105,6 +116,29 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
 
   const changeHydrationGoal = (amount) => {
     setHydrationGoal((goal) => Number(Math.min(7, Math.max(1.5, goal + amount)).toFixed(1)));
+  };
+
+  const saveDailyGoals = async () => {
+    const nextGoals = {
+      steps: Math.max(1000, Math.min(100000, Math.round(Number(dailyStepGoal) || 10000))),
+      calories: Math.max(100, Math.min(8000, Math.round(Number(dailyCalorieGoal) || 450))),
+      trainingMinutes: Math.max(5, Math.min(300, Math.round(Number(dailyTrainingMinutesGoal) || 45))),
+    };
+
+    setDailyStepGoal(nextGoals.steps);
+    setDailyCalorieGoal(nextGoals.calories);
+    setDailyTrainingMinutesGoal(nextGoals.trainingMinutes);
+    window.localStorage.setItem(storageKey('dailyStepGoal'), nextGoals.steps.toString());
+    window.localStorage.setItem(storageKey('dailyCalorieGoal'), nextGoals.calories.toString());
+    window.localStorage.setItem(storageKey('dailyTrainingMinutesGoal'), nextGoals.trainingMinutes.toString());
+    window.dispatchEvent(new CustomEvent('daily-goals-change', { detail: nextGoals }));
+
+    try {
+      await api.updateTodayActivity({ step_goal: nextGoals.steps });
+      setDailyGoalsStatus(t('Goals updated.'));
+    } catch (error) {
+      setDailyGoalsStatus(t('Saved locally. Sync failed.'));
+    }
   };
 
   const showDemoHydrationReminder = () => {
@@ -460,14 +494,58 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
             </div>
           </section>
 
-          <section className="profile-panel compact-panel privacy-panel">
+          <section className="profile-panel compact-panel daily-goals-panel">
             <div className="profile-panel-heading">
-              <span className="profile-heading-icon"><Shield size={20} /></span>
-              <h2>{t('PRIVACY')}</h2>
+              <span className="profile-heading-icon"><Target size={20} /></span>
+              <h2>{t('DAILY GOALS')}</h2>
             </div>
-            <button className="profile-outline-action" type="button"><Download size={14} /> {t('EXPORT PERSONAL DATA')}</button>
-            <button className="profile-outline-action" type="button" onClick={onLogout}><LogOut size={14} /> {t('LOG OUT')}</button>
-            <button className="profile-danger-action" type="button">{t('DELETE ACCOUNT')}</button>
+
+            <div className="profile-daily-goals-grid">
+              <label className="profile-goal-field">
+                <span><Activity size={14} /> {t('STEPS')}</span>
+                <div>
+                  <input
+                    type="number"
+                    min="1000"
+                    step="500"
+                    value={dailyStepGoal}
+                    onChange={(event) => setDailyStepGoal(event.target.value)}
+                  />
+                  <small>{t('STEPS')}</small>
+                </div>
+              </label>
+              <label className="profile-goal-field">
+                <span><Flame size={14} /> {t('CALORIES')}</span>
+                <div>
+                  <input
+                    type="number"
+                    min="100"
+                    step="50"
+                    value={dailyCalorieGoal}
+                    onChange={(event) => setDailyCalorieGoal(event.target.value)}
+                  />
+                  <small>{t('KCAL')}</small>
+                </div>
+              </label>
+              <label className="profile-goal-field">
+                <span><Clock size={14} /> {t('TRAINING')}</span>
+                <div>
+                  <input
+                    type="number"
+                    min="5"
+                    step="5"
+                    value={dailyTrainingMinutesGoal}
+                    onChange={(event) => setDailyTrainingMinutesGoal(event.target.value)}
+                  />
+                  <small>{t('MIN')}</small>
+                </div>
+              </label>
+            </div>
+
+            <button className="profile-outline-action daily-goals-save" type="button" onClick={saveDailyGoals}>
+              <Save size={14} /> {t('SAVE GOALS')}
+            </button>
+            {dailyGoalsStatus && <p className="profile-goals-status">{dailyGoalsStatus}</p>}
           </section>
 
           <section className="profile-panel compact-panel watch-panel">
@@ -478,6 +556,16 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
             <h2>{t('APPLE WATCH')}</h2>
             <p>{t('HEALTHKIT ENABLED')}</p>
             <button className="profile-danger-action" type="button">{t('DISCONNECT')}</button>
+          </section>
+
+          <section className="profile-panel compact-panel privacy-panel">
+            <div className="profile-panel-heading">
+              <span className="profile-heading-icon"><Shield size={20} /></span>
+              <h2>{t('PRIVACY')}</h2>
+            </div>
+            <button className="profile-outline-action" type="button"><Download size={14} /> {t('EXPORT PERSONAL DATA')}</button>
+            <button className="profile-outline-action" type="button" onClick={onLogout}><LogOut size={14} /> {t('LOG OUT')}</button>
+            <button className="profile-danger-action" type="button">{t('DELETE ACCOUNT')}</button>
           </section>
         </aside>
       </div>

@@ -18,15 +18,17 @@ Die Entwicklungsdatenbank ist eine lokale SQLite-Datenbank unter `backend/databa
 Tabellen-Skizze:
 
 ```text
-users                 plans                       plan_exercises              workout_sessions           workout_logs
-------------------    -----------------------     ------------------------    ----------------------     -------------------------
-id                    id                          id                          id                         id
-email                 name                        plan_id (FK -> plans.id)    date                       session_id (FK -> workout_sessions.id)
-password_hash         description                 exercise_name               plan_id (FK -> plans.id)   exercise_name
-created_at            user_id (FK -> users.id)    target_sets                 user_id (FK -> users.id)   set_number
-                                                   target_reps                 notes                      reps
-                                                                                                         weight
-                                                                                                         rest_seconds
+users                 plans                       plan_exercises              workout_sessions           workout_logs                 daily_activities
+------------------    -----------------------     ------------------------    ----------------------     -------------------------    --------------------------
+id                    id                          id                          id                         id                           id
+email                 name                        plan_id (FK -> plans.id)    date                       session_id (FK -> sessions)   user_id (FK -> users.id)
+password_hash         description                 exercise_name               plan_id (FK -> plans.id)   exercise_name                date
+created_at            user_id (FK -> users.id)    target_sets                 user_id (FK -> users.id)   set_number                   steps
+gender                                             target_reps                 notes                      reps                         step_goal
+height_cm                                                                      calories_burned            weight                       water_intake_ml
+weight_kg                                                                      duration_seconds           rest_seconds                 water_goal_ml
+hydration_goal_liters                                                          intensity
+onboarding_completed
 ```
 
 ### Beziehungen
@@ -46,6 +48,9 @@ created_at            user_id (FK -> users.id)    target_sets                 us
 - `workout_sessions` zu `workout_logs`: 1:n  
   Eine Trainingseinheit kann mehrere geloggte Sätze enthalten. Jeder Log-Eintrag gehört zu einer Session. Beim Löschen einer Session werden die zugehörigen Logs gelöscht.
 
+- `users` zu `daily_activities`: 1:n
+  Ein Nutzer kann pro Datum einen Activity-Datensatz besitzen. Darin werden Schritte, Schrittziel, Wasseraufnahme und Wasserziel für den jeweiligen Tag gespeichert. Die Kombination aus `user_id` und `date` ist eindeutig, damit pro Nutzer und Tag nur ein Datensatz existiert.
+
 - n:m-Beziehungen gibt es aktuell nicht. Falls später mehrere Nutzer eigene Pläne teilen oder gemeinsam verwenden sollen, könnte dafür eine Zwischentabelle ergänzt werden.
 
 ### Pflichtfelder
@@ -56,6 +61,7 @@ created_at            user_id (FK -> users.id)    target_sets                 us
 - `plan_exercises.exercise_name` darf nicht leer sein.
 - `workout_sessions.date` darf nicht leer sein.
 - `workout_logs.exercise_name` darf nicht leer sein.
+- `daily_activities.user_id` und `daily_activities.date` dürfen nicht leer sein.
 
 ### Optionale Felder
 
@@ -63,16 +69,18 @@ created_at            user_id (FK -> users.id)    target_sets                 us
 - `plan_exercises.target_sets` und `plan_exercises.target_reps` sind optional, weil nicht jede Übung gleich viele Sätze oder Wiederholungen braucht.
 - `workout_sessions.plan_id` ist optional, damit Freestyle-Workouts gespeichert werden können.
 - `workout_sessions.notes` ist optional.
+- `workout_sessions.calories_burned`, `duration_seconds` und `intensity` sind optional, weil nicht jede gespeicherte Session zwingend Energie- oder Dauerwerte enthält.
 - `workout_logs.set_number`, `reps`, `weight` und `rest_seconds` sind optional bzw. können leer oder `0` sein, wenn der Nutzer beim Tracking nicht alles einträgt.
+- `daily_activities.steps`, `step_goal`, `water_intake_ml` und `water_goal_ml` besitzen Default-Werte und können über die API aktualisiert werden.
 
 ### Noch nicht in SQLite gespeichert
 
 Einige Features werden aktuell bewusst im Frontend über `localStorage` gespeichert und sind noch nicht Teil des SQLite-Schemas:
 
 - Kalenderplanung: `workoutSchedule`
-- Trinkziel: `hydrationGoalLiters`
 - BMI/Profileinstellungen: `profileGender`, `profileHeightCm`, `profileWeightKg`, `profileBmi`, `bmiTrackingEnabled`
-- Alert-Einstellungen: `hydrationAlertsEnabled`, `workoutAlertsEnabled`
+- Alert-Einstellungen: `hydrationAlertsEnabled`, `workoutRemindersEnabled`
+- Daily-Goal-Ergänzungen für Kalorien und Trainingsminuten: `dailyCalorieGoal`, `dailyTrainingMinutesGoal`
 
 Diese Daten könnten später als eigene Tabellen ergänzt werden, zum Beispiel `calendar_entries`, `hydration_goals` oder `bmi_records`.
 
@@ -286,6 +294,7 @@ Aktuell geschützt sind:
 - `GET/POST/DELETE /api/sessions`
 - `GET /api/progress/:exercise_name`
 - `GET /api/stats`
+- `GET/PATCH /api/daily-activity/today`
 - `GET /api/auth/me`
 
 Öffentlich bleiben nur die Auth-Routen, die ohne Login erreichbar sein müssen:
@@ -469,6 +478,11 @@ Validation:
 - Missing `date` returns `400`
 - Invalid `logs` payload returns `400`
 - Unknown session id returns `404`
+- Optional `calories_burned` must be an integer between `0` and `3000`
+- Optional `duration_seconds` must be an integer between `0` and `86400`
+- Optional `intensity` must be one of `light`, `moderate`, `intense` or `hiit`
+
+`GET /api/sessions` now returns up to `500` recent sessions so analytics can calculate longer-term yearly trends and personal-record history instead of only seeing the last few workouts.
 
 ### Progress
 
@@ -486,14 +500,26 @@ Computed from workout sessions.
 | --- | --- | --- | --- |
 | `GET` | `/api/stats` | Get total sessions and session dates | `200` |
 
+### Daily Activity
+
+Persisted in `daily_activities`.
+
+| Method | Endpoint | Description | Success |
+| --- | --- | --- | --- |
+| `GET` | `/api/daily-activity/today` | Get today's activity for the current user | `200` |
+| `PATCH` | `/api/daily-activity/today` | Update today's steps, step goal, water intake or water goal | `200` |
+
+The route is authenticated and scoped to `req.user.userId`. It uses the current calendar date on the backend and upserts the row for that user and day.
+
 ### Calendar Entries, Hydration Goals, BMI Records
 
 These features currently exist in the frontend and are stored in `localStorage`:
 
 - calendar entries: `workoutSchedule`
 - custom frontend workout cards: `customWorkoutPlans`
-- hydration goal: `hydrationGoalLiters`
+- hydration goal preference: `hydrationGoalLiters`
 - BMI/profile data: `profileGender`, `profileHeightCm`, `profileWeightKg`, `profileBmi`, `bmiTrackingEnabled`
+- daily calorie and training-minute goals: `dailyCalorieGoal`, `dailyTrainingMinutesGoal`
 
 They are not currently persisted through the Express/SQLite API. This was intentionally left unchanged to avoid breaking existing frontend behavior.
 
@@ -569,6 +595,167 @@ The third backend prompt completed the bonus REST requirement:
 | A07 Authentication Failures | Verbesserungswürdig, gefixt | `backend/routes/auth.js` | Login-Fehler sind einheitlich: `E-Mail oder Passwort ungültig.` gegen User Enumeration. Neue echte Accounts brauchen jetzt starke Passwörter mit mindestens 8 Zeichen, Buchstaben und Zahlen. Der Demo-Account `jonasarnold@gmail.com` bleibt als bewusst dokumentierte Ausnahme mit Passwort `123` bestehen. Verification-Codes werden mit `crypto.randomInt` erzeugt. |
 
 Zusätzlicher Hinweis: In Development wird der Verification-Code sichtbar ausgegeben, damit der Flow ohne echten Mailprovider getestet werden kann. Für Produktion müsste diese Dev-Ausgabe entfernt und durch einen echten Mailservice ersetzt werden.
+
+## Aktuelle Entwicklungsiteration: Daily Goals, Mobile UX und Analytics Intelligence
+
+Seit dem letzten Commit wurde die Anwendung fachlich von einem reinen Workout-Tracker stärker in Richtung persönliches Performance-Dashboard erweitert. Die Änderungen betreffen Backend-Persistenz, Onboarding, Dashboard, Profil/Settings, Workout-Logging, mobile Bedienbarkeit und Analytics.
+
+### Backend: Session-Energiedaten und Daily Activity
+
+Die Session-Ressource wurde erweitert, damit abgeschlossene Workouts nicht nur Sätze, Wiederholungen und Gewicht enthalten, sondern auch Energie- und Dauerwerte.
+
+Neue optionale Felder auf `workout_sessions`:
+
+- `calories_burned`
+- `duration_seconds`
+- `intensity`
+
+Diese Werte werden beim Speichern einer Session validiert und in den API-Antworten wieder ausgeliefert. Dadurch können Dashboard und Analytics echte Kalorien- und Trainingsminutenwerte aus abgeschlossenen Workouts ableiten.
+
+Zusätzlich wurde `daily_activities` eingeführt. Diese Tabelle speichert pro Nutzer und Datum:
+
+- aktuelle Schritte
+- Schrittziel
+- Wasseraufnahme
+- Wasserziel
+
+Die neue Route `backend/routes/dailyActivity.js` ist unter `/api/daily-activity` eingebunden. Sie stellt `GET /today` und `PATCH /today` bereit und verwendet einen Upsert-Ansatz, damit der Tagesdatensatz bei Bedarf automatisch angelegt wird.
+
+### Onboarding: zweistufiger Registrierungsabschluss
+
+Das Onboarding wurde in zwei fachliche Schritte geteilt:
+
+1. Profil- und Basisdaten
+   - Geschlecht
+   - Größe
+   - Gewicht
+   - tägliches Wasserziel
+   - Trainingsfokus
+
+2. Daily Goals
+   - tägliche Schritte
+   - Workout-Kalorienziel
+   - Trainingsminuten
+
+Der Nutzer kann erst ins Dashboard wechseln, wenn beide Schritte vollständig ausgefüllt sind. Fehlende Felder werden direkt rot markiert. Für Daily Goals gibt es bewusst kleine Vorschläge, damit neue Nutzer nicht selbst wissen müssen, welche Werte realistisch sind.
+
+Die Daily-Goal-Werte werden nutzerspezifisch in `localStorage` gespeichert. Das Schrittziel wird zusätzlich mit `daily_activities.step_goal` synchronisiert.
+
+### Dashboard: echte Tagesziel-Logik
+
+Das Daily-Goal-Widget im Dashboard berechnet den Fortschritt jetzt aus drei Komponenten:
+
+- Schritte im Verhältnis zum Schrittziel
+- Kalorien im Verhältnis zum Kalorienziel
+- Trainingsminuten im Verhältnis zum Minutenziel
+
+Die Gesamtprozentzahl ist der Durchschnitt dieser drei Fortschritte. Das frühere statische Quote-of-the-day wurde entfernt, damit die Fläche für echte Tagesdaten genutzt wird.
+
+Zusätzlich wurden die Goal-Werte direkt editierbar gemacht. Das Dashboard speichert Änderungen in den nutzerspezifischen Storage-Keys und synchronisiert das Schrittziel mit dem Backend. Änderungen aus den Settings werden per `daily-goals-change` Event übernommen.
+
+### Profil und Settings: Daily Goals nachträglich bearbeiten
+
+In der Profil-/Settings-Seite wurde ein neuer kompakter Daily-Goals-Block ergänzt. Dort kann der Nutzer nach dem Onboarding weiterhin ändern:
+
+- Schritte
+- Kalorien
+- Trainingsminuten
+
+Beim Speichern werden dieselben Storage-Keys genutzt wie im Dashboard. Dadurch bleiben Onboarding, Dashboard und Settings fachlich konsistent.
+
+Außerdem wurden die Account-, Privacy- und Apple-Watch-Bereiche kompakter gemacht, besonders für Mobile. Hydration Goal wurde wieder prominent oben platziert, während Alerts als sekundäre Einstellung weiter unten stehen. Das Advanced-Data-Encryption-Widget wurde mehrfach angepasst, bis Größe und Inhalt zum Layout passten.
+
+### Workout Logger: Session-Zusammenfassung als Datenbasis
+
+Der Workout Logger speichert neben den geloggten Sets jetzt auch zusätzliche Session-Metadaten:
+
+- Kalorienverbrauch
+- Dauer in Sekunden
+- Intensität
+
+Diese Felder sind wichtig, weil Dashboard und Analytics daraus Tagesfortschritt, Kalorientrends und Trainingsminuten berechnen können.
+
+### Analytics: datengetriebene Strength- und Performance-Auswertung
+
+Die Analytics-Seite wurde von statischen Mock-Werten auf echte Session-Daten umgestellt.
+
+#### Strength Progress
+
+Der Strength-Progress-Chart berechnet jetzt für jedes geloggte Set einen geschätzten Kraftwert:
+
+```text
+estimated 1RM = weight * (1 + reps / 30)
+```
+
+Aus diesen Werten werden echte Zeitreihen für `1W`, `1M` und `1Y` gebildet. Die Prozentzahl oben im Widget beschreibt den Fortschritt zwischen erstem und letztem relevanten Wert im Zeitraum.
+
+#### Dynamische Top-Exercise-Widgets
+
+Die drei unteren Strength-Widgets sind nicht mehr fest auf Bench Press, Deadlift und Squat gebunden. Stattdessen erkennt die App automatisch die drei häufigsten geloggten Übungen des Nutzers.
+
+Sortierung:
+
+1. Anzahl unterschiedlicher Sessions mit dieser Übung
+2. Anzahl geloggter Sets
+3. bester geschätzter Kraftwert
+
+Der angezeigte Wert ist der beste geschätzte 1RM dieser Übung in Kilogramm. Dadurch bleiben die Widgets sinnvoll, auch wenn ein Nutzer andere Übungen macht.
+
+#### Performance Intelligence
+
+Neu hinzugefügt wurde eine Performance-Intelligence-Zone mit vier Widgets:
+
+- `Training Volume`: Summe aus `weight * reps` der letzten 30 Tage mit Vergleich zu den 30 Tagen davor.
+- `Consistency Score`: Trainingstage dieser Woche im Verhältnis zu einem Zielrhythmus von vier Trainingstagen.
+- `Muscle Focus`: grobe Kategorisierung der geloggten Übungen in Push, Pull, Legs, Core, Cardio oder Other.
+- `PR Timeline`: erkennt neue persönliche Rekorde anhand des geschätzten 1RM pro Übung.
+
+Alle vier Widgets sind klickbar. Beim Klick öffnet sich ein Info-Modal im Stil der bestehenden BMI-/Hydration-Infoblöcke. Der Dialog erklärt:
+
+- was die Kennzahl bedeutet
+- wie sie berechnet wird
+- warum sie für Training und Fortschritt relevant ist
+
+Die Info-Modals unterstützen Klick außerhalb, Escape-Taste und Close-Button.
+
+### Mobile UX und Navigation
+
+Die mobile Version wurde über mehrere Iterationen stärker wie eine App gestaltet:
+
+- kompaktere Topbar mit sauber ausgerichteten Icons
+- Bottom Navigation mit Dashboard, Workouts, Start, Analytics und Settings
+- Start-Button als hervorgehobener mittlerer Button
+- reduzierte Größen für Account-, BMI-, Privacy- und Alert-Elemente
+- bessere mobile Layouts für Dashboard-, Analytics- und Settings-Widgets
+- About Us und Support bleiben auf Desktop in der linken Sidebar, sind mobil aber in den Footer/Settings-Kontext integriert
+
+Ziel war, dass die mobile Version nicht nur responsive ist, sondern als eigenständige, intuitive App-Oberfläche funktioniert.
+
+### Internationalisierung
+
+Die Sprachumschaltung wurde erweitert. Neue UI-Texte für Daily Goals, Analytics Intelligence, Info-Modals, Profileinstellungen und Dashboard-Ziele wurden in `LanguageContext.jsx` für Englisch und Deutsch ergänzt.
+
+Zusätzlich wurde die Kalenderdarstellung lokalisiert, sodass Monatsnamen und Wochentage bei deutscher Spracheinstellung ebenfalls deutsch angezeigt werden.
+
+### Verifikation dieser Iteration
+
+Frontend:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+```
+
+Der Build läuft erfolgreich durch. Vite meldet weiterhin nur die bekannte Chunk-Size-Warnung.
+
+Backend:
+
+```bash
+cd workout-tracker/backend
+npm test
+```
+
+Der Backend-Testbefehl ist aktuell nur der Standardplatzhalter aus `package.json` und bricht mit `Error: no test specified` ab. Das ist kein neuer fachlicher Fehler, sondern bedeutet, dass noch keine automatisierten Backend-Tests eingerichtet wurden.
 
 ## Verification
 

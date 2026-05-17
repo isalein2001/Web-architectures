@@ -120,5 +120,29 @@ export const api = {
   },
   getStats: async () => {
     return requestJson(`${API_URL}/stats`);
+  },
+
+  // Daily activity
+  getTodayActivity: async (date) => {
+    const query = date ? `?date=${encodeURIComponent(date)}` : '';
+    return requestJson(`${API_URL}/daily-activity/today${query}`);
+  },
+  updateTodayActivity: async (activityData) => {
+    return requestJson(`${API_URL}/daily-activity/today`, {
+      method: 'PATCH',
+      body: JSON.stringify(activityData),
+    });
+  },
+  addWater: async (amountMl, date) => {
+    return requestJson(`${API_URL}/daily-activity/today/water`, {
+      method: 'POST',
+      body: JSON.stringify({ amountMl, ...(date ? { date } : {}) }),
+    });
+  },
+  addSteps: async (amount, date) => {
+    return requestJson(`${API_URL}/daily-activity/today/steps`, {
+      method: 'POST',
+      body: JSON.stringify({ amount, ...(date ? { date } : {}) }),
+    });
   }
 };

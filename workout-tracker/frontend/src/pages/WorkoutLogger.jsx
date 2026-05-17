@@ -42,6 +42,47 @@ const iconMap = {
   activity: Activity,
 };
 
+const intensityOptions = [
+  {
+    id: 'light',
+    label: 'LIGHT',
+    description: 'Technique, mobility or easy pace',
+    met: 3.2,
+  },
+  {
+    id: 'moderate',
+    label: 'MODERATE',
+    description: 'Solid training with steady effort',
+    met: 4.8,
+  },
+  {
+    id: 'intense',
+    label: 'INTENSE',
+    description: 'Heavy sets and short breaks',
+    met: 6.2,
+  },
+  {
+    id: 'hiit',
+    label: 'HIIT',
+    description: 'High output, circuits or intervals',
+    met: 8,
+  },
+];
+
+const compoundKeywords = [
+  'bench',
+  'press',
+  'squat',
+  'deadlift',
+  'row',
+  'pull',
+  'lunge',
+  'clean',
+  'snatch',
+  'thruster',
+  'leg press',
+];
+
 const loadJson = (key, fallback) => {
   try {
     const storedValue = window.localStorage.getItem(key) || window.sessionStorage.getItem(key);
@@ -115,6 +156,47 @@ const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
   }))
 );
 
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const formatDuration = (seconds) => {
+  const safeSeconds = Math.max(0, Number(seconds) || 0);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const restMinutes = minutes % 60;
+    return `${hours}h ${restMinutes}m`;
+  }
+  return `${minutes}m ${String(remainingSeconds).padStart(2, '0')}s`;
+};
+
+const calculateCalories = ({ logs, bodyWeightKg, durationSeconds, intensity }) => {
+  const selectedIntensity = intensityOptions.find((option) => option.id === intensity) || intensityOptions[1];
+  const safeWeight = clamp(Number(bodyWeightKg) || 75, 35, 180);
+  const safeDurationSeconds = clamp(Number(durationSeconds) || 900, 60, 86400);
+  const trainingHours = safeDurationSeconds / 3600;
+  const baseCalories = selectedIntensity.met * safeWeight * trainingHours;
+
+  const activeLogs = logs.filter((log) => log.completed || log.reps || log.weight);
+  const totalReps = activeLogs.reduce((sum, log) => sum + (Number(log.reps) || 0), 0);
+  const totalVolume = activeLogs.reduce((sum, log) => {
+    const reps = Number(log.reps) || 0;
+    const weight = Number(log.weight) || 0;
+    return sum + reps * weight;
+  }, 0);
+  const compoundSets = activeLogs.filter((log) => {
+    const name = log.exercise_name.toLowerCase();
+    return compoundKeywords.some((keyword) => name.includes(keyword));
+  }).length;
+
+  const setFactor = clamp(1 + (activeLogs.length - 8) * 0.012, 0.88, 1.22);
+  const repFactor = clamp(1 + totalReps / 900, 0.95, 1.18);
+  const volumeFactor = clamp(1 + totalVolume / 80000, 0.95, 1.2);
+  const compoundFactor = clamp(1 + compoundSets * 0.012, 1, 1.12);
+
+  return Math.max(1, Math.round(baseCalories * setFactor * repFactor * volumeFactor * compoundFactor));
+};
+
 export default function WorkoutLogger({ currentUser }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -132,6 +214,11 @@ export default function WorkoutLogger({ currentUser }) {
   const [currentExercise, setCurrentExercise] = useState('');
   const [notes, setNotes] = useState('');
   const [saveState, setSaveState] = useState('idle');
+  const [sessionStartedAt, setSessionStartedAt] = useState(() => (initialSelectedPlan ? Date.now() : null));
+  const [intensity, setIntensity] = useState('moderate');
+  const [energyMode, setEnergyMode] = useState('estimate');
+  const [manualCalories, setManualCalories] = useState('');
+  const [durationOverrideMinutes, setDurationOverrideMinutes] = useState('');
 
   const startWorkout = useCallback((plan) => {
     const nextPlan = plan || {
@@ -148,6 +235,11 @@ export default function WorkoutLogger({ currentUser }) {
     setLogs(createLogsFromPlan(nextPlan));
     setNotes('');
     setCountdown(3);
+    setSessionStartedAt(Date.now());
+    setIntensity('moderate');
+    setEnergyMode('estimate');
+    setManualCalories('');
+    setDurationOverrideMinutes('');
     setPhase('countdown');
     setSaveState('idle');
   }, [t]);
@@ -207,6 +299,21 @@ export default function WorkoutLogger({ currentUser }) {
   }, [logs]);
 
   const completedCount = logs.filter((log) => log.completed).length;
+  const activeLogCount = logs.filter((log) => log.completed || log.reps || log.weight).length;
+  const fallbackDurationSeconds = sessionStartedAt ? Math.max(60, Math.round((Date.now() - sessionStartedAt) / 1000)) : 900;
+  const durationSeconds = durationOverrideMinutes
+    ? clamp(Math.round(Number(durationOverrideMinutes) * 60), 60, 86400)
+    : fallbackDurationSeconds;
+  const userWeightKg = currentUser?.weightKg || currentUser?.weight_kg || 75;
+  const estimatedCalories = calculateCalories({
+    logs,
+    bodyWeightKg: userWeightKg,
+    durationSeconds,
+    intensity,
+  });
+  const caloriesToSave = energyMode === 'manual'
+    ? (Number(manualCalories) || estimatedCalories)
+    : estimatedCalories;
 
   const updateLog = (id, field, value) => {
     setLogs((currentLogs) =>
@@ -247,17 +354,31 @@ export default function WorkoutLogger({ currentUser }) {
     setNotes('');
     setCurrentExercise('');
     setCountdown(3);
+    setSessionStartedAt(null);
+    setIntensity('moderate');
+    setEnergyMode('estimate');
+    setManualCalories('');
+    setDurationOverrideMinutes('');
     setSaveState('idle');
     setPhase('select');
   };
 
-  const finishWorkout = async () => {
+  const openWorkoutSummary = () => {
+    setManualCalories(String(estimatedCalories));
+    setSaveState('idle');
+    setPhase('summary');
+  };
+
+  const saveWorkoutSession = async () => {
     if (!activePlan) return;
 
     const sessionData = {
       date: new Date().toISOString(),
       plan_id: activePlan.planId,
       notes,
+      calories_burned: caloriesToSave,
+      duration_seconds: durationSeconds,
+      intensity,
       logs: logs
         .filter((log) => log.completed || log.reps || log.weight)
         .map((log) => ({
@@ -332,6 +453,112 @@ export default function WorkoutLogger({ currentUser }) {
     );
   }
 
+  if (phase === 'summary') {
+    return (
+      <div className="workout-summary-page">
+        <section className="workout-summary-card">
+          <div className="workout-summary-heading">
+            <span><Flame size={16} /> {t('WORKOUT SUMMARY')}</span>
+            <h1>{t('LOG YOUR ENERGY')}</h1>
+            <p>{t('We estimated your calories from duration, body weight, intensity and your logged sets. Adjust it if your watch or machine shows a better value.')}</p>
+          </div>
+
+          <div className="workout-summary-stats">
+            <div>
+              <small>{t('SESSION')}</small>
+              <strong>{activePlan?.title}</strong>
+            </div>
+            <div>
+              <small>{t('DURATION')}</small>
+              <strong>{formatDuration(durationSeconds)}</strong>
+            </div>
+            <div>
+              <small>{t('SETS LOGGED')}</small>
+              <strong>{activeLogCount}</strong>
+            </div>
+          </div>
+
+          <label className="summary-duration-field">
+            <span><Timer size={15} /> {t('ADJUST DURATION')}</span>
+            <div>
+              <input
+                type="number"
+                min="1"
+                max="1440"
+                value={durationOverrideMinutes}
+                onChange={(event) => setDurationOverrideMinutes(event.target.value)}
+                placeholder={String(Math.max(1, Math.round(fallbackDurationSeconds / 60)))}
+              />
+              <small>{t('MIN')}</small>
+            </div>
+          </label>
+
+          <div className="summary-section-label">{t('TRAINING INTENSITY')}</div>
+          <div className="summary-intensity-grid">
+            {intensityOptions.map((option) => (
+              <button
+                type="button"
+                key={option.id}
+                className={`summary-intensity-button ${intensity === option.id ? 'active' : ''}`}
+                onClick={() => setIntensity(option.id)}
+              >
+                <strong>{t(option.label)}</strong>
+                <span>{t(option.description)}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="summary-calories-panel">
+            <div>
+              <small>{t('ESTIMATED BURN')}</small>
+              <strong>{estimatedCalories} kcal</strong>
+              <span>{t('Use the estimate or enter your own value.')}</span>
+            </div>
+            <div className="summary-energy-toggle">
+              <button type="button" className={energyMode === 'estimate' ? 'active' : ''} onClick={() => setEnergyMode('estimate')}>
+                {t('ESTIMATE')}
+              </button>
+              <button type="button" className={energyMode === 'manual' ? 'active' : ''} onClick={() => setEnergyMode('manual')}>
+                {t('MANUAL')}
+              </button>
+            </div>
+          </div>
+
+          {energyMode === 'manual' && (
+            <label className="summary-kcal-field">
+              <span>{t('CALORIES BURNED')}</span>
+              <div>
+                <input
+                  type="number"
+                  min="0"
+                  max="3000"
+                  value={manualCalories}
+                  onChange={(event) => setManualCalories(event.target.value)}
+                />
+                <small>KCAL</small>
+              </div>
+            </label>
+          )}
+
+          {saveState === 'error' && (
+            <div className="workout-save-error">
+              <X size={16} /> {t('Could not save workout. Please try again.')}
+            </div>
+          )}
+
+          <div className="summary-actions">
+            <button className="cancel-workout-button" type="button" onClick={() => setPhase('active')} disabled={saveState === 'saving'}>
+              {t('BACK TO WORKOUT')}
+            </button>
+            <button className="finish-workout-button" type="button" onClick={saveWorkoutSession} disabled={saveState === 'saving'}>
+              <Save size={17} /> {saveState === 'saving' ? t('SAVING') : t('SAVE WORKOUT')}
+            </button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="active-workout-page">
       <header className="active-workout-header">
@@ -344,7 +571,7 @@ export default function WorkoutLogger({ currentUser }) {
           <button className="cancel-workout-button" type="button" onClick={cancelWorkout} disabled={saveState === 'saving'}>
             <X size={17} /> {t('CANCEL SESSION')}
           </button>
-          <button className="finish-workout-button" type="button" onClick={finishWorkout} disabled={saveState === 'saving'}>
+          <button className="finish-workout-button" type="button" onClick={openWorkoutSummary} disabled={saveState === 'saving'}>
             <Save size={17} /> {saveState === 'saving' ? t('SAVING') : t('FINISH WORKOUT')}
           </button>
         </div>

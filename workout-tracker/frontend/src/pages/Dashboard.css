@@ -72,6 +72,36 @@
   margin: 0;
 }
 
+.hero-quick-log-button {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(197, 254, 0, 0.18);
+  border-radius: 999px;
+  color: var(--color-primary);
+  background: rgba(10, 10, 10, 0.56);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+  backdrop-filter: blur(12px);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.hero-quick-log-button:hover {
+  border-color: rgba(197, 254, 0, 0.42);
+  background: rgba(197, 254, 0, 0.1);
+  transform: translateY(-1px);
+}
+
 /* TOP GRID */
 .top-grid {
   display: grid;
@@ -91,6 +121,7 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  gap: 18px;
 }
 
 .card-header-flex {
@@ -132,10 +163,194 @@
   color: #FFF;
 }
 
-.quote-of-day {
-  color: #888;
-  font-size: 0.85rem;
-  margin-top: 24px;
+.daily-goal-breakdown {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: auto;
+}
+
+.daily-goal-breakdown > div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.daily-goal-breakdown span,
+.daily-goal-breakdown strong,
+.daily-goal-breakdown small,
+.daily-goal-actions span {
+  display: block;
+}
+
+.daily-goal-breakdown span {
+  margin-bottom: 8px;
+  color: var(--color-primary);
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.daily-goal-breakdown strong {
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.daily-goal-breakdown small {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.daily-goal-actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  margin-top: -6px;
+}
+
+.daily-goal-actions button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(197, 254, 0, 0.28);
+  border-radius: 999px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.06);
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.daily-goals-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.daily-goals-modal {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 30px;
+  border: 1px solid rgba(197, 254, 0, 0.18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(197, 254, 0, 0.14), transparent 34%),
+    linear-gradient(145deg, #151515 0%, #0b0b0b 100%);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+}
+
+.daily-goals-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.daily-goals-modal-header {
+  padding-right: 44px;
+  margin-bottom: 22px;
+}
+
+.daily-goals-modal-header span {
+  color: var(--color-primary);
+  font-size: 0.66rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.daily-goals-modal-header h2 {
+  margin: 8px 0 10px;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 950;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.daily-goals-modal-header p {
+  margin: 0;
+  color: #aaa;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.daily-goals-form {
+  display: grid;
+  gap: 14px;
+}
+
+.daily-goals-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.daily-goals-form span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.66rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.daily-goals-form span svg {
+  color: var(--color-primary);
+}
+
+.daily-goals-form input {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  color: #fff;
+  background: #0b0b0b;
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+
+.daily-goals-save-button {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 999px;
+  color: #050505;
+  background: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 /* Circular Progress */
@@ -1374,6 +1589,20 @@
     line-height: 1.65;
   }
 
+  .hero-quick-log-button {
+    top: 16px;
+    right: 16px;
+    min-height: 34px;
+    padding: 0 11px;
+    gap: 6px;
+    font-size: 0.58rem;
+  }
+
+  .hero-quick-log-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .card,
   .stat-card.horizontal,
   .achievements-card {
@@ -1417,6 +1646,46 @@
 
   .circular-progress-value {
     font-size: clamp(2.3rem, 11vw, 2.8rem);
+  }
+
+  .daily-goal-breakdown {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .daily-goal-breakdown > div {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+  }
+
+  .daily-goal-breakdown span,
+  .daily-goal-breakdown strong,
+  .daily-goal-breakdown small {
+    margin: 0;
+  }
+
+  .daily-goal-actions {
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0;
+  }
+
+  .daily-goals-modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .daily-goals-modal {
+    padding: 24px 20px 20px;
+    border-radius: 22px;
+  }
+
+  .daily-goals-modal-header h2 {
+    font-size: 1.55rem;
   }
 
   .hydration-card {

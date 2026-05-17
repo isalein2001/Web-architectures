@@ -21,6 +21,9 @@ const serializeSession = (session) => ({
   date: session.date,
   plan_id: session.planId,
   notes: session.notes,
+  calories_burned: session.caloriesBurned,
+  duration_seconds: session.durationSeconds,
+  intensity: session.intensity,
   plan_name: session.plan?.name || null,
   logs: (session.logs || []).map(serializeLog),
 });
@@ -39,7 +42,7 @@ function createSessionsRouter() {
           },
         },
         orderBy: { date: 'desc' },
-        take: 20,
+        take: 500,
       });
 
       res.status(200).json(sessions.map(serializeSession));
@@ -49,8 +52,22 @@ function createSessionsRouter() {
   });
 
   router.post('/', async (req, res) => {
-    const { date, plan_id, notes = '', logs = [] } = req.body;
+    const {
+      date,
+      plan_id,
+      notes = '',
+      logs = [],
+      calories_burned,
+      duration_seconds,
+      intensity,
+    } = req.body;
     const planId = plan_id === undefined || plan_id === null ? null : toNumberId(plan_id);
+    const caloriesBurned = calories_burned === undefined || calories_burned === null || calories_burned === ''
+      ? null
+      : Number(calories_burned);
+    const durationSeconds = duration_seconds === undefined || duration_seconds === null || duration_seconds === ''
+      ? null
+      : Number(duration_seconds);
 
     if (!date || typeof date !== 'string') {
       return res.status(400).json({ error: 'Session date is required' });
@@ -62,6 +79,18 @@ function createSessionsRouter() {
 
     if (!Array.isArray(logs)) {
       return res.status(400).json({ error: 'Logs must be an array' });
+    }
+
+    if (caloriesBurned !== null && (!Number.isInteger(caloriesBurned) || caloriesBurned < 0 || caloriesBurned > 3000)) {
+      return res.status(400).json({ error: 'Calories burned must be a number between 0 and 3000' });
+    }
+
+    if (durationSeconds !== null && (!Number.isInteger(durationSeconds) || durationSeconds < 0 || durationSeconds > 86400)) {
+      return res.status(400).json({ error: 'Duration must be a valid number of seconds' });
+    }
+
+    if (intensity && !['light', 'moderate', 'intense', 'hiit'].includes(intensity)) {
+      return res.status(400).json({ error: 'Intensity is invalid' });
     }
 
     const invalidLog = logs.find((log) => !log.exercise_name);
@@ -83,6 +112,9 @@ function createSessionsRouter() {
           planId,
           userId: req.user.userId,
           notes,
+          caloriesBurned,
+          durationSeconds,
+          intensity: intensity || null,
           logs: {
             create: logs.map((log) => ({
               exerciseName: log.exercise_name,
@@ -95,7 +127,15 @@ function createSessionsRouter() {
         },
       });
 
-      res.status(201).json({ id: session.id, date: session.date, plan_id: session.planId, notes: session.notes });
+      res.status(201).json({
+        id: session.id,
+        date: session.date,
+        plan_id: session.planId,
+        notes: session.notes,
+        calories_burned: session.caloriesBurned,
+        duration_seconds: session.durationSeconds,
+        intensity: session.intensity,
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

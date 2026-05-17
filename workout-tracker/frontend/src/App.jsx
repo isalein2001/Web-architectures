@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X } from "lucide-react";
+import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X, Flame } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";
 import Analytics from "./pages/Analytics";
@@ -27,6 +27,8 @@ const HYDRATION_REMINDER_TIMES = [
   { hour: 19, minute: 0 },
 ];
 const WORKOUT_REMINDER_TIME = { hour: 18, minute: 0 };
+const waterQuickAdds = [250, 500, 750, 1000];
+const stepQuickAdds = [500, 1000, 2500, 5000];
 
 const getNextReminderDelay = ({ hour, minute }) => {
   const now = new Date();
@@ -59,6 +61,14 @@ function AppLayout() {
   const [activeReminder, setActiveReminder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [quickLogOpen, setQuickLogOpen] = useState(false);
+  const [quickLogTab, setQuickLogTab] = useState('water');
+  const [dailyActivity, setDailyActivity] = useState(null);
+  const [quickLogCustomValue, setQuickLogCustomValue] = useState('');
+  const [quickLogStatus, setQuickLogStatus] = useState('');
+  const [isQuickLogSaving, setIsQuickLogSaving] = useState(false);
+  const [draftWaterMl, setDraftWaterMl] = useState(0);
+  const [draftSteps, setDraftSteps] = useState(0);
   const langRef = useRef(null);
   const alertsRef = useRef(null);
   const pageTitleKey = location.pathname === '/dashboard'
@@ -80,6 +90,15 @@ function AppLayout() {
   const userInitials = getUserInitials(currentUser);
   const workoutRemindersStorageKey = getUserStorageKey('workoutRemindersEnabled', currentUser);
   const hydrationAlertsStorageKey = getUserStorageKey('hydrationAlertsEnabled', currentUser);
+  const waterIntakeMl = dailyActivity?.water_intake_ml || 0;
+  const waterGoalMl = dailyActivity?.water_goal_ml || Math.round((currentUser?.hydrationGoalLiters || 3) * 1000);
+  const stepsToday = dailyActivity?.steps || 0;
+  const stepGoal = dailyActivity?.step_goal || 10000;
+  const visibleWaterMl = quickLogOpen ? draftWaterMl : waterIntakeMl;
+  const visibleSteps = quickLogOpen ? draftSteps : stepsToday;
+  const visibleWaterProgress = Math.min(100, Math.round((visibleWaterMl / Math.max(waterGoalMl, 1)) * 100));
+  const visibleStepsProgress = Math.min(100, Math.round((visibleSteps / Math.max(stepGoal, 1)) * 100));
+  const visibleStepCalories = Math.round(visibleSteps * (Number(currentUser?.weightKg) || 75) * 0.00055);
 
   const handleLogout = async () => {
     try {
@@ -95,6 +114,59 @@ function AppLayout() {
     setCurrentUser(nextUser);
   };
 
+  const refreshDailyActivity = async () => {
+    if (!currentUser?.id) return;
+    const activity = await api.getTodayActivity();
+    setDailyActivity(activity);
+    window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+  };
+
+  const openQuickLog = (tab = 'water') => {
+    setQuickLogTab(tab);
+    setQuickLogCustomValue('');
+    setQuickLogStatus('');
+    setDraftWaterMl(waterIntakeMl);
+    setDraftSteps(stepsToday);
+    setQuickLogOpen(true);
+  };
+
+  const addQuickLogValue = (amount) => {
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
+
+    if (quickLogTab === 'water') {
+      setDraftWaterMl((value) => Math.min(20000, value + Math.round(parsedAmount)));
+    } else {
+      setDraftSteps((value) => Math.min(200000, value + Math.round(parsedAmount)));
+    }
+
+    setQuickLogCustomValue('');
+    setQuickLogStatus(t('Ready to save.'));
+  };
+
+  const saveQuickLog = async () => {
+    setIsQuickLogSaving(true);
+    setQuickLogStatus('');
+
+    try {
+      const activity = await api.updateTodayActivity({
+        water_intake_ml: Math.max(0, Math.min(20000, Math.round(Number(draftWaterMl) || 0))),
+        steps: Math.max(0, Math.min(200000, Math.round(Number(draftSteps) || 0))),
+      });
+      setDailyActivity(activity);
+      setQuickLogCustomValue('');
+      setDraftWaterMl(activity.water_intake_ml || 0);
+      setDraftSteps(activity.steps || 0);
+      setQuickLogStatus(t('Saved.'));
+      window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+    } catch (error) {
+      console.error(error);
+      setQuickLogStatus(t('Could not save. Please try again.'));
+    } finally {
+      setIsQuickLogSaving(false);
+    }
+  };
+
   useEffect(() => {
     api.getCurrentUser()
       .then((data) => setCurrentUser(data.user))
@@ -107,6 +179,22 @@ function AppLayout() {
     setWorkoutRemindersEnabled(window.localStorage.getItem(workoutRemindersStorageKey) !== 'false');
     setHydrationAlertsEnabled(window.localStorage.getItem(hydrationAlertsStorageKey) !== 'false');
   }, [currentUser?.id, workoutRemindersStorageKey, hydrationAlertsStorageKey]);
+
+  useEffect(() => {
+    if (!currentUser?.id || !currentUser.emailVerified || !currentUser.onboardingCompleted) return undefined;
+
+    refreshDailyActivity().catch(console.error);
+
+    const handleFocus = () => refreshDailyActivity().catch(console.error);
+    const handleOpenQuickLog = (event) => openQuickLog(event.detail?.tab || 'water');
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('open-quick-log', handleOpenQuickLog);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('open-quick-log', handleOpenQuickLog);
+    };
+  }, [currentUser?.id, currentUser?.emailVerified, currentUser?.onboardingCompleted]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -425,10 +513,135 @@ function AppLayout() {
           </header>
         )}
 
+        {quickLogOpen && (
+          <div
+            className="quick-log-overlay"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setQuickLogOpen(false);
+            }}
+          >
+            <section className="quick-log-panel" role="dialog" aria-modal="true" aria-labelledby="quick-log-title">
+              <button className="quick-log-close" type="button" onClick={() => setQuickLogOpen(false)} aria-label={t('Close quick log')}>
+                <X size={17} />
+              </button>
+              <div className="quick-log-header">
+                <span>{t('QUICK LOG')}</span>
+                <h2 id="quick-log-title">{t('TRACK IT FAST')}</h2>
+                <p>{t('Add water or steps in one tap. Small updates keep your day accurate.')}</p>
+              </div>
+
+              <div className="quick-log-tabs">
+                <button type="button" className={quickLogTab === 'water' ? 'active' : ''} onClick={() => { setQuickLogTab('water'); setQuickLogCustomValue(''); setQuickLogStatus(''); }}>
+                  <Droplets size={16} /> {t('WATER')}
+                </button>
+                <button type="button" className={quickLogTab === 'steps' ? 'active' : ''} onClick={() => { setQuickLogTab('steps'); setQuickLogCustomValue(''); setQuickLogStatus(''); }}>
+                  <Activity size={16} /> {t('STEPS')}
+                </button>
+              </div>
+
+              <div className="quick-log-progress-grid">
+                <div>
+                  <small>{t('WATER TODAY')}</small>
+                  <strong>{(visibleWaterMl / 1000).toFixed(2)}L</strong>
+                  <span>{visibleWaterProgress}% / {(waterGoalMl / 1000).toFixed(1)}L</span>
+                </div>
+                <div>
+                  <small>{t('STEPS TODAY')}</small>
+                  <strong>{visibleSteps.toLocaleString()}</strong>
+                  <span>{visibleStepsProgress}% / {stepGoal.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <label className="quick-log-current">
+                <span>{quickLogTab === 'water' ? t('TODAY WATER') : t('TODAY STEPS')}</span>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    value={quickLogTab === 'water' ? draftWaterMl : draftSteps}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      if (quickLogTab === 'water') {
+                        setDraftWaterMl(Math.max(0, Math.min(20000, Math.round(value || 0))));
+                      } else {
+                        setDraftSteps(Math.max(0, Math.min(200000, Math.round(value || 0))));
+                      }
+                      setQuickLogStatus(t('Ready to save.'));
+                    }}
+                  />
+                  <small>{quickLogTab === 'water' ? 'ML' : t('STEPS')}</small>
+                </div>
+              </label>
+
+              <div className="quick-log-presets">
+                {(quickLogTab === 'water' ? waterQuickAdds : stepQuickAdds).map((amount) => (
+                  <button
+                    type="button"
+                    key={amount}
+                    onClick={() => addQuickLogValue(amount)}
+                    disabled={isQuickLogSaving}
+                  >
+                    +{quickLogTab === 'water' ? `${amount} ml` : amount.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+
+              <label className="quick-log-custom">
+                <span>{quickLogTab === 'water' ? t('CUSTOM WATER') : t('CUSTOM STEPS')}</span>
+                <div>
+                  <input
+                    type="number"
+                    min="1"
+                    value={quickLogCustomValue}
+                    onChange={(event) => setQuickLogCustomValue(event.target.value)}
+                    placeholder={quickLogTab === 'water' ? '350' : '1200'}
+                  />
+                  <small>{quickLogTab === 'water' ? 'ML' : t('STEPS')}</small>
+                  <button type="button" onClick={() => addQuickLogValue(quickLogCustomValue)} disabled={isQuickLogSaving || !quickLogCustomValue}>
+                    {t('ADD')}
+                  </button>
+                </div>
+              </label>
+
+              {quickLogTab === 'steps' && (
+                <div className="quick-log-footnote">
+                  <Flame size={14} /> {t('Estimated from steps')}: {visibleStepCalories} kcal
+                </div>
+              )}
+
+              <div className="quick-log-actions">
+                <button
+                  className="quick-log-reset-button"
+                  type="button"
+                  onClick={() => {
+                    setDraftWaterMl(waterIntakeMl);
+                    setDraftSteps(stepsToday);
+                    setQuickLogCustomValue('');
+                    setQuickLogStatus(t('Changes reset.'));
+                  }}
+                  disabled={isQuickLogSaving}
+                >
+                  {t('RESET')}
+                </button>
+                <button className="quick-log-save-button" type="button" onClick={saveQuickLog} disabled={isQuickLogSaving}>
+                  {isQuickLogSaving ? t('SAVING') : t('SAVE LOG')}
+                </button>
+              </div>
+
+              {quickLogStatus && (
+                <div className={`quick-log-status ${quickLogStatus.includes('Could') ? 'error' : ''}`}>
+                  {quickLogStatus}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
         <main className={`main-content ${isLanding ? 'main-content--landing' : ''}`}>
           <Routes>
-            <Route path="/" element={<><Landing /><Dashboard /></>} />
-            <Route path="/dashboard" element={<Dashboard currentUser={currentUser} />} />
+            <Route path="/" element={<><Landing /><Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} /></>} />
+            <Route path="/dashboard" element={<Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} />} />
             <Route path="/workouts" element={<Workouts currentUser={currentUser} />} />
             <Route path="/start-workout" element={<WorkoutLogger currentUser={currentUser} />} />
             <Route path="/analytics" element={<Analytics currentUser={currentUser} />} />

@@ -36,10 +36,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.75fr);
   grid-template-areas:
-    "account alerts"
-    "biometrics hydration"
-    "encryption privacy"
-    "encryption watch";
+    "account hydration"
+    "biometrics daily-goals"
+    "encryption watch"
+    "privacy alerts";
   gap: 24px;
   align-items: stretch;
 }
@@ -67,6 +67,10 @@
 
 .hydration-goal-panel {
   grid-area: hydration;
+}
+
+.daily-goals-panel {
+  grid-area: daily-goals;
 }
 
 .profile-panel {
@@ -289,9 +293,9 @@
 .profile-password-row button,
 .profile-outline-action,
 .profile-danger-action {
-  min-height: 48px;
+  min-height: 42px;
   border-radius: 12px;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 950;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -441,10 +445,11 @@
 }
 
 .encryption-panel {
-  min-height: 300px;
+  align-self: start;
+  min-height: 260px;
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(250px, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 22px;
   align-items: center;
   background:
     linear-gradient(90deg, rgba(14,14,14,1) 0%, rgba(14,14,14,0.95) 42%, rgba(14,14,14,0.84) 100%),
@@ -452,12 +457,16 @@
   border-color: rgba(197, 254, 0, 0.1);
 }
 
+.profile-main-column .encryption-panel {
+  padding: 30px 32px;
+}
+
 .encryption-copy h2 {
-  margin: 0 0 28px;
+  margin: 0 0 20px;
   color: #fff;
-  font-size: 1.75rem;
+  font-size: 1.52rem;
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.12;
   text-transform: uppercase;
 }
 
@@ -467,17 +476,17 @@
 }
 
 .encryption-copy p {
-  max-width: 330px;
-  margin: 0 0 30px;
+  max-width: 520px;
+  margin: 0 0 22px;
   color: #a8a8a8;
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.55;
 }
 
 .encryption-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 22px;
+  gap: 16px;
 }
 
 .encryption-badges span {
@@ -485,7 +494,7 @@
   align-items: center;
   gap: 8px;
   color: #fff;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 950;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -499,15 +508,15 @@
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 250px;
+  min-height: 190px;
   color: #b8b8b8;
 }
 
 .encryption-visual::before {
   content: '';
   position: absolute;
-  width: 280px;
-  height: 280px;
+  width: 190px;
+  height: 190px;
   border-radius: 50%;
   background:
     repeating-radial-gradient(circle, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 16px),
@@ -518,6 +527,8 @@
 .encryption-visual svg {
   position: relative;
   z-index: 1;
+  width: 54px;
+  height: 54px;
   filter: drop-shadow(0 0 28px rgba(255, 255, 255, 0.14));
 }
 
@@ -621,7 +632,9 @@
 
 .privacy-panel {
   grid-area: privacy;
-  gap: 22px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
 }
 
 .profile-outline-action,
@@ -631,6 +644,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 0 14px;
 }
 
 .profile-outline-action {
@@ -654,7 +668,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .status-badge {
@@ -677,10 +691,83 @@
 
 .watch-panel {
   grid-area: watch;
+  display: grid;
+  align-content: start;
+  gap: 8px;
 }
 
 .watch-panel .profile-danger-action {
-  margin-top: 24px;
+  margin-top: 8px;
+}
+
+.profile-daily-goals-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-goal-field {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-goal-field > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #aaa;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.profile-goal-field > span svg {
+  color: var(--color-primary);
+}
+
+.profile-goal-field > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  background: #0e0e0e;
+}
+
+.profile-goal-field input {
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 850;
+  outline: none;
+}
+
+.profile-goal-field small {
+  color: var(--color-primary);
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.daily-goals-save {
+  margin-top: 14px;
+}
+
+.profile-goals-status {
+  margin: 10px 0 0;
+  color: var(--color-primary);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .profile-reminder-toast {
@@ -1049,10 +1136,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
       "account account"
-      "alerts hydration"
+      "hydration daily-goals"
+      "watch privacy"
       "biometrics biometrics"
       "encryption encryption"
-      "privacy watch";
+      "alerts alerts";
   }
 }
 
@@ -1269,12 +1357,13 @@
     grid-template-columns: 1fr;
     grid-template-areas:
       "account"
-      "alerts"
       "hydration"
+      "daily-goals"
+      "watch"
       "biometrics"
       "encryption"
       "privacy"
-      "watch";
+      "alerts";
   }
 
   .profile-avatar-edit {
@@ -1371,9 +1460,9 @@
   .profile-password-row button,
   .profile-outline-action,
   .profile-danger-action {
-    min-height: 40px;
+    min-height: 36px;
     border-radius: 10px;
-    font-size: 0.58rem;
+    font-size: 0.54rem;
   }
 
   .biometrics-save-button {
@@ -1458,6 +1547,51 @@
   .bmi-control-row p,
   .watch-panel p {
     font-size: 0.58rem;
+  }
+
+  .privacy-panel {
+    gap: 8px;
+  }
+
+  .watch-panel {
+    gap: 6px;
+  }
+
+  .watch-card-topline {
+    margin-bottom: 6px;
+  }
+
+  .watch-panel .profile-danger-action {
+    margin-top: 4px;
+  }
+
+  .profile-daily-goals-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .profile-goal-field {
+    gap: 6px;
+  }
+
+  .profile-goal-field > span,
+  .profile-goal-field small,
+  .profile-goals-status {
+    font-size: 0.54rem;
+  }
+
+  .profile-goal-field > div {
+    min-height: 38px;
+    border-radius: 10px;
+  }
+
+  .profile-goal-field input {
+    height: 36px;
+    font-size: 0.88rem;
+  }
+
+  .daily-goals-save {
+    margin-top: 12px;
   }
 
   .hydration-goal-value {

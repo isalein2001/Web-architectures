@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
@@ -13,8 +13,12 @@ import {
   PlusCircle,
   Flame,
   Activity,
+  BarChart3,
   Bike,
   Flower2,
+  Gauge,
+  Layers3,
+  Trophy,
 } from 'lucide-react';
 import {
   format,
@@ -90,32 +94,11 @@ const CHART_WIDTH = 392;
 const CHART_HEIGHT = 280;
 const CHART_TOP_PADDING = 10;
 const CHART_BOTTOM_PADDING = 0;
-const chartSeries = {
-  '1W': {
-    change: 3.8,
-    compareLabel: 'vs last week',
-    labels: ['APR 09', 'APR 12', 'APR 15'],
-    values: [0.18, 0.21, 0.19, 0.27, 0.43, 0.61, 0.74],
-  },
-  '1M': {
-    change: 14.2,
-    compareLabel: 'vs last month',
-    labels: ['MAR 15', 'APR 01', 'APR 15'],
-    values: [0.10, 0.14, 0.16, 0.15, 0.23, 0.42, 0.66, 0.74, 0.72, 0.77, 0.89, 0.96],
-  },
-  '1Y': {
-    change: 28.6,
-    compareLabel: 'vs last year',
-    labels: ['JAN', 'JUN', 'DEC'],
-    values: [0.08, 0.11, 0.16, 0.24, 0.31, 0.45, 0.51, 0.58, 0.70, 0.79, 0.88, 0.98],
-  },
-};
 const emptyChartSeries = {
   '1W': { change: 0, compareLabel: 'No workout data yet', labels: ['START', 'NOW', 'NEXT'], values: [0, 0, 0, 0, 0, 0, 0] },
   '1M': { change: 0, compareLabel: 'No workout data yet', labels: ['START', 'NOW', 'NEXT'], values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
   '1Y': { change: 0, compareLabel: 'No workout data yet', labels: ['START', 'NOW', 'NEXT'], values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
 };
-
 const loadJsonFromStorage = (key, fallback) => {
   try {
     const storedValue = window.localStorage.getItem(key);
@@ -123,6 +106,317 @@ const loadJsonFromStorage = (key, fallback) => {
   } catch {
     return fallback;
   }
+};
+
+const getEstimatedOneRepMax = (log) => {
+  const weight = Number(log.weight);
+  const reps = Number(log.reps);
+
+  if (!Number.isFinite(weight) || weight <= 0) return 0;
+  if (!Number.isFinite(reps) || reps <= 0) return weight;
+
+  return weight * (1 + reps / 30);
+};
+
+const getSessionDate = (session) => {
+  const parsedDate = new Date(session.date);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const getStrengthEntries = (sessions = []) => sessions.flatMap((session) => {
+  const date = getSessionDate(session);
+  if (!date) return [];
+
+  return (session.logs || [])
+    .map((log) => ({
+      sessionId: session.id,
+      date,
+      exerciseName: log.exercise_name || '',
+      score: getEstimatedOneRepMax(log),
+    }))
+    .filter((entry) => entry.score > 0);
+});
+
+const getLogEntries = (sessions = []) => sessions.flatMap((session) => {
+  const date = getSessionDate(session);
+  if (!date) return [];
+
+  return (session.logs || []).map((log) => ({
+    date,
+    exerciseName: log.exercise_name || '',
+    reps: Number(log.reps) || 0,
+    weight: Number(log.weight) || 0,
+    score: getEstimatedOneRepMax(log),
+  }));
+});
+
+const startOfDay = (date) => {
+  const nextDate = new Date(date);
+  nextDate.setHours(0, 0, 0, 0);
+  return nextDate;
+};
+
+const endOfDay = (date) => {
+  const nextDate = new Date(date);
+  nextDate.setHours(23, 59, 59, 999);
+  return nextDate;
+};
+
+const addDaysNative = (date, amount) => {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + amount);
+  return nextDate;
+};
+
+const addMonthsNative = (date, amount) => {
+  const nextDate = new Date(date);
+  nextDate.setMonth(nextDate.getMonth() + amount);
+  return nextDate;
+};
+
+const buildPartitionBuckets = (startDate, endDate, count) => {
+  const startTime = startDate.getTime();
+  const step = (endDate.getTime() - startTime) / count;
+
+  return Array.from({ length: count }, (_, index) => ({
+    start: new Date(startTime + (step * index)),
+    end: new Date(startTime + (step * (index + 1)) - 1),
+  }));
+};
+
+const buildRangeBuckets = (range) => {
+  const now = endOfDay(new Date());
+
+  if (range === '1W') {
+    const firstDay = startOfDay(addDaysNative(now, -6));
+    return Array.from({ length: 7 }, (_, index) => {
+      const day = addDaysNative(firstDay, index);
+      return { start: startOfDay(day), end: endOfDay(day) };
+    });
+  }
+
+  if (range === '1Y') {
+    const firstMonth = startOfMonth(addMonthsNative(now, -11));
+    return Array.from({ length: 12 }, (_, index) => {
+      const monthStart = startOfMonth(addMonthsNative(firstMonth, index));
+      const nextMonthStart = startOfMonth(addMonthsNative(firstMonth, index + 1));
+      return { start: monthStart, end: new Date(nextMonthStart.getTime() - 1) };
+    });
+  }
+
+  const firstDay = startOfDay(addDaysNative(now, -29));
+  return buildPartitionBuckets(firstDay, now, 12);
+};
+
+const getBucketLabels = (range, buckets) => {
+  if (range === '1Y') {
+    return [
+      format(buckets[0].start, 'MMM').toUpperCase(),
+      format(buckets[Math.floor(buckets.length / 2)].start, 'MMM').toUpperCase(),
+      format(buckets[buckets.length - 1].start, 'MMM').toUpperCase(),
+    ];
+  }
+
+  return [
+    format(buckets[0].start, 'MMM dd').toUpperCase(),
+    format(buckets[Math.floor(buckets.length / 2)].start, 'MMM dd').toUpperCase(),
+    format(buckets[buckets.length - 1].start, 'MMM dd').toUpperCase(),
+  ];
+};
+
+const normalizeChartValues = (rawValues) => {
+  const positiveValues = rawValues.filter((value) => value > 0);
+  if (positiveValues.length === 0) return rawValues.map(() => 0);
+
+  const minValue = Math.min(...positiveValues);
+  const maxValue = Math.max(...positiveValues);
+
+  if (maxValue === minValue) {
+    return rawValues.map((value) => (value > 0 ? 0.62 : 0));
+  }
+
+  return rawValues.map((value) => {
+    if (value <= 0) return 0;
+    return 0.14 + (((value - minValue) / (maxValue - minValue)) * 0.82);
+  });
+};
+
+const buildStrengthSeriesForRange = (entries, range) => {
+  const buckets = buildRangeBuckets(range);
+  let carriedBest = 0;
+  const rawValues = buckets.map((bucket) => {
+    const bucketBest = entries
+      .filter((entry) => entry.date >= bucket.start && entry.date <= bucket.end)
+      .reduce((best, entry) => Math.max(best, entry.score), 0);
+
+    carriedBest = Math.max(carriedBest, bucketBest);
+    return carriedBest;
+  });
+  const firstValue = rawValues.find((value) => value > 0) || 0;
+  const lastValue = [...rawValues].reverse().find((value) => value > 0) || 0;
+  const change = firstValue > 0 ? ((lastValue - firstValue) / firstValue) * 100 : 0;
+
+  return {
+    change,
+    compareLabel: range === '1W' ? 'vs last week' : range === '1M' ? 'vs last month' : 'vs last year',
+    labels: getBucketLabels(range, buckets),
+    values: normalizeChartValues(rawValues),
+  };
+};
+
+const buildStrengthAnalytics = (sessions = []) => {
+  const entries = getStrengthEntries(sessions);
+  const hasData = entries.length > 0;
+
+  return {
+    hasData,
+    series: hasData
+      ? {
+        '1W': buildStrengthSeriesForRange(entries, '1W'),
+        '1M': buildStrengthSeriesForRange(entries, '1M'),
+        '1Y': buildStrengthSeriesForRange(entries, '1Y'),
+      }
+      : emptyChartSeries,
+  };
+};
+
+const buildTopExerciseMetrics = (sessions = []) => {
+  const entries = getStrengthEntries(sessions);
+  const metricsByExercise = entries.reduce((groups, entry) => {
+    const normalizedName = entry.exerciseName.trim().toLowerCase();
+    if (!normalizedName) return groups;
+
+    const currentMetric = groups[normalizedName] || {
+      name: entry.exerciseName.trim(),
+      best: 0,
+      setCount: 0,
+      sessionIds: new Set(),
+    };
+
+    currentMetric.best = Math.max(currentMetric.best, entry.score);
+    currentMetric.setCount += 1;
+    if (entry.sessionId) currentMetric.sessionIds.add(entry.sessionId);
+
+    return {
+      ...groups,
+      [normalizedName]: currentMetric,
+    };
+  }, {});
+
+  const topExercises = Object.values(metricsByExercise)
+    .sort((firstExercise, secondExercise) => (
+      secondExercise.sessionIds.size - firstExercise.sessionIds.size
+      || secondExercise.setCount - firstExercise.setCount
+      || secondExercise.best - firstExercise.best
+    ))
+    .slice(0, 3)
+    .map((metric) => ({
+      name: metric.name,
+      best: Math.round(metric.best),
+      sessionCount: metric.sessionIds.size,
+      setCount: metric.setCount,
+    }));
+
+  return [
+    ...topExercises,
+    ...Array.from({ length: Math.max(0, 3 - topExercises.length) }, () => ({
+      name: 'NO EXERCISE YET',
+      best: 0,
+      sessionCount: 0,
+      setCount: 0,
+    })),
+  ];
+};
+
+const getPercentChange = (currentValue, previousValue) => {
+  if (!previousValue && currentValue > 0) return 100;
+  if (!previousValue) return 0;
+  return ((currentValue - previousValue) / previousValue) * 100;
+};
+
+const isWithinRange = (date, startDate, endDate) => date >= startDate && date <= endDate;
+
+const getTrainingVolume = (entries) => entries.reduce((sum, entry) => (
+  sum + ((entry.weight || 0) * (entry.reps || 0))
+), 0);
+
+const categorizeExercise = (exerciseName = '') => {
+  const name = exerciseName.toLowerCase();
+
+  if (/(squat|kniebeuge|leg press|beinpresse|deadlift|kreuzheben|lunge|glute|hip thrust|calf|hamstring|quad)/i.test(name)) return 'LEGS';
+  if (/(bench|bankdrücken|chest|brust|shoulder|press|tricep|push|dips)/i.test(name)) return 'PUSH';
+  if (/(row|rudern|pulldown|lat|pull|curl|bicep|chin)/i.test(name)) return 'PULL';
+  if (/(plank|core|abs|crunch|sit-up|mountain climber)/i.test(name)) return 'CORE';
+  if (/(run|bike|cycle|cardio|hiit|interval|stepper|treadmill)/i.test(name)) return 'CARDIO';
+  return 'OTHER';
+};
+
+const buildPrTimeline = (sessions = []) => {
+  const entries = getStrengthEntries(sessions)
+    .sort((firstEntry, secondEntry) => firstEntry.date - secondEntry.date);
+  const bestByExercise = new Map();
+  const records = [];
+
+  entries.forEach((entry) => {
+    const key = entry.exerciseName.trim().toLowerCase();
+    if (!key) return;
+
+    const previousBest = bestByExercise.get(key) || 0;
+    if (entry.score > previousBest) {
+      bestByExercise.set(key, entry.score);
+      records.push({
+        exerciseName: entry.exerciseName,
+        score: Math.round(entry.score),
+        date: entry.date,
+      });
+    }
+  });
+
+  return records.reverse().slice(0, 3);
+};
+
+const buildPerformanceIntelligence = (sessions = []) => {
+  const now = endOfDay(new Date());
+  const last30Start = startOfDay(addDaysNative(now, -29));
+  const previous30Start = startOfDay(addDaysNative(now, -59));
+  const previous30End = endOfDay(addDaysNative(now, -30));
+  const weekStart = startOfDay(addDaysNative(now, -6));
+  const entries = getLogEntries(sessions);
+  const last30Entries = entries.filter((entry) => isWithinRange(entry.date, last30Start, now));
+  const previous30Entries = entries.filter((entry) => isWithinRange(entry.date, previous30Start, previous30End));
+  const currentVolume = getTrainingVolume(last30Entries);
+  const previousVolume = getTrainingVolume(previous30Entries);
+  const trainedDaysThisWeek = new Set(
+    sessions
+      .map((session) => getSessionDate(session))
+      .filter((date) => date && isWithinRange(date, weekStart, now))
+      .map((date) => format(date, 'yyyy-MM-dd'))
+  ).size;
+  const consistencyScore = Math.min(100, Math.round((trainedDaysThisWeek / 4) * 100));
+  const focusCounts = last30Entries.reduce((groups, entry) => {
+    const category = categorizeExercise(entry.exerciseName);
+    return {
+      ...groups,
+      [category]: (groups[category] || 0) + 1,
+    };
+  }, {});
+  const focusTotal = Object.values(focusCounts).reduce((sum, count) => sum + count, 0);
+  const focusData = Object.entries(focusCounts)
+    .sort(([, firstCount], [, secondCount]) => secondCount - firstCount)
+    .slice(0, 5)
+    .map(([category, count]) => ({
+      category,
+      percent: focusTotal ? Math.round((count / focusTotal) * 100) : 0,
+    }));
+
+  return {
+    volume: Math.round(currentVolume),
+    volumeChange: getPercentChange(currentVolume, previousVolume),
+    consistencyScore,
+    trainedDaysThisWeek,
+    focusData,
+    prTimeline: buildPrTimeline(sessions),
+  };
 };
 
 function getPointY(value) {
@@ -282,14 +576,77 @@ export default function Analytics({ currentUser }) {
   const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
+  const [activeInsightInfo, setActiveInsightInfo] = useState(null);
   const chartRef = useRef(null);
   const isChartInView = useInView(chartRef, { once: false, amount: 0.4 });
-  const visibleChartSeries = stats.totalSessions > 0 ? chartSeries : emptyChartSeries;
+  const strengthAnalytics = useMemo(() => buildStrengthAnalytics(sessions), [sessions]);
+  const topExerciseMetrics = useMemo(() => buildTopExerciseMetrics(sessions), [sessions]);
+  const performanceIntelligence = useMemo(() => buildPerformanceIntelligence(sessions), [sessions]);
+  const visibleChartSeries = strengthAnalytics.series;
   const activeChart = visibleChartSeries[activeRange];
   const chartPoints = getChartPoints(activeChart.values);
   const chartLinePath = buildSmoothLinePath(chartPoints);
   const chartAreaPath = `${chartLinePath} L${chartPoints[chartPoints.length - 1].x},${CHART_HEIGHT} L${chartPoints[0].x},${CHART_HEIGHT} Z`;
   const endPoint = chartPoints[chartPoints.length - 1];
+  const chartChangePrefix = activeChart.change >= 0 ? '+ ' : '- ';
+  const analyticsInsightInfo = {
+    volume: {
+      title: 'TRAINING VOLUME',
+      kicker: 'LOAD INTELLIGENCE',
+      intro: 'Training volume shows the total mechanical work from your logged strength sets. It helps you see whether your workload is actually increasing over time.',
+      formula: 'sets x reps x weight',
+      formulaText: 'Every logged set contributes reps multiplied by weight. The widget compares your last 30 days with the previous 30 days.',
+      cards: [
+        { title: 'WHAT IT TELLS YOU', text: 'A rising volume trend usually means more training stimulus and more capacity for growth.' },
+        { title: 'HOW TO USE IT', text: 'Keep volume moving up slowly. Big jumps can be a sign that recovery may become harder.' },
+      ],
+    },
+    consistency: {
+      title: 'CONSISTENCY SCORE',
+      kicker: 'ROUTINE QUALITY',
+      intro: 'Consistency Score measures how reliably you trained this week against a four-day training rhythm.',
+      formula: 'trained days / 4',
+      formulaText: 'Each unique training day this week fills part of the score. Four training days equals 100%.',
+      cards: [
+        { title: 'WHAT IT TELLS YOU', text: 'Strength progress usually follows consistency. This score shows whether your rhythm is stable.' },
+        { title: 'HOW TO USE IT', text: 'If the score drops, schedule shorter sessions instead of skipping the week completely.' },
+      ],
+    },
+    focus: {
+      title: 'MUSCLE FOCUS',
+      kicker: 'TRAINING BALANCE',
+      intro: 'Muscle Focus groups your logged exercises into movement areas like Push, Pull, Legs, Core and Cardio.',
+      formula: 'exercise category share',
+      formulaText: 'The app reads exercise names from the last 30 days and calculates how much each category appears in your logs.',
+      cards: [
+        { title: 'WHAT IT TELLS YOU', text: 'It reveals whether your current training is balanced or strongly focused on one area.' },
+        { title: 'HOW TO USE IT', text: 'Use it to spot neglected areas and plan your next workouts with better balance.' },
+      ],
+    },
+    prs: {
+      title: 'PR TIMELINE',
+      kicker: 'PERSONAL RECORDS',
+      intro: 'PR Timeline shows the newest moments where an exercise reached a new best estimated strength value.',
+      formula: 'weight x (1 + reps / 30)',
+      formulaText: 'The app estimates one-rep max for every set, then detects whenever an exercise beats its previous best.',
+      cards: [
+        { title: 'WHAT IT TELLS YOU', text: 'It turns raw logs into clear milestones so progress feels visible.' },
+        { title: 'HOW TO USE IT', text: 'Review PRs to understand which lifts are moving and which lifts may need more attention.' },
+      ],
+    },
+  };
+  const selectedInsightInfo = activeInsightInfo ? analyticsInsightInfo[activeInsightInfo] : null;
+
+  const openInsightInfo = (infoKey) => {
+    setActiveInsightInfo(infoKey);
+  };
+
+  const handleInsightKeyDown = (event, infoKey) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openInsightInfo(infoKey);
+    }
+  };
 
   const refreshSessionData = async () => {
     const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
@@ -402,6 +759,17 @@ export default function Analytics({ currentUser }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedCalendarDate]);
 
+  useEffect(() => {
+    if (!activeInsightInfo) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setActiveInsightInfo(null);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeInsightInfo]);
+
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
@@ -474,7 +842,7 @@ export default function Analytics({ currentUser }) {
           <div className="chart-card-top">
             <div className="chart-card-title">
               <span>{t('STRENGTH PROGRESS')}</span>
-              <AnimatedNumber value={activeChart.change} decimals={1} prefix="+ " suffix=" %" className="chart-card-title-h2" as="h2" />
+              <AnimatedNumber value={Math.abs(activeChart.change)} decimals={1} prefix={chartChangePrefix} suffix=" %" className="chart-card-title-h2" as="h2" />
               <p>{t(activeChart.compareLabel)}</p>
             </div>
             <div className="chart-filters">
@@ -548,54 +916,130 @@ export default function Analytics({ currentUser }) {
             </svg>
             </div>
             <div className="chart-x-axis">
-              {activeChart.labels.map((label) => (
-                <span key={label}>{label}</span>
+              {activeChart.labels.map((label, index) => (
+                <span key={`${label}-${index}`}>{label}</span>
               ))}
             </div>
           </div>
         </div>
 
         <div className="metrics-row">
-          <div className="metric-card">
-            <div className="metric-card-top">
-              <div className="metric-card-icon">
-                <Dumbbell size={20} />
-              </div>
-            </div>
-            <div className="metric-card-value">
-              315 <span>{t('LBS')}</span>
-            </div>
-            <div className="metric-card-meta">{t('CURRENT PB')}</div>
-            <div className="metric-card-title-side">{t('BENCH PRESS')}</div>
-          </div>
+          {topExerciseMetrics.map((metric, index) => {
+            const MetricIcon = index === 2 ? TrendingUp : Dumbbell;
+            const translatedName = t(metric.name);
 
-          <div className="metric-card">
-            <div className="metric-card-top">
-              <div className="metric-card-icon">
-                <Dumbbell size={20} />
+            return (
+              <div className="metric-card" key={`${metric.name}-${index}`}>
+                <div className="metric-card-top">
+                  <div className="metric-card-icon">
+                    <MetricIcon size={20} />
+                  </div>
+                </div>
+                <div className="metric-card-value">
+                  {metric.best} <span>{t('KG')}</span>
+                </div>
+                <div className="metric-card-meta">
+                  {metric.sessionCount > 0
+                    ? `${t('TOP EXERCISE')} · ${metric.sessionCount}x`
+                    : t('No workout data yet')}
+                </div>
+                <div className="metric-card-title-side">{translatedName}</div>
               </div>
-            </div>
-            <div className="metric-card-value">
-              485 <span>{t('LBS')}</span>
-            </div>
-            <div className="metric-card-meta">{t('CURRENT PB')}</div>
-            <div className="metric-card-title-side">{t('DEADLIFT')}</div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-card-top">
-              <div className="metric-card-icon">
-                <TrendingUp size={20} />
-              </div>
-            </div>
-            <div className="metric-card-value">
-              405 <span>{t('LBS')}</span>
-            </div>
-            <div className="metric-card-meta">{t('CURRENT PB')}</div>
-            <div className="metric-card-title-side">{t('SQUADS')}</div>
-          </div>
+            );
+          })}
 
           <MilestoneCard />
+        </div>
+
+        <div className="analytics-intelligence-grid">
+          <section
+            className="analytics-insight-card volume-insight-card clickable-insight-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => openInsightInfo('volume')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'volume')}
+            aria-label={t('Open training volume info')}
+          >
+            <div className="analytics-insight-top">
+              <span className="analytics-insight-icon"><BarChart3 size={18} /></span>
+              <span>{t('TRAINING VOLUME')}</span>
+            </div>
+            <div className="analytics-insight-value">
+              {performanceIntelligence.volume.toLocaleString('de-DE')} <small>{t('KG')}</small>
+            </div>
+            <div className={`analytics-trend-pill ${performanceIntelligence.volumeChange >= 0 ? 'positive' : 'negative'}`}>
+              {performanceIntelligence.volumeChange >= 0 ? '+' : ''}
+              {performanceIntelligence.volumeChange.toFixed(1)}% {t('vs last month')}
+            </div>
+          </section>
+
+          <section
+            className="analytics-insight-card consistency-insight-card clickable-insight-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => openInsightInfo('consistency')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'consistency')}
+            aria-label={t('Open consistency score info')}
+          >
+            <div className="analytics-insight-top">
+              <span className="analytics-insight-icon"><Gauge size={18} /></span>
+              <span>{t('CONSISTENCY SCORE')}</span>
+            </div>
+            <div className="consistency-ring" style={{ '--score': `${performanceIntelligence.consistencyScore}%` }}>
+              <span>{performanceIntelligence.consistencyScore}%</span>
+            </div>
+            <p>{performanceIntelligence.trainedDaysThisWeek}/4 {t('TRAINING DAYS')}</p>
+          </section>
+
+          <section
+            className="analytics-insight-card focus-insight-card clickable-insight-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => openInsightInfo('focus')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'focus')}
+            aria-label={t('Open muscle focus info')}
+          >
+            <div className="analytics-insight-top">
+              <span className="analytics-insight-icon"><Layers3 size={18} /></span>
+              <span>{t('MUSCLE FOCUS')}</span>
+            </div>
+            <div className="focus-bars">
+              {(performanceIntelligence.focusData.length ? performanceIntelligence.focusData : [{ category: 'NO DATA', percent: 0 }]).map((item) => (
+                <div className="focus-row" key={item.category}>
+                  <div>
+                    <span>{t(item.category)}</span>
+                    <strong>{item.percent}%</strong>
+                  </div>
+                  <div className="focus-bar-track">
+                    <span style={{ width: `${item.percent}%` }}></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section
+            className="analytics-insight-card pr-insight-card clickable-insight-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => openInsightInfo('prs')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'prs')}
+            aria-label={t('Open PR timeline info')}
+          >
+            <div className="analytics-insight-top">
+              <span className="analytics-insight-icon"><Trophy size={18} /></span>
+              <span>{t('PR TIMELINE')}</span>
+            </div>
+            <div className="pr-timeline-list">
+              {(performanceIntelligence.prTimeline.length ? performanceIntelligence.prTimeline : [{ exerciseName: 'NO PR YET', score: 0, date: null }]).map((record, index) => (
+                <div className="pr-timeline-item" key={`${record.exerciseName}-${record.score}-${index}`}>
+                  <span>{record.date ? format(record.date, 'dd MMM').toUpperCase() : '--'}</span>
+                  <strong>{t(record.exerciseName)}</strong>
+                  <small>{record.score} {t('KG')}</small>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
         <div className="schedule-card">
@@ -633,6 +1077,47 @@ export default function Analytics({ currentUser }) {
           <p>{t('Your progress toward a perfect training week')}</p>
         </div>
       </div>
+
+      {selectedInsightInfo && (
+        <div
+          className="analytics-info-modal-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setActiveInsightInfo(null);
+          }}
+        >
+          <section className="analytics-info-modal" role="dialog" aria-modal="true" aria-labelledby="analytics-info-title">
+            <button className="analytics-info-close" type="button" onClick={() => setActiveInsightInfo(null)} aria-label={t('Close analytics info')}>
+              <X size={18} />
+            </button>
+
+            <div className="analytics-info-header">
+              <span className="analytics-insight-icon"><Activity size={20} /></span>
+              <div>
+                <span>{t(selectedInsightInfo.kicker)}</span>
+                <h2 id="analytics-info-title">{t(selectedInsightInfo.title)}</h2>
+              </div>
+            </div>
+
+            <p className="analytics-info-intro">{t(selectedInsightInfo.intro)}</p>
+
+            <div className="analytics-info-formula">
+              <span>{t('HOW IT WORKS')}</span>
+              <strong>{t(selectedInsightInfo.formula)}</strong>
+              <p>{t(selectedInsightInfo.formulaText)}</p>
+            </div>
+
+            <div className="analytics-info-grid">
+              {selectedInsightInfo.cards.map((card) => (
+                <div key={card.title}>
+                  <h3>{t(card.title)}</h3>
+                  <p>{t(card.text)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
 
       {selectedCalendarDate && (
         <div

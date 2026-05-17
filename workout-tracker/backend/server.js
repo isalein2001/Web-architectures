@@ -6,6 +6,7 @@ const createWorkoutsRouter = require('./routes/workouts');
 const createSessionsRouter = require('./routes/sessions');
 const createProgressRouter = require('./routes/progress');
 const createStatsRouter = require('./routes/stats');
+const createDailyActivityRouter = require('./routes/dailyActivity');
 const { authenticate } = require('./middleware/authenticate');
 
 if (!process.env.JWT_SECRET) {
@@ -30,5 +31,6 @@ app.use('/api/workouts', authenticate, workoutsRouter);
 app.use('/api/sessions', authenticate, createSessionsRouter());
 app.use('/api/progress', authenticate, createProgressRouter());
 app.use('/api/stats', authenticate, createStatsRouter());
+app.use('/api/daily-activity', authenticate, createDailyActivityRouter());
 
 app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
