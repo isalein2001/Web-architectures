@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
-import { getUserFirstName, getUserStorageKey } from '../userStorage';
+import { getUserDisplayName, getUserFirstName, getUserStorageKey } from '../userStorage';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
@@ -24,6 +24,31 @@ const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 const DAILY_STEP_GOAL_STORAGE_KEY = 'dailyStepGoal';
 const DAILY_CALORIE_GOAL_STORAGE_KEY = 'dailyCalorieGoal';
 const DAILY_TRAINING_MINUTES_GOAL_STORAGE_KEY = 'dailyTrainingMinutesGoal';
+const isJonasArnoldAccount = (user) => {
+  const displayName = getUserDisplayName(user).toLowerCase();
+  const email = user?.email?.toLowerCase() || '';
+  return displayName.includes('jonas arnold') || email.includes('jonas');
+};
+const createDemoDashboardSessions = () => {
+  const today = new Date();
+  today.setHours(20, 0, 0, 0);
+  return [1, 3, 6, 9, 13, 17, 21, 25].map((offset, index) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - offset);
+    return {
+      id: `demo-dashboard-session-${index + 1}`,
+      date: date.toISOString(),
+      calories_burned: 330 + (index * 24),
+      duration_seconds: (42 + (index % 4) * 8) * 60,
+      logs: [
+        { id: `demo-dashboard-log-${index}-1`, exercise_name: 'Hip Thrust', weight: 100 + index, reps: 10 },
+        { id: `demo-dashboard-log-${index}-2`, exercise_name: 'Leg Press', weight: 140 + index, reps: 12 },
+        { id: `demo-dashboard-log-${index}-3`, exercise_name: 'Lat Pulldown', weight: 58 + index, reps: 10 },
+      ],
+    };
+  });
+};
+const DEMO_DASHBOARD_SESSIONS = createDemoDashboardSessions();
 const getSessionDateKey = (date) => {
   const parsedDate = new Date(date);
   if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
@@ -208,18 +233,34 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     trainingMinutes: Number(window.localStorage.getItem(dailyTrainingMinutesGoalStorageKey)) || 45,
   }));
   const [draftDailyGoals, setDraftDailyGoals] = useState(dailyGoals);
-  const hasWorkoutData = stats.totalSessions > 0;
-  const waterIntakeMl = todayActivity?.water_intake_ml || 0;
-  const waterGoalMl = todayActivity?.water_goal_ml || Math.round(hydrationGoal * 1000);
-  const stepGoal = dailyGoals.steps || todayActivity?.step_goal || 10000;
+  const shouldUseDemoValues = isJonasArnoldAccount(currentUser);
+  const displaySessions = shouldUseDemoValues ? DEMO_DASHBOARD_SESSIONS : sessions;
+  const displayStats = shouldUseDemoValues
+    ? {
+      totalSessions: DEMO_DASHBOARD_SESSIONS.length,
+      sessionDates: DEMO_DASHBOARD_SESSIONS.map((session) => session.date),
+    }
+    : stats;
+  const displayActivity = shouldUseDemoValues
+    ? {
+      water_intake_ml: 2400,
+      water_goal_ml: Math.round(hydrationGoal * 1000),
+      steps: 7840,
+      step_goal: dailyGoals.steps || 10000,
+    }
+    : todayActivity;
+  const hasWorkoutData = displayStats.totalSessions > 0;
+  const waterIntakeMl = displayActivity?.water_intake_ml || 0;
+  const waterGoalMl = displayActivity?.water_goal_ml || Math.round(hydrationGoal * 1000);
+  const stepGoal = dailyGoals.steps || displayActivity?.step_goal || 10000;
   const currentHydration = waterIntakeMl / 1000;
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
-  const stepsValue = todayActivity?.steps || 0;
+  const stepsValue = displayActivity?.steps || 0;
   const waterProgress = Math.min(100, Math.round((waterIntakeMl / Math.max(waterGoalMl, 1)) * 100));
-  const workoutCalories = sessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
+  const workoutCalories = displaySessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
   const stepCalories = Math.round(stepsValue * (Number(currentUser?.weightKg) || 75) * 0.00055);
   const caloriesValue = workoutCalories + stepCalories;
-  const minutesValue = Math.round(sessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
+  const minutesValue = Math.round(displaySessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
   const stepsProgress = Math.min(100, Math.round((stepsValue / Math.max(stepGoal, 1)) * 100));
   const caloriesProgress = Math.min(100, Math.round((caloriesValue / Math.max(dailyGoals.calories || 1, 1)) * 100));
   const minutesProgress = Math.min(100, Math.round((minutesValue / Math.max(dailyGoals.trainingMinutes || 1, 1)) * 100));
@@ -232,7 +273,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         ? 'BUILDING MOMENTUM'
         : 'GETTING STARTED';
 
-  const completedWorkoutDates = new Set((stats.sessionDates || []).map(getSessionDateKey));
+  const completedWorkoutDates = new Set((displayStats.sessionDates || []).map(getSessionDateKey));
 
   const refreshSessionData = async () => {
     const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
@@ -429,6 +470,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   const deleteCompletedSession = async (sessionToDelete) => {
     if (!sessionToDelete?.id) return;
+    if (shouldUseDemoValues && String(sessionToDelete.id).startsWith('demo-')) return;
 
     setDeletingSessionId(sessionToDelete.id);
     try {
@@ -522,7 +564,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const selectedScheduledWorkout = selectedDateKey ? workoutSchedule[selectedDateKey] : null;
   const isSelectedDateCompleted = selectedDateKey ? completedWorkoutDates.has(selectedDateKey) : false;
   const selectedDateSessions = selectedDateKey
-    ? sessions.filter((session) => getSessionDateKey(session.date) === selectedDateKey)
+    ? displaySessions.filter((session) => getSessionDateKey(session.date) === selectedDateKey)
     : [];
   const hasWorkoutDetails = selectedDateSessions.length > 0;
 

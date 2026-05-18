@@ -33,7 +33,7 @@ import {
 import { de } from 'date-fns/locale';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
-import { getUserStorageKey } from '../userStorage';
+import { getUserDisplayName, getUserStorageKey } from '../userStorage';
 import './Analytics.css';
 
 const MotionG = motion.g;
@@ -42,6 +42,142 @@ const MotionCircle = motion.circle;
 const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+const DEMO_DIVERSITY_BUBBLES = [
+  { name: 'Hip Thrust', initials: 'HT', setCount: 24, sessionCount: 7, size: 76, index: 0 },
+  { name: 'Leg Press', initials: 'LP', setCount: 22, sessionCount: 6, size: 73, index: 1 },
+  { name: 'Romanian Deadlift', initials: 'RD', setCount: 20, sessionCount: 6, size: 70, index: 2 },
+  { name: 'Lat Pulldown', initials: 'LP', setCount: 18, sessionCount: 5, size: 66, index: 3 },
+  { name: 'Shoulder Press', initials: 'SP', setCount: 16, sessionCount: 5, size: 61, index: 4 },
+  { name: 'Cable Row', initials: 'CR', setCount: 15, sessionCount: 4, size: 58, index: 5 },
+  { name: 'Bulgarian Split Squat', initials: 'BS', setCount: 14, sessionCount: 4, size: 55, index: 6 },
+  { name: 'Glute Bridge', initials: 'GB', setCount: 13, sessionCount: 4, size: 52, index: 7 },
+  { name: 'Chest Press', initials: 'CP', setCount: 12, sessionCount: 3, size: 50, index: 8 },
+  { name: 'Lateral Raise', initials: 'LR', setCount: 11, sessionCount: 3, size: 48, index: 9 },
+  { name: 'Hamstring Curl', initials: 'HC', setCount: 10, sessionCount: 3, size: 46, index: 10 },
+  { name: 'Walking Lunges', initials: 'WL', setCount: 9, sessionCount: 3, size: 44, index: 11 },
+  { name: 'Seated Row', initials: 'SR', setCount: 8, sessionCount: 2, size: 41, index: 12 },
+  { name: 'Goblet Squat', initials: 'GS', setCount: 8, sessionCount: 2, size: 41, index: 13 },
+  { name: 'Back Extension', initials: 'BE', setCount: 7, sessionCount: 2, size: 38, index: 14 },
+  { name: 'Face Pull', initials: 'FP', setCount: 7, sessionCount: 2, size: 38, index: 15 },
+  { name: 'Step Ups', initials: 'SU', setCount: 6, sessionCount: 2, size: 36, index: 16 },
+  { name: 'Triceps Pushdown', initials: 'TP', setCount: 6, sessionCount: 2, size: 36, index: 17 },
+  { name: 'Biceps Curl', initials: 'BC', setCount: 5, sessionCount: 1, size: 33, index: 18 },
+  { name: 'Calf Raise', initials: 'CR', setCount: 5, sessionCount: 1, size: 33, index: 19 },
+  { name: 'Plank Hold', initials: 'PH', setCount: 4, sessionCount: 1, size: 30, index: 20 },
+  { name: 'Mountain Climbers', initials: 'MC', setCount: 4, sessionCount: 1, size: 30, index: 21 },
+];
+const DIVERSITY_BUBBLE_LAYOUT = [
+  { x: 39, y: 42 },
+  { x: 52, y: 36 },
+  { x: 63, y: 44 },
+  { x: 47, y: 52 },
+  { x: 57, y: 55 },
+  { x: 35, y: 56 },
+  { x: 68, y: 55 },
+  { x: 43, y: 65 },
+  { x: 54, y: 67 },
+  { x: 30, y: 47 },
+  { x: 72, y: 47 },
+  { x: 62, y: 31 },
+  { x: 31, y: 67 },
+  { x: 74, y: 66 },
+  { x: 24, y: 56 },
+  { x: 79, y: 56 },
+  { x: 39, y: 29 },
+  { x: 52, y: 76 },
+  { x: 24, y: 39 },
+  { x: 79, y: 38 },
+  { x: 67, y: 76 },
+  { x: 36, y: 78 },
+];
+const DIVERSITY_BUBBLE_SPREAD_LAYOUT = [
+  { x: 23, y: 27 },
+  { x: 44, y: 21 },
+  { x: 63, y: 28 },
+  { x: 78, y: 23 },
+  { x: 35, y: 43 },
+  { x: 54, y: 45 },
+  { x: 72, y: 43 },
+  { x: 87, y: 42 },
+  { x: 16, y: 51 },
+  { x: 38, y: 59 },
+  { x: 58, y: 61 },
+  { x: 78, y: 58 },
+  { x: 91, y: 58 },
+  { x: 25, y: 73 },
+  { x: 45, y: 76 },
+  { x: 65, y: 76 },
+  { x: 84, y: 73 },
+  { x: 13, y: 80 },
+  { x: 33, y: 88 },
+  { x: 52, y: 91 },
+  { x: 70, y: 88 },
+  { x: 89, y: 82 },
+];
+
+const isJonasArnoldAccount = (user) => {
+  const displayName = getUserDisplayName(user).toLowerCase();
+  const email = user?.email?.toLowerCase() || '';
+  return displayName.includes('jonas arnold') || email.includes('jonas');
+};
+
+const createDemoAnalyticsSessions = () => {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const exercisePool = [
+    { name: 'Hip Thrust', base: 98, reps: 10, frequency: 18 },
+    { name: 'Leg Press', base: 142, reps: 11, frequency: 14 },
+    { name: 'Romanian Deadlift', base: 86, reps: 8, frequency: 12 },
+    { name: 'Lat Pulldown', base: 58, reps: 10, frequency: 9 },
+    { name: 'Shoulder Press', base: 34, reps: 9, frequency: 7 },
+    { name: 'Cable Row', base: 62, reps: 10, frequency: 6 },
+    { name: 'Bulgarian Split Squat', base: 42, reps: 10, frequency: 6 },
+    { name: 'Glute Bridge', base: 78, reps: 12, frequency: 6 },
+    { name: 'Chest Press', base: 52, reps: 10, frequency: 5 },
+    { name: 'Lateral Raise', base: 12, reps: 14, frequency: 5 },
+    { name: 'Hamstring Curl', base: 42, reps: 12, frequency: 5 },
+    { name: 'Walking Lunges', base: 24, reps: 12, frequency: 4 },
+    { name: 'Seated Row', base: 54, reps: 10, frequency: 4 },
+    { name: 'Goblet Squat', base: 32, reps: 12, frequency: 4 },
+    { name: 'Back Extension', base: 18, reps: 14, frequency: 3 },
+    { name: 'Face Pull', base: 18, reps: 15, frequency: 3 },
+    { name: 'Step Ups', base: 20, reps: 12, frequency: 3 },
+    { name: 'Triceps Pushdown', base: 26, reps: 12, frequency: 3 },
+    { name: 'Biceps Curl', base: 14, reps: 12, frequency: 2 },
+    { name: 'Calf Raise', base: 58, reps: 15, frequency: 2 },
+    { name: 'Plank Hold', base: 20, reps: 45, frequency: 2 },
+    { name: 'Mountain Climbers', base: 10, reps: 30, frequency: 2 },
+  ];
+  const offsets = [2, 5, 8, 11, 15, 18, 22, 25, 29, 33, 37, 41, 45, 49, 53, 57];
+
+  return offsets.map((offset, sessionIndex) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - offset);
+    const progression = (offsets.length - sessionIndex) / offsets.length;
+    const rotation = (sessionIndex * 3) % exercisePool.length;
+    const selectedExercises = Array.from({ length: 5 }, (_, exerciseIndex) => (
+      exercisePool[(rotation + exerciseIndex) % exercisePool.length]
+    ));
+
+    return {
+      id: `demo-jonas-session-${sessionIndex + 1}`,
+      date: date.toISOString(),
+      duration_seconds: (46 + ((sessionIndex * 7) % 24)) * 60,
+      calories_burned: 340 + ((sessionIndex * 31) % 190),
+      logs: selectedExercises.flatMap((exercise, exerciseIndex) => (
+        Array.from({ length: exerciseIndex === 0 ? 4 : 3 }, (_, setIndex) => ({
+          id: `demo-jonas-log-${sessionIndex}-${exerciseIndex}-${setIndex}`,
+          exercise_name: exercise.name,
+          weight: Math.round(exercise.base + (progression * 12) + setIndex + (sessionIndex % 3)),
+          reps: Math.max(6, exercise.reps - (setIndex % 2)),
+          rest_seconds: 75 + (exerciseIndex * 15),
+        }))
+      )),
+    };
+  });
+};
+
+const DEMO_ANALYTICS_SESSIONS = createDemoAnalyticsSessions();
 const getSessionDateKey = (date) => {
   const parsedDate = new Date(date);
   if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
@@ -142,6 +278,7 @@ const getLogEntries = (sessions = []) => sessions.flatMap((session) => {
   if (!date) return [];
 
   return (session.logs || []).map((log) => ({
+    sessionId: session.id,
     date,
     exerciseName: log.exercise_name || '',
     reps: Number(log.reps) || 0,
@@ -328,6 +465,67 @@ const buildTopExerciseMetrics = (sessions = []) => {
   ];
 };
 
+const getExerciseInitials = (name = '') => {
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (!words.length || name === 'NO EXERCISE YET') return '--';
+
+  return words
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase();
+};
+
+const buildExerciseDiversityBubbles = (entries = [], limit = 22) => {
+  const metricsByExercise = entries.reduce((groups, entry) => {
+    const normalizedName = entry.exerciseName.trim().toLowerCase();
+    if (!normalizedName) return groups;
+
+    const currentMetric = groups[normalizedName] || {
+      name: entry.exerciseName.trim(),
+      setCount: 0,
+      repCount: 0,
+      sessionIds: new Set(),
+    };
+
+    currentMetric.setCount += 1;
+    currentMetric.repCount += entry.reps;
+    if (entry.sessionId) currentMetric.sessionIds.add(entry.sessionId);
+
+    return {
+      ...groups,
+      [normalizedName]: currentMetric,
+    };
+  }, {});
+
+  const metrics = Object.values(metricsByExercise)
+    .sort((firstExercise, secondExercise) => (
+      secondExercise.setCount - firstExercise.setCount
+      || secondExercise.sessionIds.size - firstExercise.sessionIds.size
+    ))
+    .slice(0, limit);
+
+  const highestSetCount = Math.max(...metrics.map((metric) => metric.setCount), 1);
+
+  return metrics.map((metric, index) => {
+    const intensity = metric.setCount / highestSetCount;
+
+    return {
+      name: metric.name,
+      initials: getExerciseInitials(metric.name),
+      setCount: metric.setCount,
+      repCount: metric.repCount,
+      sessionCount: metric.sessionIds.size,
+      size: Math.round(24 + (intensity * 52)),
+      index,
+    };
+  });
+};
+
 const getPercentChange = (currentValue, previousValue) => {
   if (!previousValue && currentValue > 0) return 100;
   if (!previousValue) return 0;
@@ -340,82 +538,87 @@ const getTrainingVolume = (entries) => entries.reduce((sum, entry) => (
   sum + ((entry.weight || 0) * (entry.reps || 0))
 ), 0);
 
-const categorizeExercise = (exerciseName = '') => {
-  const name = exerciseName.toLowerCase();
+const getAverageDurationMinutes = (sessions = []) => {
+  const durations = sessions
+    .map((session) => Number(session.duration_seconds) || 0)
+    .filter((duration) => duration > 0);
 
-  if (/(squat|kniebeuge|leg press|beinpresse|deadlift|kreuzheben|lunge|glute|hip thrust|calf|hamstring|quad)/i.test(name)) return 'LEGS';
-  if (/(bench|bankdrücken|chest|brust|shoulder|press|tricep|push|dips)/i.test(name)) return 'PUSH';
-  if (/(row|rudern|pulldown|lat|pull|curl|bicep|chin)/i.test(name)) return 'PULL';
-  if (/(plank|core|abs|crunch|sit-up|mountain climber)/i.test(name)) return 'CORE';
-  if (/(run|bike|cycle|cardio|hiit|interval|stepper|treadmill)/i.test(name)) return 'CARDIO';
-  return 'OTHER';
+  if (!durations.length) return 0;
+
+  return Math.round((durations.reduce((sum, duration) => sum + duration, 0) / durations.length) / 60);
 };
 
-const buildPrTimeline = (sessions = []) => {
-  const entries = getStrengthEntries(sessions)
-    .sort((firstEntry, secondEntry) => firstEntry.date - secondEntry.date);
-  const bestByExercise = new Map();
-  const records = [];
+const getBestScoresByExercise = (entries = []) => entries.reduce((groups, entry) => {
+  const key = entry.exerciseName.trim().toLowerCase();
+  if (!key) return groups;
 
-  entries.forEach((entry) => {
-    const key = entry.exerciseName.trim().toLowerCase();
-    if (!key) return;
+  const current = groups[key] || { name: entry.exerciseName.trim(), best: 0 };
+  current.best = Math.max(current.best, entry.score);
 
-    const previousBest = bestByExercise.get(key) || 0;
-    if (entry.score > previousBest) {
-      bestByExercise.set(key, entry.score);
-      records.push({
-        exerciseName: entry.exerciseName,
-        score: Math.round(entry.score),
-        date: entry.date,
-      });
-    }
-  });
+  return {
+    ...groups,
+    [key]: current,
+  };
+}, {});
 
-  return records.reverse().slice(0, 3);
+const getProgressiveOverloadScore = (currentEntries = [], previousEntries = []) => {
+  const currentBestByExercise = getBestScoresByExercise(currentEntries);
+  const previousBestByExercise = getBestScoresByExercise(previousEntries);
+  const currentMetrics = Object.entries(currentBestByExercise);
+
+  if (!currentMetrics.length) return 0;
+
+  const score = currentMetrics.reduce((sum, [exerciseKey, currentMetric]) => {
+    const previousBest = previousBestByExercise[exerciseKey]?.best || 0;
+
+    if (!previousBest) return sum + 35;
+    if (currentMetric.best > previousBest) return sum + 100;
+    if (currentMetric.best === previousBest) return sum + 60;
+    return sum + 20;
+  }, 0);
+
+  return Math.round(score / currentMetrics.length);
 };
 
-const buildPerformanceIntelligence = (sessions = []) => {
-  const now = endOfDay(new Date());
+const buildPerformanceIntelligence = (sessions = [], referenceDate = new Date()) => {
+  const now = endOfDay(referenceDate);
   const last30Start = startOfDay(addDaysNative(now, -29));
   const previous30Start = startOfDay(addDaysNative(now, -59));
   const previous30End = endOfDay(addDaysNative(now, -30));
-  const weekStart = startOfDay(addDaysNative(now, -6));
   const entries = getLogEntries(sessions);
+  const strengthEntries = getStrengthEntries(sessions);
   const last30Entries = entries.filter((entry) => isWithinRange(entry.date, last30Start, now));
   const previous30Entries = entries.filter((entry) => isWithinRange(entry.date, previous30Start, previous30End));
-  const currentVolume = getTrainingVolume(last30Entries);
-  const previousVolume = getTrainingVolume(previous30Entries);
-  const trainedDaysThisWeek = new Set(
-    sessions
-      .map((session) => getSessionDate(session))
-      .filter((date) => date && isWithinRange(date, weekStart, now))
-      .map((date) => format(date, 'yyyy-MM-dd'))
-  ).size;
-  const consistencyScore = Math.min(100, Math.round((trainedDaysThisWeek / 4) * 100));
-  const focusCounts = last30Entries.reduce((groups, entry) => {
-    const category = categorizeExercise(entry.exerciseName);
-    return {
-      ...groups,
-      [category]: (groups[category] || 0) + 1,
-    };
-  }, {});
-  const focusTotal = Object.values(focusCounts).reduce((sum, count) => sum + count, 0);
-  const focusData = Object.entries(focusCounts)
-    .sort(([, firstCount], [, secondCount]) => secondCount - firstCount)
-    .slice(0, 5)
-    .map(([category, count]) => ({
-      category,
-      percent: focusTotal ? Math.round((count / focusTotal) * 100) : 0,
-    }));
+  const last30Sessions = sessions.filter((session) => {
+    const date = getSessionDate(session);
+    return date && isWithinRange(date, last30Start, now);
+  });
+  const previous30Sessions = sessions.filter((session) => {
+    const date = getSessionDate(session);
+    return date && isWithinRange(date, previous30Start, previous30End);
+  });
+  const last30StrengthEntries = strengthEntries.filter((entry) => isWithinRange(entry.date, last30Start, now));
+  const previous30StrengthEntries = strengthEntries.filter((entry) => isWithinRange(entry.date, previous30Start, previous30End));
+  const currentAverageDuration = getAverageDurationMinutes(last30Sessions);
+  const previousAverageDuration = getAverageDurationMinutes(previous30Sessions);
+  const uniqueExercises = new Set(last30Entries
+    .map((entry) => entry.exerciseName.trim().toLowerCase())
+    .filter(Boolean));
+  const exerciseBubbles = buildExerciseDiversityBubbles(last30Entries);
+  const mostTrainedExercise = buildTopExerciseMetrics(sessions)[0] || {
+    name: 'NO EXERCISE YET',
+    best: 0,
+    sessionCount: 0,
+    setCount: 0,
+  };
 
   return {
-    volume: Math.round(currentVolume),
-    volumeChange: getPercentChange(currentVolume, previousVolume),
-    consistencyScore,
-    trainedDaysThisWeek,
-    focusData,
-    prTimeline: buildPrTimeline(sessions),
+    averageDuration: currentAverageDuration,
+    averageDurationChange: getPercentChange(currentAverageDuration, previousAverageDuration),
+    progressiveOverloadScore: getProgressiveOverloadScore(last30StrengthEntries, previous30StrengthEntries),
+    exerciseDiversity: uniqueExercises.size,
+    exerciseBubbles,
+    mostTrainedExercise,
   };
 };
 
@@ -577,11 +780,36 @@ export default function Analytics({ currentUser }) {
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [activeInsightInfo, setActiveInsightInfo] = useState(null);
+  const shouldUseDemoAnalytics = isJonasArnoldAccount(currentUser);
+  const displaySessions = shouldUseDemoAnalytics ? DEMO_ANALYTICS_SESSIONS : sessions;
+  const displayStats = shouldUseDemoAnalytics
+    ? {
+      totalSessions: DEMO_ANALYTICS_SESSIONS.length,
+      sessionDates: DEMO_ANALYTICS_SESSIONS.map((session) => session.date),
+    }
+    : stats;
   const chartRef = useRef(null);
   const isChartInView = useInView(chartRef, { once: false, amount: 0.4 });
-  const strengthAnalytics = useMemo(() => buildStrengthAnalytics(sessions), [sessions]);
-  const topExerciseMetrics = useMemo(() => buildTopExerciseMetrics(sessions), [sessions]);
-  const performanceIntelligence = useMemo(() => buildPerformanceIntelligence(sessions), [sessions]);
+  const analyticsWindowKey = format(new Date(), 'yyyy-MM');
+  const analyticsReferenceDate = useMemo(() => new Date(), [analyticsWindowKey]);
+  const strengthAnalytics = useMemo(() => buildStrengthAnalytics(displaySessions), [displaySessions]);
+  const topExerciseMetrics = useMemo(() => buildTopExerciseMetrics(displaySessions), [displaySessions]);
+  const performanceIntelligence = useMemo(
+    () => buildPerformanceIntelligence(displaySessions, analyticsReferenceDate),
+    [displaySessions, analyticsReferenceDate]
+  );
+  const displayDiversityBubbles = performanceIntelligence.exerciseBubbles.length
+    ? performanceIntelligence.exerciseBubbles
+    : (shouldUseDemoAnalytics ? DEMO_DIVERSITY_BUBBLES : []);
+  const displayExerciseDiversity = performanceIntelligence.exerciseDiversity
+    || (shouldUseDemoAnalytics ? DEMO_DIVERSITY_BUBBLES.length : 0);
+  const totalDiversitySets = displayDiversityBubbles.reduce((sum, bubble) => sum + bubble.setCount, 0);
+  const totalDiversityReps = displayDiversityBubbles.reduce((sum, bubble) => sum + (bubble.repCount || 0), 0);
+  const topDiversityExercise = displayDiversityBubbles[0] || {
+    name: 'NO EXERCISE YET',
+    setCount: 0,
+    repCount: 0,
+  };
   const visibleChartSeries = strengthAnalytics.series;
   const activeChart = visibleChartSeries[activeRange];
   const chartPoints = getChartPoints(activeChart.values);
@@ -590,48 +818,48 @@ export default function Analytics({ currentUser }) {
   const endPoint = chartPoints[chartPoints.length - 1];
   const chartChangePrefix = activeChart.change >= 0 ? '+ ' : '- ';
   const analyticsInsightInfo = {
-    volume: {
-      title: 'TRAINING VOLUME',
-      kicker: 'LOAD INTELLIGENCE',
-      intro: 'Training volume shows the total mechanical work from your logged strength sets. It helps you see whether your workload is actually increasing over time.',
-      formula: 'sets x reps x weight',
-      formulaText: 'Every logged set contributes reps multiplied by weight. The widget compares your last 30 days with the previous 30 days.',
+    duration: {
+      title: 'AVERAGE SESSION DURATION',
+      kicker: 'TIME UNDER PLAN',
+      intro: 'Average Session Duration shows how long your completed workouts usually last. It helps you understand whether your training sessions are getting shorter, longer or more consistent.',
+      formula: 'total training time / sessions',
+      formulaText: 'The widget uses saved session duration values from the last 30 days and compares the average with the previous 30 days.',
       cards: [
-        { title: 'WHAT IT TELLS YOU', text: 'A rising volume trend usually means more training stimulus and more capacity for growth.' },
-        { title: 'HOW TO USE IT', text: 'Keep volume moving up slowly. Big jumps can be a sign that recovery may become harder.' },
+        { title: 'WHAT IT TELLS YOU', text: 'It reveals whether your workouts match the time commitment you expect from your plan.' },
+        { title: 'HOW TO USE IT', text: 'Use it to keep sessions realistic. Very long sessions can signal too much volume or too much rest time.' },
       ],
     },
-    consistency: {
-      title: 'CONSISTENCY SCORE',
-      kicker: 'ROUTINE QUALITY',
-      intro: 'Consistency Score measures how reliably you trained this week against a four-day training rhythm.',
-      formula: 'trained days / 4',
-      formulaText: 'Each unique training day this week fills part of the score. Four training days equals 100%.',
+    overload: {
+      title: 'PROGRESSIVE OVERLOAD SCORE',
+      kicker: 'STRENGTH PRESSURE',
+      intro: 'Progressive Overload Score estimates whether your exercises are moving forward compared with the previous training window.',
+      formula: 'current best vs previous best',
+      formulaText: 'For each exercise, the app compares the best estimated 1RM from the last 30 days with the previous 30 days and turns the result into a score.',
       cards: [
-        { title: 'WHAT IT TELLS YOU', text: 'Strength progress usually follows consistency. This score shows whether your rhythm is stable.' },
-        { title: 'HOW TO USE IT', text: 'If the score drops, schedule shorter sessions instead of skipping the week completely.' },
+        { title: 'WHAT IT TELLS YOU', text: 'A high score means your recent training is creating measurable strength pressure.' },
+        { title: 'HOW TO USE IT', text: 'If the score stalls, try adding reps, weight or cleaner execution to your key exercises.' },
       ],
     },
-    focus: {
-      title: 'MUSCLE FOCUS',
-      kicker: 'TRAINING BALANCE',
-      intro: 'Muscle Focus groups your logged exercises into movement areas like Push, Pull, Legs, Core and Cardio.',
-      formula: 'exercise category share',
-      formulaText: 'The app reads exercise names from the last 30 days and calculates how much each category appears in your logs.',
+    diversity: {
+      title: 'EXERCISE DIVERSITY',
+      kicker: 'VARIETY CHECK',
+      intro: 'Exercise Diversity counts how many different exercises appeared in your recent workouts.',
+      formula: 'unique exercise names',
+      formulaText: 'The widget looks at the last 30 days, normalizes exercise names and counts each distinct exercise once.',
       cards: [
-        { title: 'WHAT IT TELLS YOU', text: 'It reveals whether your current training is balanced or strongly focused on one area.' },
-        { title: 'HOW TO USE IT', text: 'Use it to spot neglected areas and plan your next workouts with better balance.' },
+        { title: 'WHAT IT TELLS YOU', text: 'It shows whether your plan has enough variety or repeats the same patterns too often.' },
+        { title: 'HOW TO USE IT', text: 'Use it to keep training fresh without changing exercises so often that progress becomes hard to track.' },
       ],
     },
-    prs: {
-      title: 'PR TIMELINE',
-      kicker: 'PERSONAL RECORDS',
-      intro: 'PR Timeline shows the newest moments where an exercise reached a new best estimated strength value.',
-      formula: 'weight x (1 + reps / 30)',
-      formulaText: 'The app estimates one-rep max for every set, then detects whenever an exercise beats its previous best.',
+    mostTrained: {
+      title: 'MOST TRAINED EXERCISE',
+      kicker: 'MAIN MOVEMENT',
+      intro: 'Most Trained Exercise highlights the movement that appears most often in your completed workouts.',
+      formula: 'sessions first, then sets',
+      formulaText: 'Exercises are ranked by how many sessions they appear in. If tied, the app uses total set count and then best strength value.',
       cards: [
-        { title: 'WHAT IT TELLS YOU', text: 'It turns raw logs into clear milestones so progress feels visible.' },
-        { title: 'HOW TO USE IT', text: 'Review PRs to understand which lifts are moving and which lifts may need more attention.' },
+        { title: 'WHAT IT TELLS YOU', text: 'It reveals which movement is currently receiving the most attention in your program.' },
+        { title: 'HOW TO USE IT', text: 'Use it to check whether your favorite exercise matches your actual training goal.' },
       ],
     },
   };
@@ -734,6 +962,7 @@ export default function Analytics({ currentUser }) {
 
   const deleteCompletedSession = async (sessionToDelete) => {
     if (!sessionToDelete?.id) return;
+    if (shouldUseDemoAnalytics && String(sessionToDelete.id).startsWith('demo-')) return;
 
     setDeletingSessionId(sessionToDelete.id);
     try {
@@ -815,7 +1044,7 @@ export default function Analytics({ currentUser }) {
   const scheduledWorkoutCount = Object.keys(workoutSchedule).filter((dateKey) =>
     isSameMonth(new Date(`${dateKey}T00:00:00`), startOfMonth(currentMonth))
   ).length;
-  const completedWorkoutDates = new Set((stats.sessionDates || []).map(getSessionDateKey));
+  const completedWorkoutDates = new Set((displayStats.sessionDates || []).map(getSessionDateKey));
   const completedWorkoutCount = Array.from(completedWorkoutDates).filter((dateKey) =>
     isSameMonth(new Date(`${dateKey}T00:00:00`), startOfMonth(currentMonth))
   ).length;
@@ -826,7 +1055,7 @@ export default function Analytics({ currentUser }) {
   const selectedScheduledWorkout = selectedDateKey ? workoutSchedule[selectedDateKey] : null;
   const isSelectedDateCompleted = selectedDateKey ? completedWorkoutDates.has(selectedDateKey) : false;
   const selectedDateSessions = selectedDateKey
-    ? sessions.filter((session) => getSessionDateKey(session.date) === selectedDateKey)
+    ? displaySessions.filter((session) => getSessionDateKey(session.date) === selectedDateKey)
     : [];
   const hasWorkoutDetails = selectedDateSessions.length > 0;
 
@@ -953,68 +1182,111 @@ export default function Analytics({ currentUser }) {
 
         <div className="analytics-intelligence-grid">
           <section
-            className="analytics-insight-card volume-insight-card clickable-insight-card"
+            className="analytics-insight-card duration-insight-card clickable-insight-card"
             role="button"
             tabIndex={0}
-            onClick={() => openInsightInfo('volume')}
-            onKeyDown={(event) => handleInsightKeyDown(event, 'volume')}
-            aria-label={t('Open training volume info')}
+            onClick={() => openInsightInfo('duration')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'duration')}
+            aria-label={t('Open average session duration info')}
           >
             <div className="analytics-insight-top">
               <span className="analytics-insight-icon"><BarChart3 size={18} /></span>
-              <span>{t('TRAINING VOLUME')}</span>
+              <span>{t('AVERAGE SESSION DURATION')}</span>
             </div>
-            <div className="analytics-insight-value">
-              {performanceIntelligence.volume.toLocaleString('de-DE')} <small>{t('KG')}</small>
+            <div className="duration-display">
+              <div className="duration-widget-panel">
+                <div className="duration-widget-stat">
+                  <strong>{performanceIntelligence.averageDuration}</strong>
+                  <span>{t('MIN AVG')}</span>
+                </div>
+                <div className={`info-duration-lanes duration-widget-lanes ${performanceIntelligence.averageDuration === 0 ? 'empty' : ''}`} aria-hidden="true">
+                  {[36, 52, 74, 46, 88, 64].map((width, index) => (
+                    <span
+                      key={index}
+                      className={performanceIntelligence.averageDuration > 0 && index === 4 ? 'peak' : ''}
+                      style={{ width: `${performanceIntelligence.averageDuration > 0 ? width : 0}%` }}
+                    ></span>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className={`analytics-trend-pill ${performanceIntelligence.volumeChange >= 0 ? 'positive' : 'negative'}`}>
-              {performanceIntelligence.volumeChange >= 0 ? '+' : ''}
-              {performanceIntelligence.volumeChange.toFixed(1)}% {t('vs last month')}
+            <div className={`analytics-trend-pill ${performanceIntelligence.averageDurationChange >= 0 ? 'positive' : 'negative'}`}>
+              {performanceIntelligence.averageDurationChange >= 0 ? '+' : ''}
+              {performanceIntelligence.averageDurationChange.toFixed(1)}% {t('vs last month')}
             </div>
+            <div className="insight-micro-label">{t('SESSION FLOW')}</div>
           </section>
 
           <section
             className="analytics-insight-card consistency-insight-card clickable-insight-card"
             role="button"
             tabIndex={0}
-            onClick={() => openInsightInfo('consistency')}
-            onKeyDown={(event) => handleInsightKeyDown(event, 'consistency')}
-            aria-label={t('Open consistency score info')}
+            onClick={() => openInsightInfo('overload')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'overload')}
+            aria-label={t('Open progressive overload score info')}
           >
             <div className="analytics-insight-top">
               <span className="analytics-insight-icon"><Gauge size={18} /></span>
-              <span>{t('CONSISTENCY SCORE')}</span>
+              <span>{t('PROGRESSIVE OVERLOAD SCORE')}</span>
             </div>
-            <div className="consistency-ring" style={{ '--score': `${performanceIntelligence.consistencyScore}%` }}>
-              <span>{performanceIntelligence.consistencyScore}%</span>
+            <div className="overload-console">
+              <div className="consistency-ring" style={{ '--score': `${performanceIntelligence.progressiveOverloadScore}%` }}>
+                <span>{performanceIntelligence.progressiveOverloadScore}%</span>
+              </div>
+              <div className="overload-segments" aria-hidden="true">
+                {[20, 40, 60, 80, 100].map((threshold) => (
+                  <span
+                    key={threshold}
+                    className={performanceIntelligence.progressiveOverloadScore >= threshold ? 'active' : ''}
+                  ></span>
+                ))}
+              </div>
             </div>
-            <p>{performanceIntelligence.trainedDaysThisWeek}/4 {t('TRAINING DAYS')}</p>
+            <p>{t('OVERLOAD PRESSURE')}</p>
           </section>
 
           <section
             className="analytics-insight-card focus-insight-card clickable-insight-card"
             role="button"
             tabIndex={0}
-            onClick={() => openInsightInfo('focus')}
-            onKeyDown={(event) => handleInsightKeyDown(event, 'focus')}
-            aria-label={t('Open muscle focus info')}
+            onClick={() => openInsightInfo('diversity')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'diversity')}
+            aria-label={t('Open exercise diversity info')}
           >
             <div className="analytics-insight-top">
               <span className="analytics-insight-icon"><Layers3 size={18} /></span>
-              <span>{t('MUSCLE FOCUS')}</span>
+              <span>{t('EXERCISE DIVERSITY')}</span>
             </div>
-            <div className="focus-bars">
-              {(performanceIntelligence.focusData.length ? performanceIntelligence.focusData : [{ category: 'NO DATA', percent: 0 }]).map((item) => (
-                <div className="focus-row" key={item.category}>
-                  <div>
-                    <span>{t(item.category)}</span>
-                    <strong>{item.percent}%</strong>
-                  </div>
-                  <div className="focus-bar-track">
-                    <span style={{ width: `${item.percent}%` }}></span>
-                  </div>
-                </div>
-              ))}
+            <div className="diversity-bubble-field" aria-hidden="true">
+              {displayDiversityBubbles.length > 0 ? (
+                displayDiversityBubbles.map((bubble) => (
+                  <span
+                    key={`${bubble.name}-${bubble.index}`}
+                    className={bubble.setCount > 0 ? 'diversity-bubble active' : 'diversity-bubble'}
+                    style={{
+                      '--bubble-size': `${bubble.size}px`,
+                      '--bubble-index': bubble.index,
+                      '--bubble-x': `${DIVERSITY_BUBBLE_LAYOUT[bubble.index % DIVERSITY_BUBBLE_LAYOUT.length].x}%`,
+                      '--bubble-y': `${DIVERSITY_BUBBLE_LAYOUT[bubble.index % DIVERSITY_BUBBLE_LAYOUT.length].y}%`,
+                      '--bubble-spread-x': `${DIVERSITY_BUBBLE_SPREAD_LAYOUT[bubble.index % DIVERSITY_BUBBLE_SPREAD_LAYOUT.length].x}%`,
+                      '--bubble-spread-y': `${DIVERSITY_BUBBLE_SPREAD_LAYOUT[bubble.index % DIVERSITY_BUBBLE_SPREAD_LAYOUT.length].y}%`,
+                    }}
+                    title={`${t(bubble.name)} · ${bubble.setCount} ${t('SETS')}`}
+                  >
+                    <b>{t(bubble.name)}</b>
+                  </span>
+                ))
+              ) : (
+                <div className="diversity-empty-state">{t('No workout data yet')}</div>
+              )}
+            </div>
+            <div className="diversity-bottom">
+              <div className="analytics-insight-value">
+                {displayExerciseDiversity} <small>{t('EXERCISES')}</small>
+              </div>
+              <div className="analytics-trend-pill positive">
+                {t('LAST 30 DAYS')}
+              </div>
             </div>
           </section>
 
@@ -1022,23 +1294,27 @@ export default function Analytics({ currentUser }) {
             className="analytics-insight-card pr-insight-card clickable-insight-card"
             role="button"
             tabIndex={0}
-            onClick={() => openInsightInfo('prs')}
-            onKeyDown={(event) => handleInsightKeyDown(event, 'prs')}
-            aria-label={t('Open PR timeline info')}
+            onClick={() => openInsightInfo('mostTrained')}
+            onKeyDown={(event) => handleInsightKeyDown(event, 'mostTrained')}
+            aria-label={t('Open most trained exercise info')}
           >
             <div className="analytics-insight-top">
               <span className="analytics-insight-icon"><Trophy size={18} /></span>
-              <span>{t('PR TIMELINE')}</span>
+              <span>{t('MOST TRAINED EXERCISE')}</span>
             </div>
-            <div className="pr-timeline-list">
-              {(performanceIntelligence.prTimeline.length ? performanceIntelligence.prTimeline : [{ exerciseName: 'NO PR YET', score: 0, date: null }]).map((record, index) => (
-                <div className="pr-timeline-item" key={`${record.exerciseName}-${record.score}-${index}`}>
-                  <span>{record.date ? format(record.date, 'dd MMM').toUpperCase() : '--'}</span>
-                  <strong>{t(record.exerciseName)}</strong>
-                  <small>{record.score} {t('KG')}</small>
-                </div>
-              ))}
+            <div className="analytics-feature-exercise">
+              <div className="exercise-spotlight-orbit" aria-hidden="true">
+                <span></span>
+                <span></span>
+              </div>
+              <strong>{t(performanceIntelligence.mostTrainedExercise.name)}</strong>
+              <span>
+                {performanceIntelligence.mostTrainedExercise.sessionCount > 0
+                  ? `${performanceIntelligence.mostTrainedExercise.sessionCount}x ${t('SESSIONS')} · ${performanceIntelligence.mostTrainedExercise.setCount} ${t('SETS')}`
+                  : t('No workout data yet')}
+              </span>
             </div>
+            <div className="insight-micro-label">{t('MAIN MOVEMENT')}</div>
           </section>
         </div>
 
@@ -1100,6 +1376,118 @@ export default function Analytics({ currentUser }) {
             </div>
 
             <p className="analytics-info-intro">{t(selectedInsightInfo.intro)}</p>
+
+            <div className={`analytics-info-visual ${activeInsightInfo}`}>
+              {activeInsightInfo === 'duration' && (
+                <>
+                  <div className="info-duration-dial">
+                    <strong>{performanceIntelligence.averageDuration}</strong>
+                    <span>{t('MIN AVG')}</span>
+                  </div>
+                  <div className="info-duration-lanes" aria-hidden="true">
+                    {[36, 52, 74, 46, 88, 64].map((width, index) => (
+                      <span key={index} style={{ width: `${width}%` }}></span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {activeInsightInfo === 'overload' && (
+                <>
+                  <div className="info-overload-grid" aria-hidden="true">
+                    {[20, 40, 60, 80, 100].map((threshold) => (
+                      <span
+                        key={threshold}
+                        className={performanceIntelligence.progressiveOverloadScore >= threshold ? 'active' : ''}
+                      ></span>
+                    ))}
+                  </div>
+                  <div className="info-overload-score">
+                    <strong>{performanceIntelligence.progressiveOverloadScore}%</strong>
+                    <span>{t('STRENGTH PRESSURE')}</span>
+                  </div>
+                </>
+              )}
+              {activeInsightInfo === 'diversity' && (
+                <div className="info-diversity-dashboard">
+                  <div className="info-diversity-impact-grid">
+                    <div className="info-diversity-impact-item">
+                      <Layers3 size={20} />
+                      <h3>{t('UNIQUE EXERCISES')}</h3>
+                      <strong>{displayExerciseDiversity}</strong>
+                      <p>{t('Different movements detected in the last 30 days.')}</p>
+                    </div>
+                    <div className="info-diversity-impact-item">
+                      <Dumbbell size={20} />
+                      <h3>{t('TOTAL SETS')}</h3>
+                      <strong>{totalDiversitySets}</strong>
+                      <p>{t('Logged working sets across your exercise mix.')}</p>
+                    </div>
+                    <div className="info-diversity-impact-item">
+                      <TrendingUp size={20} />
+                      <h3>{t('MAIN FOCUS')}</h3>
+                      <strong>{t(topDiversityExercise.name)}</strong>
+                      <p>{topDiversityExercise.setCount} {t('SETS')} · {topDiversityExercise.repCount || 0} {t('REPS')}</p>
+                    </div>
+                  </div>
+
+                  <div className="info-diversity-chart-stack">
+                    <div className="info-diversity-chart-head">
+                      <div>
+                        <span className="info-diversity-kicker">{t('LAST 30 DAYS')}</span>
+                        <h3>{t('Exercise mix map')}</h3>
+                      </div>
+                      <div className="info-diversity-total">
+                        <strong>{totalDiversityReps}</strong>
+                        <span>{t('REPS')}</span>
+                      </div>
+                    </div>
+
+                    <div className="info-diversity-explainer">
+                      <Layers3 size={18} />
+                      <div>
+                        <h4>{t('HOW TO READ THE BUBBLES')}</h4>
+                        <p>{t('Each bubble represents one exercise from the last 30 days. Bigger bubbles mean the exercise appears more often in your logged workout sets.')}</p>
+                      </div>
+                    </div>
+                    <div className="info-diversity-content-grid list-only">
+                      <div className="info-diversity-list-panel">
+                        <div className="info-diversity-list-head">
+                          <span>{t('EXERCISES')}</span>
+                          <strong>{displayExerciseDiversity}</strong>
+                        </div>
+                        <div className="info-diversity-list">
+                          {displayDiversityBubbles.length > 0 ? (
+                            displayDiversityBubbles.map((bubble) => (
+                              <div key={`${bubble.name}-row-${bubble.index}`} className="info-diversity-row">
+                                <span>{t(bubble.name)}</span>
+                                <strong>{bubble.setCount} {t('SETS')}</strong>
+                                <em>{bubble.repCount || 0} {t('REPS')}</em>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="info-diversity-empty-copy">
+                              {t('Log workouts to build your exercise diversity map.')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {activeInsightInfo === 'mostTrained' && (
+                <>
+                  <div className="info-main-exercise">
+                    <span>{t('MAIN MOVEMENT')}</span>
+                    <strong>{t(performanceIntelligence.mostTrainedExercise.name)}</strong>
+                  </div>
+                  <div className="info-main-stats">
+                    <span>{performanceIntelligence.mostTrainedExercise.sessionCount} {t('SESSIONS')}</span>
+                    <span>{performanceIntelligence.mostTrainedExercise.setCount} {t('SETS')}</span>
+                  </div>
+                </>
+              )}
+            </div>
 
             <div className="analytics-info-formula">
               <span>{t('HOW IT WORKS')}</span>

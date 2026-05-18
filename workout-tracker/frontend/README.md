@@ -705,10 +705,10 @@ Der angezeigte Wert ist der beste geschätzte 1RM dieser Übung in Kilogramm. Da
 
 Neu hinzugefügt wurde eine Performance-Intelligence-Zone mit vier Widgets:
 
-- `Training Volume`: Summe aus `weight * reps` der letzten 30 Tage mit Vergleich zu den 30 Tagen davor.
-- `Consistency Score`: Trainingstage dieser Woche im Verhältnis zu einem Zielrhythmus von vier Trainingstagen.
-- `Muscle Focus`: grobe Kategorisierung der geloggten Übungen in Push, Pull, Legs, Core, Cardio oder Other.
-- `PR Timeline`: erkennt neue persönliche Rekorde anhand des geschätzten 1RM pro Übung.
+- `Average Session Duration`: durchschnittliche Dauer abgeschlossener Sessions der letzten 30 Tage mit Vergleich zum vorherigen Zeitraum.
+- `Progressive Overload Score`: vergleicht aktuelle Bestwerte pro Übung mit dem vorherigen Trainingszeitraum.
+- `Exercise Diversity`: zählt unterschiedliche Übungen der letzten 30 Tage.
+- `Most Trained Exercise`: erkennt die Übung, die in den meisten Sessions vorkommt, mit Satzanzahl als zweitem Sortierkriterium.
 
 Alle vier Widgets sind klickbar. Beim Klick öffnet sich ein Info-Modal im Stil der bestehenden BMI-/Hydration-Infoblöcke. Der Dialog erklärt:
 
@@ -756,6 +756,102 @@ npm test
 ```
 
 Der Backend-Testbefehl ist aktuell nur der Standardplatzhalter aus `package.json` und bricht mit `Error: no test specified` ab. Das ist kein neuer fachlicher Fehler, sondern bedeutet, dass noch keine automatisierten Backend-Tests eingerichtet wurden.
+
+## Folgeiteration: Analytics Demo-Daten, Exercise Diversity und Login-Stabilität
+
+Seit der letzten Dokumentation wurde die Analytics-Seite weiter verfeinert. Der Schwerpunkt lag auf aussagekräftigeren Demo-Daten für den Jonas-Account, echter Datenbindung für normale Nutzer und einer besseren Darstellung der `Exercise Diversity`.
+
+### Jonas-Demo-Daten
+
+Für den Demo-Account `jonasarnold@gmail.com` werden jetzt demonstrative Trainingsdaten verwendet, damit Dashboard und Analytics nicht leer wirken. Diese Demo-Daten füllen unter anderem:
+
+- Strength-Progress-Chart
+- Top-Exercise-Karten
+- Average Session Duration
+- Progressive Overload Score
+- Exercise Diversity
+- Most Trained Exercise
+- Dashboard-Werte für Schritte, Kalorien, Minuten und Trainingstage
+
+Die Demo-Werte sind bewusst nur für Jonas aktiv. Andere Accounts sollen nicht automatisch mit Beispieldaten gefüllt werden.
+
+### Exercise Diversity mit echten Nutzerdaten
+
+`Exercise Diversity` ist jetzt an echte geloggte Workout-Daten gebunden. Die Auswertung nutzt die abgeschlossenen Sessions und deren Logs der letzten 30 Tage:
+
+- Jede Bubble steht für eine unterschiedliche Übung.
+- Die Größe der Bubble richtet sich nach der Häufigkeit der Übung in den geloggten Sets.
+- Die Übungsliste im Infoblock zeigt Sets und Wiederholungen.
+- Bei Accounts ohne geloggte Workouts bleibt der Zustand leer, statt Demo-Bubbles zu zeigen.
+
+Damit ist die Kennzahl nicht mehr nur visuell, sondern fachlich an gespeicherte Trainingsdaten gekoppelt.
+
+### Exercise-Diversity-Widget
+
+Das Widget wurde visuell mehrfach iteriert:
+
+- 22 mögliche Exercise-Bubbles für den Demo-Account
+- organischer Bubble-Cluster statt starrem Raster
+- Hover-Zustand, bei dem sich Bubbles weich auseinanderbewegen und beim Mouse-out zurückkehren
+- kleinere Typografie für kleine Bubbles, damit Übungsnamen besser lesbar bleiben
+- transparente grüne Bubble-Flächen statt stark glänzender Effekte
+
+Das Widget bleibt im dunklen PROGYM-Stil und nutzt Grün nur als Akzent.
+
+### Exercise-Diversity-Infoblock
+
+Der Infoblock wurde neu strukturiert und stärker am `Stay Hydrated`-Infoblock orientiert:
+
+- dunkle Kartenflächen statt großer grüner Flächen
+- dezente grüne Akzente und ein kleiner Corner-Glow
+- Kennzahl-Karten mit Icons
+- Erklärung, wie die Bubble-Größe zu lesen ist
+- klare Exercise-Liste mit Sets und Reps
+- kein horizontales Überlaufen mehr durch robuste `minmax(0, ...)` Grid-Definitionen
+
+Die Bubble-Grafik wurde im Infoblock bewusst entfernt, weil die Liste dort informativer und ruhiger ist. Die Bubble-Erklärung bleibt erhalten, damit das Widget auf der Analytics-Seite verständlich bleibt.
+
+### Login- und Prisma-DB-Stabilität
+
+Beim Login wurde ein Entwicklungsproblem gefunden: Wenn das Backend aus dem falschen Arbeitsverzeichnis gestartet wurde, konnte `DATABASE_URL="file:./database.sqlite"` auf eine leere SQLite-Datei im Repo-Root zeigen. Dadurch fand Prisma keine `users`-Tabelle und Logins schlugen fehl.
+
+`backend/prismaClient.js` löst die SQLite-Datei jetzt relativ zum Backend-Ordner auf. Dadurch verwendet Prisma zuverlässig:
+
+```text
+workout-tracker/backend/database.sqlite
+```
+
+statt versehentlich:
+
+```text
+database.sqlite
+```
+
+Der Jonas-Login wurde lokal gegen `/api/auth/login` geprüft und antwortete erfolgreich mit `200 OK`.
+
+### Verifikation dieser Folgeiteration
+
+Frontend:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+```
+
+Ergebnis: Der Build läuft erfolgreich durch. Vite meldet weiterhin nur die bekannte Chunk-Size-Warnung.
+
+Backend:
+
+```bash
+cd workout-tracker/backend
+npm start
+```
+
+Der Backend-Server muss für Login und API-Requests auf Port `3000` laufen. Der Login-Endpunkt wurde mit dem Jonas-Demo-Account getestet:
+
+```text
+jonasarnold@gmail.com / 123
+```
 
 ## Verification
 
