@@ -114,6 +114,26 @@ const DIVERSITY_BUBBLE_SPREAD_LAYOUT = [
   { x: 70, y: 88 },
   { x: 89, y: 82 },
 ];
+const MOST_TRAINED_IMAGES = [
+  '/most-trained-1.png',
+  '/most-trained-2.png',
+  '/most-trained-3.png',
+  '/most-trained-4.png',
+  '/most-trained-5.png',
+];
+
+const getStableImageIndex = (value = '') => {
+  const normalizedValue = value.trim().toLowerCase();
+  if (!normalizedValue || normalizedValue === 'no exercise yet') return 0;
+
+  return Array.from(normalizedValue).reduce((sum, char, index) => (
+    sum + (char.charCodeAt(0) * (index + 1))
+  ), 0) % MOST_TRAINED_IMAGES.length;
+};
+
+const getMostTrainedExerciseImage = (exerciseName) => (
+  MOST_TRAINED_IMAGES[getStableImageIndex(exerciseName)]
+);
 
 const isJonasArnoldAccount = (user) => {
   const displayName = getUserDisplayName(user).toLowerCase();
@@ -798,6 +818,9 @@ export default function Analytics({ currentUser }) {
     () => buildPerformanceIntelligence(displaySessions, analyticsReferenceDate),
     [displaySessions, analyticsReferenceDate]
   );
+  const mostTrainedExerciseImage = shouldUseDemoAnalytics
+    ? MOST_TRAINED_IMAGES[1]
+    : getMostTrainedExerciseImage(performanceIntelligence.mostTrainedExercise.name);
   const displayDiversityBubbles = performanceIntelligence.exerciseBubbles.length
     ? performanceIntelligence.exerciseBubbles
     : (shouldUseDemoAnalytics ? DEMO_DIVERSITY_BUBBLES : []);
@@ -849,17 +872,6 @@ export default function Analytics({ currentUser }) {
       cards: [
         { title: 'WHAT IT TELLS YOU', text: 'It shows whether your plan has enough variety or repeats the same patterns too often.' },
         { title: 'HOW TO USE IT', text: 'Use it to keep training fresh without changing exercises so often that progress becomes hard to track.' },
-      ],
-    },
-    mostTrained: {
-      title: 'MOST TRAINED EXERCISE',
-      kicker: 'MAIN MOVEMENT',
-      intro: 'Most Trained Exercise highlights the movement that appears most often in your completed workouts.',
-      formula: 'sessions first, then sets',
-      formulaText: 'Exercises are ranked by how many sessions they appear in. If tied, the app uses total set count and then best strength value.',
-      cards: [
-        { title: 'WHAT IT TELLS YOU', text: 'It reveals which movement is currently receiving the most attention in your program.' },
-        { title: 'HOW TO USE IT', text: 'Use it to check whether your favorite exercise matches your actual training goal.' },
       ],
     },
   };
@@ -1291,12 +1303,8 @@ export default function Analytics({ currentUser }) {
           </section>
 
           <section
-            className="analytics-insight-card pr-insight-card clickable-insight-card"
-            role="button"
-            tabIndex={0}
-            onClick={() => openInsightInfo('mostTrained')}
-            onKeyDown={(event) => handleInsightKeyDown(event, 'mostTrained')}
-            aria-label={t('Open most trained exercise info')}
+            className="analytics-insight-card pr-insight-card"
+            style={{ '--most-trained-image': `url(${mostTrainedExerciseImage})` }}
           >
             <div className="analytics-insight-top">
               <span className="analytics-insight-icon"><Trophy size={18} /></span>
@@ -1313,8 +1321,22 @@ export default function Analytics({ currentUser }) {
                   ? `${performanceIntelligence.mostTrainedExercise.sessionCount}x ${t('SESSIONS')} · ${performanceIntelligence.mostTrainedExercise.setCount} ${t('SETS')}`
                   : t('No workout data yet')}
               </span>
+              <div className="insight-micro-label pr-inline-label">{t('MAIN MOVEMENT')}</div>
             </div>
-            <div className="insight-micro-label">{t('MAIN MOVEMENT')}</div>
+            <div className="most-trained-meta-grid" aria-hidden="true">
+              <span>
+                <small><Award size={13} />{t('RANK')}</small>
+                <strong>#1</strong>
+              </span>
+              <span>
+                <small><Gauge size={13} />{t('TOP SCORE')}</small>
+                <strong>{performanceIntelligence.mostTrainedExercise.best || '-'}</strong>
+              </span>
+              <span>
+                <small><Layers3 size={13} />{t('TOTAL SETS')}</small>
+                <strong>{performanceIntelligence.mostTrainedExercise.setCount || '-'}</strong>
+              </span>
+            </div>
           </section>
         </div>
 
@@ -1474,18 +1496,6 @@ export default function Analytics({ currentUser }) {
                     </div>
                   </div>
                 </div>
-              )}
-              {activeInsightInfo === 'mostTrained' && (
-                <>
-                  <div className="info-main-exercise">
-                    <span>{t('MAIN MOVEMENT')}</span>
-                    <strong>{t(performanceIntelligence.mostTrainedExercise.name)}</strong>
-                  </div>
-                  <div className="info-main-stats">
-                    <span>{performanceIntelligence.mostTrainedExercise.sessionCount} {t('SESSIONS')}</span>
-                    <span>{performanceIntelligence.mostTrainedExercise.setCount} {t('SETS')}</span>
-                  </div>
-                </>
               )}
             </div>
 
