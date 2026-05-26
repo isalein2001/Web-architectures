@@ -261,6 +261,151 @@ In der Datenbank sollten langfristig alle fachlichen Nutzerdaten liegen: Workout
 
 Redis wäre eher sinnvoll für kurzlebige Daten wie aktive Reminder, temporäre UI-Zustände, Rate-Limits oder Session-/Cache-Daten, weil diese Informationen schnell gelesen werden müssen, aber nicht zwingend dauerhaft historisiert werden. Ein Cloud Object Store wie S3 wäre sinnvoll für große Dateien wie hochgeladene Workout-Coverbilder, Profilbilder oder andere Medien, weil solche Binärdaten nicht ideal direkt in einer relationalen Datenbank gespeichert werden.
 
+## Echtzeit-Bedarf und Technologieentscheidung
+
+Vor der Auswahl einer Echtzeit-Technologie wurde geprüft, ob PROGYM produktiv wirklich Live-Kommunikation braucht.
+
+| Frage | Antwort |
+| --- | --- |
+| Gibt es Daten in der App, die sich ändern können, während ein anderer Nutzer die Seite offen hat? | In der aktuellen Version nur sehr eingeschränkt. Workout-Pläne, Sessions, Daily Goals, Hydration und Analytics sind durch Authentifizierung und Owner-Checks nutzerspezifisch. Andere Nutzer können diese Daten nicht verändern. Relevant wäre höchstens derselbe Account in mehreren Browser-Tabs oder auf mehreren Geräten. |
+| Müssen Änderungen sofort sichtbar sein oder reicht ein Reload? | Ein sofortiges Live-Update ist nicht zwingend nötig. Nach dem Speichern aktualisiert das Frontend die betroffenen Daten bereits über normale API-Requests. Wenn derselbe Account parallel auf einem zweiten Gerät offen ist, reicht für den aktuellen Projektstand ein Reload oder ein gelegentlicher Refetch aus. |
+| Ist die Kommunikation einseitig oder bidirektional? | Die produktive Kommunikation ist aktuell klassisch request-basiert: Der Client sendet Aktionen an den Server, der Server antwortet. Es gibt keinen Chat, keine kollaborative Bearbeitung und kein Multiplayer-Szenario. Falls Live-Updates als Lernübung ergänzt werden, wäre die Richtung eher einseitig vom Server zum Client. |
+| Wie viele Clients könnten gleichzeitig verbunden sein? | Für den aktuellen Projektkontext ist mit wenigen gleichzeitigen Clients zu rechnen, z. B. lokale Entwicklung, Demo und Testnutzer. Realistisch wären im jetzigen Setup eher 1 bis 20 gleichzeitige Verbindungen. Eine große Echtzeit-Infrastruktur ist dafür nicht notwendig. |
+
+### Entscheidung
+
+Für PROGYM ist aktuell **keine produktiv notwendige Echtzeit-Kommunikation** erforderlich. Die App ist primär ein persönlicher Workout-Tracker: Nutzer erstellen eigene Pläne, speichern eigene Sessions und sehen eigene Analytics. Da fremde Nutzer diese Daten nicht verändern dürfen, entsteht kein starker Bedarf für sofortige Live-Synchronisation.
+
+Für den produktiven Stand reichen normale REST-Requests, ein Reload oder gezieltes Refetching nach erfolgreichen Änderungen aus. Ein Polling-Mechanismus wäre als Lernübung vertretbar, z. B. um Dashboard- oder Analytics-Daten alle 30 Sekunden neu abzufragen. Dieser Mechanismus wäre aber ausdrücklich **nicht produktiv notwendig**, sondern nur eine Übung, um periodische Aktualisierung kennenzulernen.
+
+SSE wäre erst sinnvoll, wenn der Server echte einseitige Live-Ereignisse senden soll, zum Beispiel Benachrichtigungen, laufende Workout-Timer oder Fortschrittsupdates. WebSockets wären erst sinnvoll, wenn beide Seiten dauerhaft aktiv kommunizieren müssen, zum Beispiel bei Chat, gemeinsamem Bearbeiten von Workout-Plänen oder Live-Coaching. Diese Szenarien existieren im aktuellen Projektumfang noch nicht.
+
+## SSE-Lernübung: Live-Update für Workout-Pläne
+
+Obwohl PROGYM produktiv aktuell keine zwingende Echtzeit-Kommunikation braucht, wurde als Lernübung ein Server-Sent-Events-Mechanismus für Workout-Pläne eingebaut.
+
+### Umsetzung
+
+Backend:
+
+- Neuer Endpoint: `GET /api/events`
+- Der Endpoint öffnet einen dauerhaften `text/event-stream`.
+- Die Route ist mit derselben JWT-Middleware geschützt wie die anderen privaten API-Routen.
+- Verbundene Clients werden nach `userId` gruppiert, damit Events nur an Tabs desselben eingeloggten Nutzers gehen.
+- Wenn ein Workout-Plan über `POST /api/plans` angelegt wird, sendet der Server ein Event:
+
+```text
+event: plans:changed
+data: {"action":"created","id":123}
+```
+
+Zusätzlich werden auch `PUT /api/plans/:id` und `DELETE /api/plans/:id` broadcastet, damit geänderte oder gelöschte Pläne ebenfalls in anderen Tabs sichtbar werden.
+
+Frontend:
+
+- Die Workouts-Seite öffnet in einem `useEffect` einen `EventSource` auf `/api/events`.
+- Bei `plans:changed` wird `api.getPlans()` erneut ausgeführt.
+- Dadurch aktualisiert sich die Planliste in einem zweiten geöffneten Browser-Tab ohne kompletten Seiten-Reload.
+
+Relevante Dateien:
+
+- `backend/events.js`
+- `backend/server.js`
+- `backend/routes/workouts.js`
+- `frontend/src/pages/Workouts.jsx`
+- `frontend/src/api.js`
+
+### Testfall
+
+1. App in zwei Browser-Tabs öffnen.
+2. In beiden Tabs mit demselben Account einloggen.
+3. In Tab 1 auf der Workouts-Seite einen neuen eigenen Workout-Plan speichern.
+4. Erwartung: Tab 2 empfängt `plans:changed`, lädt `/api/plans` neu und zeigt den neuen Plan ohne Seiten-Reload an.
+
+Hinweis: Der Mechanismus ist für dieses Projekt als Lernübung markiert. Für den aktuellen produktiven Bedarf würden Reload oder gezieltes Refetching nach Aktionen weiterhin ausreichen.
+
+Wichtig: Die Kalenderplanung (`workoutSchedule`) liegt aktuell noch im `localStorage` und wird nicht über das Backend gespeichert. Deshalb kann der Server für Kalenderänderungen noch kein SSE-Event senden. Für diesen Sonderfall synchronisieren Dashboard und Analytics geöffnete Tabs über den Browser-`storage`-Event: Wenn ein Tab einen geplanten Workout-Termin in `localStorage` schreibt, liest der andere Tab den aktualisierten Kalenderzustand ein. Sobald Kalenderdaten später als eigene Backend-Ressource gespeichert werden, kann dieselbe SSE-Struktur auch für ein Event wie `schedule:changed` verwendet werden.
+
+### Zwei Iterationen der Beschreibung
+
+Iteration 1:
+
+> Implementiere einen SSE-Endpoint `GET /api/events`. Wenn ein neuer Workout-Plan per `POST /api/plans` erstellt wird, soll der Server allen verbundenen Clients ein Event schicken. Das Frontend soll mit `EventSource` zuhören und die Planliste neu laden.
+
+Problem an dieser Beschreibung: Sie war zu allgemein. „Allen verbundenen Clients“ wäre bei einer App mit privaten Nutzerdaten problematisch, weil andere Nutzer keine Events zu fremden Workout-Plänen erhalten dürfen.
+
+Iteration 2:
+
+> Implementiere einen authentifizierten SSE-Endpoint `GET /api/events`. Verbundene Clients werden pro `userId` gespeichert. Wenn ein eingeloggter Nutzer einen Workout-Plan erstellt, aktualisiert oder löscht, sendet der Server nur an die SSE-Verbindungen dieses Nutzers ein `plans:changed` Event. Die Workouts-Seite öffnet mit `EventSource` inklusive Cookies eine Verbindung und ruft bei diesem Event `api.getPlans()` auf.
+
+Präzisierung im zweiten Versuch:
+
+- Events werden nicht global, sondern nutzerbezogen verschickt.
+- Der SSE-Endpoint ist durch JWT geschützt.
+- Das Event heißt konkret `plans:changed`.
+- Das Frontend reagiert nicht mit einem Seiten-Reload, sondern mit einem gezielten Refetch der Planliste.
+
+## SSE vs. WebSockets - Direktvergleich
+
+| Kriterium | SSE | WebSockets |
+| --- | --- | --- |
+| Richtung | Server -> Client | Bidirektional |
+| Komplexität im Code | Gering. Ein Express-Endpoint mit `text/event-stream` und ein `EventSource` im Frontend reichen aus. | Mittel. Es braucht ein eigenes Verbindungsprotokoll, Event-Handling in beide Richtungen und meist zusätzliche Infrastruktur oder eine Bibliothek wie `socket.io`. |
+| Reconnect bei Verbindungsabbruch | Automatisch durch den Browser. `EventSource` versucht die Verbindung nach einem Abbruch erneut aufzubauen. | Muss selbst implementiert werden oder wird von einer Bibliothek wie `socket.io` übernommen. |
+| Geeignet für euer Projekt | ✅ Als Lernübung und für einseitige Hinweise wie `plans:changed`. Produktiv aber aktuell nicht zwingend nötig. | ❌ Aktuell nicht passend, weil PROGYM keinen Chat, kein kollaboratives Editing und keine bidirektionale Live-Interaktion braucht. |
+| Warum? | Die App muss dem Client höchstens sagen: "Daten haben sich geändert, bitte neu laden." Genau dafür reicht Server -> Client aus. | WebSockets wären überdimensioniert, solange der Client nicht dauerhaft aktiv Nachrichten an andere Clients oder den Server streamen muss. |
+
+### Verhalten bei Server-Neustart
+
+Wenn der Express-Server neu startet, werden alle offenen SSE-Verbindungen beendet. Die im Server gespeicherte Liste verbundener Clients in `backend/events.js` geht dabei verloren, weil sie nur im Arbeitsspeicher liegt.
+
+Im Browser merkt `EventSource`, dass die Verbindung abgebrochen ist, und versucht automatisch, `/api/events` erneut zu öffnen. Sobald der Server wieder erreichbar ist und der JWT-Cookie noch gültig ist, verbindet sich der Client wieder. Die App stürzt dadurch nicht ab; sie bekommt nur während der kurzen Unterbrechung keine Live-Events.
+
+Wichtig: Events, die genau während des Server-Neustarts passieren, werden in der aktuellen Implementierung nicht nachträglich zugestellt. Es gibt keine Event-Historie und keine Queue. Das ist für die Lernübung okay, weil `plans:changed` nur ein Signal zum Refetch ist. Spätestens beim nächsten Fokuswechsel, Reload oder manuellen API-Refetch liest die App wieder den aktuellen Datenbankstand.
+
+### Projektstruktur der Echtzeit-Übung
+
+```text
+backend/
+├── server.js              # registriert GET /api/events
+├── events.js              # SSE-Client-Verwaltung und Broadcast-Funktion
+└── routes/
+    └── workouts.js        # sendet plans:changed nach POST/PUT/DELETE
+
+frontend/
+├── src/api.js             # exportiert API_URL für EventSource
+└── src/pages/
+    ├── Workouts.jsx       # EventSource-Listener für plans:changed
+    ├── Dashboard.jsx      # localStorage-sync für lokale Kalenderdaten
+    └── Analytics.jsx      # localStorage-sync für lokale Kalenderdaten
+```
+
+Socket.io wurde bewusst nicht integriert, weil die Architekturentscheidung für diese Aufgabe auf SSE gefallen ist. WebSockets wären für den aktuellen Codeumfang überdimensioniert: Es gibt keinen Chat, kein kollaboratives Editing und keine bidirektionale Live-Interaktion. Falls die Aufgabenabgabe zwingend auch socket.io verlangt, müsste zusätzlich ein WebSocket-Server im Backend und ein `socket.io-client` im Frontend ergänzt werden; fachlich notwendig ist das für PROGYM aktuell nicht.
+
+### Erfolgskriterien
+
+| Kriterium | Status |
+| --- | --- |
+| Echtzeit-Bedarf begründet evaluiert und in README dokumentiert | ✅ Erledigt |
+| SSE-Endpoint implementiert, Frontend reagiert ohne Reload auf Server-Events | ✅ Erledigt für Workout-Pläne über `plans:changed` |
+| socket.io integriert, Events werden an alle verbundenen Clients gebroadcastet | ❌ Nicht umgesetzt, weil SSE als passende Technologie gewählt wurde und WebSockets fachlich nicht nötig sind |
+| Zwei-Tab-Test: Änderung in Tab 1 erscheint live in Tab 2 | ✅ Für Backend-Workout-Pläne über SSE; Kalenderdaten werden wegen `localStorage` über den Browser-`storage`-Event synchronisiert |
+| SSE vs. WebSockets Vergleich in README ausgefüllt und begründet | ✅ Erledigt |
+| Zwei Prompt-Iterationen dokumentiert | ✅ Erledigt |
+| Git-Commit vorhanden | ⬜ Noch lokal zu committen |
+| Verbindungsabbruch getestet: Was passiert beim Server-Restart? | ✅ Verhalten dokumentiert |
+
+Empfohlener Commit:
+
+```bash
+git add .
+git commit -m "feat: add real-time updates via SSE"
+```
+
+## Agent als Architekt: Echtzeit-Einschätzung
+
+Langfristig würden vor allem serverseitig gespeicherte, gemeinsam sichtbare Änderungen von Echtzeit-Kommunikation profitieren, zum Beispiel Workout-Pläne, wenn sie später geteilt werden, Live-Coaching, Benachrichtigungen oder ein laufender Workout-Timer, der auf mehreren Geräten synchron sichtbar sein soll. Für aktuelle persönliche Daten wie Analytics, Progress, Stats und Daily Activity ist Polling oder gezieltes Refetching ehrlicher, weil diese Daten aus bestehenden REST-Endpunkten wie `/api/sessions`, `/api/stats` und `/api/daily-activity/today` berechnet werden und keine echte Live-Interaktion zwischen Nutzern brauchen. Die Kalenderplanung liegt aktuell sogar noch in `localStorage`, deshalb ist dort ein Browser-`storage`-Event passender als SSE; erst wenn Kalenderdaten ins Backend wandern, wäre ein `schedule:changed` Event sinnvoll. Wir stimmen dieser Einschätzung zu, weil der konkrete Code eher nutzerspezifische CRUD- und Analysefunktionen enthält und WebSockets dafür unnötig komplex wären.
+
 ## Aktuelle Sicherheitslücken der API
 
 Die API ist aktuell noch nicht durch Login, JWT oder eine User-Zuordnung geschützt. Dadurch kann ein anonymer Nutzer ohne Token direkt auf die Endpunkte zugreifen.

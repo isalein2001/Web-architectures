@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey } from '../userStorage';
-import { api } from '../api';
+import { API_URL, api } from '../api';
 import './Workouts.css';
 
 const readyPlans = [
@@ -155,16 +155,8 @@ export default function Workouts({ currentUser }) {
   const exerciseCardRefs = useRef(new Map());
   const activeDrag = useRef({ id: null, startY: 0, lastY: 0 });
 
-  useEffect(() => {
-    window.localStorage.setItem(customPlansStorageKey, JSON.stringify(savedPlans));
-  }, [savedPlans, customPlansStorageKey]);
-
-  useEffect(() => {
-    setSavedPlans(loadSavedWorkoutPlans(customPlansStorageKey));
-  }, [customPlansStorageKey]);
-
-  useEffect(() => {
-    api.getPlans()
+  const refreshBackendPlans = () => {
+    return api.getPlans()
       .then((plans) => {
         const backendPlans = plans.map(mapBackendPlanToSavedPlan);
         setSavedPlans((currentPlans) => {
@@ -175,7 +167,32 @@ export default function Workouts({ currentUser }) {
         });
       })
       .catch(() => null);
+  };
+
+  useEffect(() => {
+    window.localStorage.setItem(customPlansStorageKey, JSON.stringify(savedPlans));
+  }, [savedPlans, customPlansStorageKey]);
+
+  useEffect(() => {
+    setSavedPlans(loadSavedWorkoutPlans(customPlansStorageKey));
   }, [customPlansStorageKey]);
+
+  useEffect(() => {
+    refreshBackendPlans();
+  }, [customPlansStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !currentUser) return undefined;
+
+    const events = new EventSource(`${API_URL}/events`, { withCredentials: true });
+    events.addEventListener('plans:changed', () => {
+      refreshBackendPlans();
+    });
+
+    return () => {
+      events.close();
+    };
+  }, [currentUser, customPlansStorageKey]);
 
   const updateExercise = (id, field, value) => {
     setValidationErrors((currentErrors) => ({

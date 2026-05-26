@@ -8,6 +8,7 @@ const createProgressRouter = require('./routes/progress');
 const createStatsRouter = require('./routes/stats');
 const createDailyActivityRouter = require('./routes/dailyActivity');
 const { authenticate } = require('./middleware/authenticate');
+const { createEventsRouter } = require('./events');
 
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET must be set in backend/.env');
@@ -26,6 +27,7 @@ const PORT = process.env.PORT || 3000;
 const workoutsRouter = createWorkoutsRouter();
 
 app.use('/api/auth', createAuthRouter());
+app.use('/api/events', authenticate, createEventsRouter());
 app.use('/api/plans', authenticate, workoutsRouter);
 app.use('/api/workouts', authenticate, workoutsRouter);
 app.use('/api/sessions', authenticate, createSessionsRouter());

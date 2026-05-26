@@ -1,5 +1,5 @@
 const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-const API_URL = `http://${API_HOST}:3000/api`;
+export const API_URL = `http://${API_HOST}:3000/api`;
 
 export const authFetch = async (url, options = {}) => {
   const { redirectOnUnauthorized = true, ...fetchOptions } = options;

@@ -354,18 +354,19 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   ]);
 
   useEffect(() => {
-    const refreshWorkoutPlans = () => {
+    const refreshWorkoutPlannerData = () => {
       setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
+      setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
     };
 
-    window.addEventListener('focus', refreshWorkoutPlans);
-    window.addEventListener('storage', refreshWorkoutPlans);
+    window.addEventListener('focus', refreshWorkoutPlannerData);
+    window.addEventListener('storage', refreshWorkoutPlannerData);
 
     return () => {
-      window.removeEventListener('focus', refreshWorkoutPlans);
-      window.removeEventListener('storage', refreshWorkoutPlans);
+      window.removeEventListener('focus', refreshWorkoutPlannerData);
+      window.removeEventListener('storage', refreshWorkoutPlannerData);
     };
-  }, [customPlansStorageKey]);
+  }, [customPlansStorageKey, workoutScheduleStorageKey]);
 
   useEffect(() => {
     if (!isHydrationModalOpen) return undefined;

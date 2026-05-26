@@ -1,5 +1,6 @@
 const express = require('express');
 const { prisma } = require('../prismaClient');
+const { broadcastToUser } = require('../events');
 
 const toNumberId = (id) => {
   const parsedId = Number(id);
@@ -87,6 +88,10 @@ function createWorkoutsRouter() {
         },
       });
 
+      broadcastToUser(req.user.userId, 'plans:changed', {
+        action: 'created',
+        id: plan.id,
+      });
       res.status(201).json({ id: plan.id, name: plan.name, description: plan.description });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -265,6 +270,10 @@ function createWorkoutsRouter() {
         });
       });
 
+      broadcastToUser(req.user.userId, 'plans:changed', {
+        action: 'updated',
+        id: updatedPlan.id,
+      });
       res.status(200).json(serializePlan(updatedPlan));
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -280,6 +289,10 @@ function createWorkoutsRouter() {
       if (!plan) return res.status(404).json({ error: 'Workout not found' });
 
       await prisma.plan.delete({ where: { id: planId } });
+      broadcastToUser(req.user.userId, 'plans:changed', {
+        action: 'deleted',
+        id: planId,
+      });
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: error.message });
