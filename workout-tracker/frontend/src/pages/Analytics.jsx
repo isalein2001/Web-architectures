@@ -568,6 +568,28 @@ const getAverageDurationMinutes = (sessions = []) => {
   return Math.round((durations.reduce((sum, duration) => sum + duration, 0) / durations.length) / 60);
 };
 
+const buildDurationTrend = (sessions = [], limit = 6) => {
+  const recentSessions = sessions
+    .map((session) => ({
+      date: getSessionDate(session),
+      minutes: Math.round((Number(session.duration_seconds) || 0) / 60),
+    }))
+    .filter((session) => session.date && session.minutes > 0)
+    .sort((firstSession, secondSession) => firstSession.date - secondSession.date)
+    .slice(-limit);
+  const maxDuration = Math.max(...recentSessions.map((session) => session.minutes), 0);
+  const scaleMax = Math.max(60, Math.ceil(maxDuration / 15) * 15);
+
+  return {
+    scaleMax,
+    sessions: recentSessions.map((session, index) => ({
+      ...session,
+      label: `S${index + 1}`,
+      width: Math.max((session.minutes / scaleMax) * 100, 0),
+    })),
+  };
+};
+
 const getBestScoresByExercise = (entries = []) => entries.reduce((groups, entry) => {
   const key = entry.exerciseName.trim().toLowerCase();
   if (!key) return groups;
@@ -621,6 +643,7 @@ const buildPerformanceIntelligence = (sessions = [], referenceDate = new Date())
   const previous30StrengthEntries = strengthEntries.filter((entry) => isWithinRange(entry.date, previous30Start, previous30End));
   const currentAverageDuration = getAverageDurationMinutes(last30Sessions);
   const previousAverageDuration = getAverageDurationMinutes(previous30Sessions);
+  const durationTrend = buildDurationTrend(last30Sessions);
   const uniqueExercises = new Set(last30Entries
     .map((entry) => entry.exerciseName.trim().toLowerCase())
     .filter(Boolean));
@@ -635,6 +658,7 @@ const buildPerformanceIntelligence = (sessions = [], referenceDate = new Date())
   return {
     averageDuration: currentAverageDuration,
     averageDurationChange: getPercentChange(currentAverageDuration, previousAverageDuration),
+    durationTrend,
     progressiveOverloadScore: getProgressiveOverloadScore(last30StrengthEntries, previous30StrengthEntries),
     exerciseDiversity: uniqueExercises.size,
     exerciseBubbles,
@@ -810,6 +834,10 @@ export default function Analytics({ currentUser }) {
     : stats;
   const chartRef = useRef(null);
   const isChartInView = useInView(chartRef, { once: false, amount: 0.4 });
+  const durationRef = useRef(null);
+  const isDurationInView = useInView(durationRef, { once: false, amount: 0.35 });
+  const overloadRef = useRef(null);
+  const isOverloadInView = useInView(overloadRef, { once: false, amount: 0.45 });
   const analyticsWindowKey = format(new Date(), 'yyyy-MM');
   const analyticsReferenceDate = useMemo(() => new Date(), [analyticsWindowKey]);
   const strengthAnalytics = useMemo(() => buildStrengthAnalytics(displaySessions), [displaySessions]);
@@ -1195,6 +1223,7 @@ export default function Analytics({ currentUser }) {
         <div className="analytics-intelligence-grid">
           <section
             className="analytics-insight-card duration-insight-card clickable-insight-card"
+            ref={durationRef}
             role="button"
             tabIndex={0}
             onClick={() => openInsightInfo('duration')}
@@ -1208,16 +1237,44 @@ export default function Analytics({ currentUser }) {
             <div className="duration-display">
               <div className="duration-widget-panel">
                 <div className="duration-widget-stat">
-                  <strong>{performanceIntelligence.averageDuration}</strong>
+                  <AnimatedNumber
+                    value={performanceIntelligence.averageDuration}
+                    as="strong"
+                  />
                   <span>{t('MIN AVG')}</span>
+                  <em>{t('LAST SESSIONS')}</em>
                 </div>
-                <div className={`info-duration-lanes duration-widget-lanes ${performanceIntelligence.averageDuration === 0 ? 'empty' : ''}`} aria-hidden="true">
-                  {[36, 52, 74, 46, 88, 64].map((width, index) => (
-                    <span
-                      key={index}
-                      className={performanceIntelligence.averageDuration > 0 && index === 4 ? 'peak' : ''}
-                      style={{ width: `${performanceIntelligence.averageDuration > 0 ? width : 0}%` }}
-                    ></span>
+                <div className={`duration-widget-lanes ${performanceIntelligence.durationTrend.sessions.length === 0 ? 'empty' : ''}`} aria-hidden="true">
+                  <div className="duration-lane-scale">
+                    <small>0</small>
+                    <small>{Math.round(performanceIntelligence.durationTrend.scaleMax / 2)}</small>
+                    <small>{performanceIntelligence.durationTrend.scaleMax} {t('MIN')}</small>
+                  </div>
+                  {performanceIntelligence.durationTrend.sessions.map((session, index) => (
+                    <div key={`${session.label}-${session.date.toISOString()}`} className="duration-lane-row">
+                      <small>{session.label}</small>
+                      <span className={session.minutes === Math.max(...performanceIntelligence.durationTrend.sessions.map((item) => item.minutes)) ? 'duration-lane peak' : 'duration-lane'}>
+                        <motion.i
+                          initial={false}
+                          animate={{
+                            opacity: isDurationInView ? 1 : 0,
+                            width: `${isDurationInView ? session.width : 0}%`,
+                          }}
+                          transition={{
+                            width: {
+                              duration: 0.9,
+                              delay: isDurationInView ? index * 0.16 : 0,
+                              ease: [0.16, 1, 0.3, 1],
+                            },
+                            opacity: {
+                              duration: 0.32,
+                              delay: isDurationInView ? index * 0.16 : 0,
+                            },
+                          }}
+                        />
+                      </span>
+                      <b>{session.minutes}m</b>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1231,6 +1288,7 @@ export default function Analytics({ currentUser }) {
 
           <section
             className="analytics-insight-card consistency-insight-card clickable-insight-card"
+            ref={overloadRef}
             role="button"
             tabIndex={0}
             onClick={() => openInsightInfo('overload')}
@@ -1242,15 +1300,46 @@ export default function Analytics({ currentUser }) {
               <span>{t('PROGRESSIVE OVERLOAD SCORE')}</span>
             </div>
             <div className="overload-console">
-              <div className="consistency-ring" style={{ '--score': `${performanceIntelligence.progressiveOverloadScore}%` }}>
-                <span>{performanceIntelligence.progressiveOverloadScore}%</span>
+              <div className="consistency-ring">
+                <svg viewBox="0 0 180 180" aria-hidden="true">
+                  <circle className="consistency-ring-track" cx="90" cy="90" r="72" />
+                  <MotionCircle
+                    className="consistency-ring-progress"
+                    cx="90"
+                    cy="90"
+                    r="72"
+                    initial={false}
+                    animate={{ pathLength: isOverloadInView ? performanceIntelligence.progressiveOverloadScore / 100 : 0 }}
+                    transition={{ duration: 1.45, ease: [0.16, 1, 0.3, 1] }}
+                  />
+                </svg>
+                <AnimatedNumber
+                  value={performanceIntelligence.progressiveOverloadScore}
+                  suffix="%"
+                  as="span"
+                />
               </div>
               <div className="overload-segments" aria-hidden="true">
                 {[20, 40, 60, 80, 100].map((threshold) => (
                   <span
                     key={threshold}
-                    className={performanceIntelligence.progressiveOverloadScore >= threshold ? 'active' : ''}
-                  ></span>
+                    className={performanceIntelligence.progressiveOverloadScore >= threshold - 19 ? 'active' : ''}
+                  >
+                    <motion.i
+                      initial={false}
+                      animate={{
+                        scaleX: isOverloadInView
+                          ? Math.min(Math.max((performanceIntelligence.progressiveOverloadScore - (threshold - 20)) / 20, 0), 1)
+                          : 0,
+                      }}
+                      transition={{
+                        duration: 0.8,
+                        delay: isOverloadInView ? (threshold / 20) * 0.09 : 0,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                    />
+                    <small>{threshold}</small>
+                  </span>
                 ))}
               </div>
             </div>
@@ -1414,20 +1503,51 @@ export default function Analytics({ currentUser }) {
                 </>
               )}
               {activeInsightInfo === 'overload' && (
-                <>
-                  <div className="info-overload-grid" aria-hidden="true">
-                    {[20, 40, 60, 80, 100].map((threshold) => (
-                      <span
-                        key={threshold}
-                        className={performanceIntelligence.progressiveOverloadScore >= threshold ? 'active' : ''}
-                      ></span>
-                    ))}
+                <div className="info-overload-dashboard">
+                  <div className="info-overload-impact-grid">
+                    <div className="info-overload-impact-item">
+                      <TrendingUp size={20} />
+                      <h3>{t('BEAT YOUR BASELINE')}</h3>
+                      <p>{t('The score rises when recent strength bests beat the previous 30-day window.')}</p>
+                    </div>
+                    <div className="info-overload-impact-item">
+                      <Dumbbell size={20} />
+                      <h3>{t('REPS OR LOAD')}</h3>
+                      <p>{t('More clean reps or more weight can push the estimated best value forward.')}</p>
+                    </div>
+                    <div className="info-overload-impact-item">
+                      <Activity size={20} />
+                      <h3>{t('KEEP IT TRACKABLE')}</h3>
+                      <p>{t('Repeated logged exercises create a clearer comparison than random one-off lifts.')}</p>
+                    </div>
                   </div>
-                  <div className="info-overload-score">
-                    <strong>{performanceIntelligence.progressiveOverloadScore}%</strong>
-                    <span>{t('STRENGTH PRESSURE')}</span>
+
+                  <div className="info-overload-score-panel">
+                    <div className="info-overload-score-head">
+                      <div>
+                        <span>{t('SCORE WINDOW')}</span>
+                        <strong>{performanceIntelligence.progressiveOverloadScore}%</strong>
+                      </div>
+                      <div className="info-overload-window-badge">
+                        <Gauge size={16} />
+                        {t('LAST 30 DAYS VS PREVIOUS 30 DAYS')}
+                      </div>
+                    </div>
+
+                    <div className="info-overload-scale" aria-hidden="true">
+                      {[20, 40, 60, 80, 100].map((threshold) => (
+                        <span
+                          key={threshold}
+                          className={performanceIntelligence.progressiveOverloadScore >= threshold ? 'active' : ''}
+                        >
+                          <small>{threshold}</small>
+                        </span>
+                      ))}
+                    </div>
+
+                    <p>{t('The app compares each exercise by its best estimated strength value. New exercises start with a smaller base signal until a previous window exists.')}</p>
                   </div>
-                </>
+                </div>
               )}
               {activeInsightInfo === 'diversity' && (
                 <div className="info-diversity-dashboard">
