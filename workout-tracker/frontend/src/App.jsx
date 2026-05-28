@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X, Flame } from "lucide-react";
+import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X, Flame, User, PlayCircle, Target, BarChart3, Dumbbell } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";
 import Analytics from "./pages/Analytics";
@@ -69,6 +69,9 @@ function AppLayout() {
   const [isQuickLogSaving, setIsQuickLogSaving] = useState(false);
   const [draftWaterMl, setDraftWaterMl] = useState(0);
   const [draftSteps, setDraftSteps] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchPlans, setSearchPlans] = useState([]);
   const langRef = useRef(null);
   const alertsRef = useRef(null);
   const pageTitleKey = location.pathname === '/dashboard'
@@ -99,6 +102,51 @@ function AppLayout() {
   const visibleWaterProgress = Math.min(100, Math.round((visibleWaterMl / Math.max(waterGoalMl, 1)) * 100));
   const visibleStepsProgress = Math.min(100, Math.round((visibleSteps / Math.max(stepGoal, 1)) * 100));
   const visibleStepCalories = Math.round(visibleSteps * (Number(currentUser?.weightKg) || 75) * 0.00055);
+  const uniquePlanExercises = Array.from(new Map(searchPlans
+    .flatMap((plan) => (plan.exercises || []).map((exercise) => ({
+      key: String(exercise.exercise_name || '').trim().toLowerCase(),
+      label: exercise.exercise_name,
+      planName: plan.name,
+    })))
+    .filter((exercise) => exercise.key && exercise.label)
+    .map((exercise) => [exercise.key, exercise])
+  ).values());
+  const searchEntries = [
+    { type: 'Page', label: 'Dashboard', description: 'Daily goals, calendar and overview', path: '/dashboard', Icon: LayoutDashboard },
+    { type: 'Page', label: 'Workouts', description: 'Create, edit and start workout plans', path: '/workouts', Icon: NotebookPen },
+    { type: 'Page', label: 'Analytics', description: 'Strength progress and training insights', path: '/analytics', Icon: LineChart },
+    { type: 'Page', label: 'Settings', description: 'Account and preferences', path: '/settings', Icon: Activity },
+    { type: 'Page', label: 'Profile', description: 'Body metrics and advanced biometrics', path: '/profile', Icon: User },
+    { type: 'Page', label: 'Support', description: 'Help center and ticket form', path: '/support', Icon: LifeBuoy },
+    { type: 'Page', label: 'About Us', description: 'Founders and PROGYM philosophy', path: '/about', Icon: Info },
+    { type: 'Action', label: 'Start Workout', description: 'Open workout launcher', path: '/start-workout', Icon: PlayCircle },
+    { type: 'Action', label: 'Log Water', description: 'Open quick hydration log', action: () => openQuickLog('water'), Icon: Droplets },
+    { type: 'Action', label: 'Log Steps', description: 'Open quick steps log', action: () => openQuickLog('steps'), Icon: Activity },
+    { type: 'Analytics', label: 'Progressive Overload Score', description: 'Strength pressure over the last 30 days', path: '/analytics', Icon: Target },
+    { type: 'Analytics', label: 'Average Session Duration', description: 'Recent workout duration trend', path: '/analytics', Icon: BarChart3 },
+    { type: 'Analytics', label: 'Exercise Diversity', description: 'Exercise variety in recent workouts', path: '/analytics', Icon: Activity },
+    ...searchPlans.map((plan) => ({
+      type: 'Workout',
+      label: plan.name,
+      description: `${(plan.exercises || []).length} exercises`,
+      path: '/workouts',
+      Icon: Dumbbell,
+    })),
+    ...uniquePlanExercises.map((exercise) => ({
+      type: 'Exercise',
+      label: exercise.label,
+      description: `In ${exercise.planName}`,
+      path: '/workouts',
+      Icon: Dumbbell,
+    })),
+  ];
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredSearchEntries = (normalizedSearchQuery
+    ? searchEntries.filter((entry) => (
+      `${entry.label} ${entry.description} ${entry.type}`.toLowerCase().includes(normalizedSearchQuery)
+    ))
+    : []
+  ).slice(0, 5);
 
   const handleLogout = async () => {
     try {
@@ -114,6 +162,88 @@ function AppLayout() {
     setCurrentUser(nextUser);
   };
 
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchQuery('');
+  };
+
+  const selectSearchEntry = (entry) => {
+    if (entry.action) {
+      entry.action();
+    } else if (entry.path) {
+      navigate(entry.path);
+    }
+    closeSearch();
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      closeSearch();
+      return;
+    }
+
+    if (event.key === 'Enter' && filteredSearchEntries[0]) {
+      event.preventDefault();
+      selectSearchEntry(filteredSearchEntries[0]);
+    }
+  };
+
+  const renderSearchBar = (className) => (
+    <div
+      className={`search-bar global-search ${className} ${searchOpen ? 'search-open' : ''}`}
+      onClick={() => setSearchOpen(true)}
+    >
+      <Search size={18} color="#ADAAAA" />
+      <input
+        type="text"
+        value={searchQuery}
+        placeholder={t('SEARCH...')}
+        onChange={(event) => {
+          setSearchQuery(event.target.value);
+          setSearchOpen(true);
+        }}
+        onFocus={() => setSearchOpen(true)}
+        onKeyDown={handleSearchKeyDown}
+      />
+      {searchOpen && (
+        <div className="global-search-dropdown">
+          <div className="global-search-results">
+            {filteredSearchEntries.length > 0 ? (
+              filteredSearchEntries.map((entry) => {
+                const ResultIcon = entry.Icon;
+                return (
+                  <button
+                    key={`${entry.type}-${entry.label}-${entry.description}`}
+                    type="button"
+                    className="global-search-result"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => selectSearchEntry(entry)}
+                  >
+                    <span className="global-search-result-icon">
+                      <ResultIcon size={14} />
+                    </span>
+                    <span className="global-search-result-copy">
+                      <strong>{t(entry.label)}</strong>
+                      <small>{t(entry.description)}</small>
+                    </span>
+                  </button>
+                );
+              })
+            ) : normalizedSearchQuery ? (
+              <div className="global-search-empty">
+                {t('No results found')}
+              </div>
+            ) : (
+              <div className="global-search-hint">
+                {t('Type to search pages, workouts or exercises.')}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const refreshDailyActivity = async () => {
     if (!currentUser?.id) return;
     const activity = await api.getTodayActivity();
@@ -121,14 +251,14 @@ function AppLayout() {
     window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
   };
 
-  const openQuickLog = (tab = 'water') => {
+  function openQuickLog(tab = 'water') {
     setQuickLogTab(tab);
     setQuickLogCustomValue('');
     setQuickLogStatus('');
     setDraftWaterMl(waterIntakeMl);
     setDraftSteps(stepsToday);
     setQuickLogOpen(true);
-  };
+  }
 
   const addQuickLogValue = (amount) => {
     const parsedAmount = Number(amount);
@@ -184,8 +314,12 @@ function AppLayout() {
     if (!currentUser?.id || !currentUser.emailVerified || !currentUser.onboardingCompleted) return undefined;
 
     refreshDailyActivity().catch(console.error);
+    api.getPlans().then(setSearchPlans).catch(() => setSearchPlans([]));
 
-    const handleFocus = () => refreshDailyActivity().catch(console.error);
+    const handleFocus = () => {
+      refreshDailyActivity().catch(console.error);
+      api.getPlans().then(setSearchPlans).catch(() => null);
+    };
     const handleOpenQuickLog = (event) => openQuickLog(event.detail?.tab || 'water');
 
     window.addEventListener('focus', handleFocus);
@@ -203,6 +337,9 @@ function AppLayout() {
       }
       if (alertsRef.current && !alertsRef.current.contains(event.target)) {
         setAlertsOpen(false);
+      }
+      if (!event.target.closest('.global-search')) {
+        setSearchOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -439,10 +576,7 @@ function AppLayout() {
                 <small>{t(pageTitleKey)}</small>
               </span>
             </NavLink>
-            <div className="search-bar desktop-search-bar">
-              <Search size={18} color="#ADAAAA" />
-              <input type="text" placeholder={t('SEARCH...')} />
-            </div>
+            {renderSearchBar('desktop-search-bar')}
             
             <div className="topbar-actions">
               <div className="lang-selector" ref={langRef} onClick={() => setLangOpen(!langOpen)}>
@@ -454,10 +588,7 @@ function AppLayout() {
                   <div onClick={(e) => { e.stopPropagation(); setLang('de'); setLangOpen(false); }} className={lang === 'de' ? 'active' : ''}>DE</div>
                 </div>
               </div>
-              <div className="search-bar mobile-search-bar" aria-label={t('SEARCH...')}>
-                <Search size={18} color="#ADAAAA" />
-                <input type="text" placeholder={t('SEARCH...')} />
-              </div>
+              {renderSearchBar('mobile-search-bar')}
               <div className="alerts-selector" ref={alertsRef}>
                 <button
                   className={`topbar-icon-button ${alertsOpen ? 'active' : ''}`}

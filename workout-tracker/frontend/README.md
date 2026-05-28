@@ -406,6 +406,74 @@ git commit -m "feat: add real-time updates via SSE"
 
 Langfristig würden vor allem serverseitig gespeicherte, gemeinsam sichtbare Änderungen von Echtzeit-Kommunikation profitieren, zum Beispiel Workout-Pläne, wenn sie später geteilt werden, Live-Coaching, Benachrichtigungen oder ein laufender Workout-Timer, der auf mehreren Geräten synchron sichtbar sein soll. Für aktuelle persönliche Daten wie Analytics, Progress, Stats und Daily Activity ist Polling oder gezieltes Refetching ehrlicher, weil diese Daten aus bestehenden REST-Endpunkten wie `/api/sessions`, `/api/stats` und `/api/daily-activity/today` berechnet werden und keine echte Live-Interaktion zwischen Nutzern brauchen. Die Kalenderplanung liegt aktuell sogar noch in `localStorage`, deshalb ist dort ein Browser-`storage`-Event passender als SSE; erst wenn Kalenderdaten ins Backend wandern, wäre ein `schedule:changed` Event sinnvoll. Wir stimmen dieser Einschätzung zu, weil der konkrete Code eher nutzerspezifische CRUD- und Analysefunktionen enthält und WebSockets dafür unnötig komplex wären.
 
+## Global Search
+
+Das Search-Feld in der oberen Navigation ist jetzt funktional und dient als globale Suche innerhalb der App.
+
+Die Suche findet aktuell:
+
+- feste App-Seiten wie Dashboard, Workouts, Analytics, Settings, Profile, Support und About Us
+- direkte Aktionen wie `Start Workout`, `Log Water` und `Log Steps`
+- Analytics-Themen wie `Progressive Overload Score`, `Average Session Duration` und `Exercise Diversity`
+- gespeicherte Workout-Pläne aus dem Backend über `GET /api/plans`
+- Übungen aus gespeicherten Workout-Plänen
+
+Die Implementierung liegt in `frontend/src/App.jsx`. Beim Laden der App und beim Fokuswechsel werden die Backend-Pläne für die Suche aktualisiert. Die Ergebnisse werden clientseitig gefiltert und auf maximal fünf Treffer begrenzt, damit das Search-Feld ruhig bleibt und wie eine klassische Suche wirkt. Mit `Enter` wird der erste Treffer geöffnet, mit `Escape` wird die Suche geschlossen. Auf Mobile expandiert das Lupen-Icon zu einem nutzbaren Suchfeld.
+
+Das Styling liegt in `frontend/src/App.css`. Die erste Version war stärker wie eine Command-Palette mit vielen großen Ergebnisblöcken aufgebaut. Danach wurde das Design bewusst reduziert: keine großen Karten, keine Typ-Badges, keine breite Quick-Access-Ansicht, sondern eine schmale Ergebnisliste direkt unter dem Suchfeld.
+
+## Folgeiteration: Search-Polish, Quick Log CTA und Favicon
+
+Nach der ersten Global-Search-Umsetzung wurden weitere UI-Details verfeinert, damit die App klarer und markennäher wirkt.
+
+### Search-Polish
+
+Das Search-Feld wurde bewusst weiter reduziert. Statt vieler großer Ergebnisblöcke erscheint jetzt eine kompakte, klassische Ergebnisliste direkt unter dem Suchfeld. Dadurch wirkt die Suche eher wie ein vertrautes App-Search-Pattern und weniger wie ein separates Dashboard-Panel.
+
+Angepasst wurden:
+
+- reduzierte Ergebnisanzahl
+- schmaleres Dropdown passend zur Suchleiste
+- ruhigere Hover-Zustände
+- Mobile-Search über das Lupen-Icon
+- keine überladenen Quick-Access-Blöcke mehr
+
+### Dashboard Quick Log
+
+Der bisherige `+LOG`-Button im Dashboard war funktional, aber visuell nicht eindeutig genug. Er wurde deshalb zu einem größeren Quick-Log-CTA umgebaut:
+
+- Plus-Icon als klarer visueller Hinweis zum Tracken
+- Text `QUICK LOG` als primäre Aktion
+- Zusatz `WATER & STEPS`, damit direkt klar ist, was geloggt wird
+- größerer Klickbereich
+- grüner Glow und Hover-Zustand im PROGYM-Stil
+- neue Übersetzungen in `LanguageContext.jsx`
+
+Damit ist der Button deutlicher als Tracking-Aktion erkennbar, ohne den Dashboard-Hero zu überladen.
+
+### Favicon
+
+Das alte lila Standard-Favicon wurde ersetzt. Das neue Favicon nutzt den dunklen PROGYM-Look mit neon-grünem Pulse-Symbol und passt damit besser zur restlichen Oberfläche.
+
+Technisch wurde zusätzlich in `frontend/index.html` ein Cache-Busting-Parameter gesetzt:
+
+```html
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+```
+
+Falls im Browser noch das alte Icon erscheint, liegt das meist am Favicon-Cache. Ein Hard Refresh oder ein neuer Browser-Tab mit geleertem Cache zeigt das neue Icon.
+
+### Verifikation dieser Folgeiteration
+
+Frontend:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+```
+
+Der Build läuft erfolgreich durch. Vite meldet weiterhin nur die bekannte Chunk-Size-Warnung.
+
 ## Aktuelle Sicherheitslücken der API
 
 Die API ist aktuell noch nicht durch Login, JWT oder eine User-Zuordnung geschützt. Dadurch kann ein anonymer Nutzer ohne Token direkt auf die Endpunkte zugreifen.

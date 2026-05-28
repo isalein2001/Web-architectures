@@ -592,8 +592,13 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
           <p>{t('WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.')}</p>
         </div>
         <button className="hero-quick-log-button" type="button" onClick={() => onOpenQuickLog?.('water')}>
-          <Plus size={17} />
-          <span>{t('LOG')}</span>
+          <span className="hero-quick-log-icon">
+            <PlusCircle size={20} />
+          </span>
+          <span className="hero-quick-log-copy">
+            <strong>{t('QUICK LOG')}</strong>
+            <small>{t('WATER & STEPS')}</small>
+          </span>
         </button>
       </div>
 
