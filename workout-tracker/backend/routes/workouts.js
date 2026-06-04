@@ -1,6 +1,7 @@
 const express = require('express');
 const { prisma } = require('../prismaClient');
 const { broadcastToUser } = require('../events');
+const { sendPushToUserLater } = require('../push');
 
 const toNumberId = (id) => {
   const parsedId = Number(id);
@@ -91,6 +92,11 @@ function createWorkoutsRouter() {
       broadcastToUser(req.user.userId, 'plans:changed', {
         action: 'created',
         id: plan.id,
+      });
+      sendPushToUserLater(req.user.userId, {
+        title: 'Workout plan created',
+        body: `${plan.name} was added to your PROGYM workouts.`,
+        url: '/workouts',
       });
       res.status(201).json({ id: plan.id, name: plan.name, description: plan.description });
     } catch (error) {
@@ -274,6 +280,11 @@ function createWorkoutsRouter() {
         action: 'updated',
         id: updatedPlan.id,
       });
+      sendPushToUserLater(req.user.userId, {
+        title: 'Workout plan updated',
+        body: `${updatedPlan.name} was updated.`,
+        url: '/workouts',
+      });
       res.status(200).json(serializePlan(updatedPlan));
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -292,6 +303,11 @@ function createWorkoutsRouter() {
       broadcastToUser(req.user.userId, 'plans:changed', {
         action: 'deleted',
         id: planId,
+      });
+      sendPushToUserLater(req.user.userId, {
+        title: 'Workout plan deleted',
+        body: `${plan.name} was removed from your workouts.`,
+        url: '/workouts',
       });
       res.status(204).send();
     } catch (error) {

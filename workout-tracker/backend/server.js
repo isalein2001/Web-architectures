@@ -7,6 +7,7 @@ const createSessionsRouter = require('./routes/sessions');
 const createProgressRouter = require('./routes/progress');
 const createStatsRouter = require('./routes/stats');
 const createDailyActivityRouter = require('./routes/dailyActivity');
+const createPushRouter = require('./routes/push');
 const { authenticate } = require('./middleware/authenticate');
 const { createEventsRouter } = require('./events');
 
@@ -34,5 +35,6 @@ app.use('/api/sessions', authenticate, createSessionsRouter());
 app.use('/api/progress', authenticate, createProgressRouter());
 app.use('/api/stats', authenticate, createStatsRouter());
 app.use('/api/daily-activity', authenticate, createDailyActivityRouter());
+app.use('/api/push', authenticate, createPushRouter());
 
 app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));

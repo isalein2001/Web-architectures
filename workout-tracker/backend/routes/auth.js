@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prismaClient');
 const { AUTH_COOKIE_NAME, authenticate } = require('../middleware/authenticate');
+const { sendVerificationEmailLater } = require('../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -108,7 +109,11 @@ function createAuthRouter() {
       });
 
       if (verificationCode) {
-        console.log(`[DEV EMAIL] Verification code for ${email}: ${verificationCode}`);
+        sendVerificationEmailLater({
+          to: email,
+          firstName,
+          code: verificationCode,
+        });
       }
 
       const token = createToken(user);
@@ -221,7 +226,11 @@ function createAuthRouter() {
         updateData.emailVerified = isDemoAccount(email);
         updateData.verificationCode = isDemoAccount(email) ? null : createVerificationCode();
         if (updateData.verificationCode) {
-          console.log(`[DEV EMAIL] Verification code for ${email}: ${updateData.verificationCode}`);
+          sendVerificationEmailLater({
+            to: email,
+            firstName,
+            code: updateData.verificationCode,
+          });
         }
       }
 
@@ -336,7 +345,11 @@ function createAuthRouter() {
         where: { id: currentUser.id },
         data: { verificationCode },
       });
-      console.log(`[DEV EMAIL] Verification code for ${currentUser.email}: ${verificationCode}`);
+      sendVerificationEmailLater({
+        to: currentUser.email,
+        firstName: currentUser.firstName,
+        code: verificationCode,
+      });
 
       res.status(200).json({
         message: 'Verification code sent.',

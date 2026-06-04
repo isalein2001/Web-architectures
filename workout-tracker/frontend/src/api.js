@@ -1,5 +1,5 @@
 const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-export const API_URL = `http://${API_HOST}:3000/api`;
+export const API_URL = import.meta.env.VITE_API_URL || `http://${API_HOST}:3000/api`;
 
 export const authFetch = async (url, options = {}) => {
   const { redirectOnUnauthorized = true, ...fetchOptions } = options;
@@ -143,6 +143,17 @@ export const api = {
     return requestJson(`${API_URL}/daily-activity/today/steps`, {
       method: 'POST',
       body: JSON.stringify({ amount, ...(date ? { date } : {}) }),
+    });
+  },
+
+  // Push notifications
+  getPushPublicKey: async () => {
+    return requestJson(`${API_URL}/push/public-key`);
+  },
+  subscribeToPush: async (subscription) => {
+    return requestJson(`${API_URL}/push/subscribe`, {
+      method: 'POST',
+      body: JSON.stringify({ subscription }),
     });
   }
 };

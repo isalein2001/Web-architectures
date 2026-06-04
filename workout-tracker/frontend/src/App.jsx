@@ -30,6 +30,13 @@ const WORKOUT_REMINDER_TIME = { hour: 18, minute: 0 };
 const waterQuickAdds = [250, 500, 750, 1000];
 const stepQuickAdds = [500, 1000, 2500, 5000];
 
+const urlBase64ToUint8Array = (base64String) => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+};
+
 const getNextReminderDelay = ({ hour, minute }) => {
   const now = new Date();
   const nextReminder = new Date();
@@ -328,6 +335,37 @@ function AppLayout() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('open-quick-log', handleOpenQuickLog);
     };
+  }, [currentUser?.id, currentUser?.emailVerified, currentUser?.onboardingCompleted]);
+
+  useEffect(() => {
+    if (!currentUser?.id || !currentUser.emailVerified || !currentUser.onboardingCompleted) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
+
+    const promptStorageKey = getUserStorageKey('pushPermissionPrompted', currentUser);
+    if (window.localStorage.getItem(promptStorageKey) === 'true') return;
+
+    const setupPush = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        window.localStorage.setItem(promptStorageKey, 'true');
+        if (permission !== 'granted') return;
+
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        const existingSubscription = await registration.pushManager.getSubscription();
+        const { publicKey } = await api.getPushPublicKey();
+        const subscription = existingSubscription || await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+
+        await api.subscribeToPush(subscription.toJSON());
+      } catch (error) {
+        console.error('[PUSH] Could not enable push notifications:', error);
+      }
+    };
+
+    setupPush();
   }, [currentUser?.id, currentUser?.emailVerified, currentUser?.onboardingCompleted]);
 
   useEffect(() => {

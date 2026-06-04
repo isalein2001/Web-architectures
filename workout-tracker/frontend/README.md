@@ -406,6 +406,274 @@ git commit -m "feat: add real-time updates via SSE"
 
 Langfristig würden vor allem serverseitig gespeicherte, gemeinsam sichtbare Änderungen von Echtzeit-Kommunikation profitieren, zum Beispiel Workout-Pläne, wenn sie später geteilt werden, Live-Coaching, Benachrichtigungen oder ein laufender Workout-Timer, der auf mehreren Geräten synchron sichtbar sein soll. Für aktuelle persönliche Daten wie Analytics, Progress, Stats und Daily Activity ist Polling oder gezieltes Refetching ehrlicher, weil diese Daten aus bestehenden REST-Endpunkten wie `/api/sessions`, `/api/stats` und `/api/daily-activity/today` berechnet werden und keine echte Live-Interaktion zwischen Nutzern brauchen. Die Kalenderplanung liegt aktuell sogar noch in `localStorage`, deshalb ist dort ein Browser-`storage`-Event passender als SSE; erst wenn Kalenderdaten ins Backend wandern, wäre ein `schedule:changed` Event sinnvoll. Wir stimmen dieser Einschätzung zu, weil der konkrete Code eher nutzerspezifische CRUD- und Analysefunktionen enthält und WebSockets dafür unnötig komplex wären.
 
+## Notification-Bedarf
+
+PROGYM ist aktuell ein persönlicher Workout-Tracker. Es gibt keine Freunde, Teams, geteilten Pläne, Trainer-Accounts oder Kommentare. Deshalb betrifft fast keine Aktion direkt einen anderen fremden Nutzer. Potenziell betroffen ist höchstens derselbe Nutzer auf einem anderen Gerät oder in einem zweiten Browser-Tab. Für solche Fälle reichen meistens In-App-Updates, Reloads oder SSE-Events; externe Notifications wären schnell störend.
+
+| Event in der App | Notification sinnvoll? | Typ | Kanal | Begründung |
+| --- | --- | --- | --- | --- |
+| Nutzer registriert sich | Ja | Transactional | E-Mail | Die Registrierung erzeugt einen Account und braucht eine E-Mail-Verifikation. Der Code wird aktuell nur als Dev-Mail in der Konsole ausgegeben, produktiv müsste er per E-Mail kommen. |
+| E-Mail-Adresse wird geändert | Ja | Transactional | E-Mail | Sicherheits- und Account-relevant. Die neue Adresse muss verifiziert werden; zusätzlich wäre eine Info an die alte Adresse sinnvoll, falls die Änderung nicht vom Nutzer stammt. |
+| Passwort wird geändert | Ja | Transactional | E-Mail | Sicherheitsrelevant. Der Nutzer muss nachvollziehen können, dass sich der Zugang geändert hat. Eine Push-Nachricht ist nicht nötig, weil keine sofortige App-Aktion erwartet wird. |
+| Verifikationscode wird erneut angefordert | Ja | Transactional | E-Mail | Ohne E-Mail-Kanal kann der Nutzer den Account nicht zuverlässig verifizieren. Der Inhalt ist kurzlebig, aber nicht marketingbezogen. |
+| Login erfolgt | Nein, optional nur bei Risiko | Transactional | Keiner | Normale Logins würden zu viele Meldungen auslösen. Eine E-Mail wäre nur bei späterer Risikoerkennung sinnvoll, z. B. neues Gerät oder ungewohnter Standort. |
+| Nutzer aktualisiert Profilwerte wie Größe, Gewicht, Gender oder Fitnessziel | Nein | Product | Keiner | Die Änderung betrifft nur die eigenen Auswertungen. Es entsteht kein Handlungsbedarf für andere Nutzer und kein Bedarf für E-Mail oder Push. |
+| Onboarding wird abgeschlossen | Nein | Product | Keiner | Das Event verändert nur den eigenen Startzustand der App. Eine In-App-Bestätigung reicht aus. |
+| Workout-Plan wird erstellt | Nein, aktuell nur In-App/SSE | Product | Keiner | Pläne gehören einem einzelnen Nutzer. Andere fremde Nutzer sind nicht betroffen. Der vorhandene SSE-Mechanismus informiert nur andere Tabs desselben Nutzers über `plans:changed`. |
+| Workout-Plan wird bearbeitet | Nein, aktuell nur In-App/SSE | Product | Keiner | Wie beim Erstellen: relevant für Synchronisation innerhalb desselben Accounts, aber nicht für externe Notifications. |
+| Workout-Plan wird gelöscht | Optional, aber aktuell nein | Product | Keiner | Löschen kann wichtig sein, betrifft aber nur eigene Daten. Eine Undo-Funktion oder In-App-Statusmeldung wäre passender als E-Mail oder Push. |
+| Übung in einem Plan wird hinzugefügt, geändert oder gelöscht | Nein | Product | Keiner | Das ist Detailbearbeitung am eigenen Trainingsplan. Zu kleinteilig für Notifications. |
+| Workout-Session wird gespeichert | Optional | Product | Keiner | Eine Bestätigung in der App reicht. Eine spätere Wochenzusammenfassung könnte diese Daten nutzen, aber das einzelne Speichern braucht keine Nachricht. |
+| Workout-Session wird gelöscht | Nein | Product | Keiner | Betrifft nur den eigenen Verlauf. Bei Bedarf wäre ein In-App-Undo sinnvoller als eine externe Nachricht. |
+| Wasseraufnahme wird geloggt | Nein | Product | Keiner | Sehr häufiges Alltags-Tracking. Eine Notification nach jedem Log wäre störend und hätte keinen Mehrwert. |
+| Schritte werden geloggt | Nein | Product | Keiner | Häufiges Tracking-Event ohne fremde Betroffenheit. Kein externer Kanal nötig. |
+| Hydration Reminder wird fällig | Ja, optional | Product | Push oder In-App, aktuell In-App | Der Nutzer soll zeitnah trinken, aber das Event ist nicht kritisch. Push wäre nur sinnvoll, wenn der Nutzer Reminder explizit aktiviert; aktuell gibt es lokale In-App-Toasts. |
+| Workout Reminder wird fällig | Ja, optional | Product | Push oder In-App, aktuell In-App | Trainingserinnerungen sind zeitnah, aber nicht sicherheitskritisch. Push wäre sinnvoller als E-Mail, weil E-Mail zu spät gelesen werden kann. |
+| Workout wird im Kalender geplant oder geändert | Optional | Product | Keiner | Aktuell liegt der Kalender in `localStorage` und betrifft nur den eigenen Account. Eine spätere Reminder-Notification kann daraus entstehen, aber die Planungsaktion selbst braucht keine Nachricht. |
+| Wöchentliche Trainingszusammenfassung | Optional | Product | E-Mail | Kein Zeitdruck, aber längerer Inhalt mit Fortschritt, Sessions und Zielen. E-Mail passt besser als Push, weil der Nutzer die Zusammenfassung später lesen kann. |
+| Support-Anfrage wird abgeschickt | Ja, falls serverseitig umgesetzt | Transactional | E-Mail | Der Nutzer sollte eine Eingangsbestätigung und später eine Antwort erhalten. Aktuell wirkt der Support-Bereich eher frontendseitig; produktiv wäre E-Mail sinnvoll. |
+| Marketing-Angebote, Challenges oder Newsletter | Nur mit Opt-in | Marketing | E-Mail | Marketing braucht ein explizites Opt-in. Ohne Zustimmung darf dieser Kanal nicht genutzt werden. |
+
+### Leitfragen
+
+| Leitfrage | Antwort |
+| --- | --- |
+| Gibt es Events, bei denen der Nutzer sofort reagieren muss - oder reicht eine Mail, die er später liest? | Sofort reagieren muss der Nutzer nur bei zeitnahen Erinnerungen wie Hydration oder Workout Reminder. Dafür wäre Push oder ein In-App-Toast sinnvoller als E-Mail. Sicherheits- und Account-Events wie Passwortänderung, E-Mail-Änderung oder Verifikation müssen persistent nachvollziehbar sein; dafür reicht E-Mail, weil keine Sekundenreaktion nötig ist. |
+| Habt ihr Marketing-Content geplant, der ein explizites Opt-in braucht? | Aktuell ist kein Marketing-Content produktiv geplant. Falls später Newsletter, Rabattaktionen, Challenges oder Partnerangebote ergänzt werden, brauchen sie ein klares Opt-in und eine Abmeldemöglichkeit. Produkt-Reminder wie Trink- oder Workout-Erinnerungen sind kein Marketing, sollten aber trotzdem vom Nutzer ein- und ausschaltbar sein. |
+| Wie viele verschiedene Events würden pro Stunde realistisch Notifications auslösen? | Bei normaler Nutzung sehr wenige. Account-Events passieren selten, vermutlich 0 bis 1 pro Stunde. Tracking-Events wie Wasser, Schritte oder Sessions können zwar mehrfach pro Stunde passieren, sollen aber keine externen Notifications auslösen. Aktive Reminder könnten realistisch 0 bis 2 Push/In-App-Hinweise pro Stunde erzeugen, je nach Nutzereinstellung. |
+
+### Kanalentscheidung
+
+Für Account-Sicherheit verwenden wir **E-Mail**. Konkret gilt das für Registrierung/E-Mail-Verifikation, E-Mail-Änderung und Passwortänderung. Diese Events sind transactional, müssen nachvollziehbar bleiben und enthalten Informationen, die der Nutzer später wiederfinden können soll. Push wäre hier nicht zuverlässig genug als alleiniger Kanal und für normale Logins zu laut.
+
+Für Hydration- und Workout-Reminder verwenden wir **keine E-Mail**, sondern höchstens **Push oder In-App-Notifications**. Diese Events sind zeitnah und produktbezogen: Der Nutzer soll jetzt trinken oder trainieren, nicht irgendwann später eine Mail lesen. Da die App aktuell keine native Push-Infrastruktur hat, bleibt die ehrliche Entscheidung im jetzigen Stand: In-App-Toasts und lokale Einstellungen reichen; echte Push-Notifications wären erst ein späterer Ausbau mit expliziter Aktivierung.
+
+Für Workout-Pläne, Sessions, Daily Activity und Analytics verwenden wir **keinen externen Notification-Kanal**. Diese Daten sind persönlich, häufig und nicht kollaborativ. Externe Benachrichtigungen würden mehr stören als helfen; gezieltes Refetching, lokale UI-Bestätigungen und der vorhandene SSE-Lernmechanismus für andere Tabs desselben Nutzers sind angemessener.
+
+## Transactional E-Mail mit Resend und React Email
+
+Für den ersten echten Mail-Use-Case wurde das Event **E-Mail-Verifikation** gewählt. Das ist ein klar transactional Event: Ohne Verifikationscode kann ein neuer Nutzer den Account nicht vollständig aktivieren. Dasselbe Event wird auch genutzt, wenn ein Nutzer seine E-Mail-Adresse ändert oder einen neuen Verifikationscode anfordert.
+
+Ausnahme: Der Demo-Account `jonasarnold@gmail.com` bekommt bewusst keine transactional E-Mails. Dieser Account bleibt für Demos sofort verifiziert und onboarding-fertig. Für alle anderen Accounts wird der Verifikations-Mailflow angewendet.
+
+Installierte Backend-Pakete:
+
+```bash
+cd workout-tracker/backend
+npm install resend @react-email/render @react-email/components
+```
+
+### Umsetzung
+
+Backend-Dateien:
+
+- `backend/mail.js`: kapselt Resend, rendert das React-Email-Template und stellt `sendVerificationEmailLater()` bereit.
+- `backend/emails/VerificationEmail.js`: React Email Template mit Begrüßung, Verifikationscode und Link zur Verifikationsseite.
+- `backend/routes/auth.js`: triggert den Mailversand bei Registrierung, E-Mail-Änderung und erneutem Versand des Codes.
+- `backend/.env.example`: dokumentiert die nötigen Umgebungsvariablen.
+
+Benötigte `.env`-Werte:
+
+```env
+RESEND_API_KEY="re_..."
+MAIL_FROM="PROGYM <onboarding@resend.dev>"
+APP_URL="http://localhost:5173"
+```
+
+Der HTTP-Request wartet nicht auf den Mailversand. Die Auth-Route speichert zuerst den Nutzer bzw. den neuen Code und ruft danach `sendVerificationEmailLater()` auf. Diese Funktion nutzt `setImmediate()` und führt den Versand im Hintergrund aus. Fehler werden mit `try/catch` geloggt, ändern aber nicht mehr die bereits gesendete API-Antwort. Wenn `RESEND_API_KEY` lokal fehlt, wird der Code für normale Accounts weiterhin als Dev-Ausgabe in der Konsole angezeigt, damit die Entwicklung ohne echten Mailversand funktioniert. Für `jonasarnold@gmail.com` überspringt die Mail-Schicht den Versand immer.
+
+Das Template enthält bewusst nicht nur einen generischen Text, sondern:
+
+- den Vornamen des Nutzers
+- den sechsstelligen Verifikationscode
+- einen direkten Link zu `${APP_URL}/verify-email`
+- einen Hinweis, dass die Mail ignoriert werden kann, wenn der Account nicht vom Empfänger erstellt oder geändert wurde
+
+### Agent-Prompt
+
+Verwendete Aufgabenbeschreibung für die Implementierung:
+
+> Implementiere E-Mail-Benachrichtigungen für das Event "E-Mail-Verifikation nach Registrierung, E-Mail-Änderung und erneutem Code-Versand". Stack: Express-Backend, Resend als Mail-API, React Email für das Template. Anforderungen: Das Template soll den Vornamen des Nutzers, den sechsstelligen Verifikationscode und einen direkten Link zur Verifikationsseite enthalten. Der Mailversand darf den HTTP-Request nicht blockieren. Fehlerbehandlung mit try/catch. Der API-Key kommt aus der `.env`-Datei. Der Demo-Account `jonasarnold@gmail.com` ist ausgeschlossen; für alle anderen Accounts gilt der Mailflow.
+
+### Zwei Iterationen
+
+Iteration 1:
+
+> Implementiere E-Mail-Benachrichtigungen für die Registrierung. Nutze Resend und React Email. Sende dem Nutzer den Verifikationscode per E-Mail.
+
+Problem an dieser Beschreibung: Sie war zu ungenau. Es war nicht klar, ob auch der erneute Code-Versand und die E-Mail-Änderung abgedeckt werden sollen. Außerdem fehlten Vorgaben zum Deep Link, zur `.env`-Konfiguration und dazu, dass der HTTP-Request nicht durch den Mailversand blockiert werden darf.
+
+Iteration 2:
+
+> Implementiere E-Mail-Benachrichtigungen für das Event "E-Mail-Verifikation nach Registrierung, E-Mail-Änderung und erneutem Code-Versand". Stack: Express-Backend, Resend als Mail-API, React Email für das Template. Anforderungen: Das Template soll den Vornamen des Nutzers, den sechsstelligen Verifikationscode und einen direkten Link zu `/verify-email` über `APP_URL` enthalten. Der Mailversand darf den HTTP-Request nicht blockieren; nutze eine fire-and-forget-Funktion mit `try/catch`, damit Mailfehler geloggt werden, aber die API-Antwort nicht kaputtmachen. Der API-Key und der Absender kommen aus der `.env`-Datei. Schließe `jonasarnold@gmail.com` als Demo-Account explizit vom Mailversand aus; alle anderen Accounts bekommen die Verifikationsmail.
+
+Präzisierung im zweiten Versuch:
+
+- Der konkrete Event-Umfang wurde erweitert: Registrierung, E-Mail-Änderung und Resend-Code.
+- Der Template-Inhalt wurde konkreter: Vorname, Code, direkter Link und Sicherheitshinweis.
+- Der Deep Link wurde über `APP_URL` festgelegt.
+- Der nicht-blockierende Versand wurde explizit gefordert.
+- Die Fehlerbehandlung wurde konkret an die Mail-Schicht verlagert.
+- Der Demo-Account `jonasarnold@gmail.com` wurde als explizite Ausnahme ergänzt.
+
+## Web Push mit VAPID
+
+Web Push wurde als **Lernübung** für das bestehende Event `plans:changed` umgesetzt. Produktiv ist Push für Workout-Plan-Änderungen aktuell nicht zwingend nötig, weil PROGYM keine geteilten Pläne oder fremde Nutzerinteraktion hat. Für die Aufgabe ist das Event aber gut testbar: Wenn Tab 1 einen Workout-Plan erstellt, bearbeitet oder löscht, kann derselbe eingeloggte Nutzer in Tab 2 eine Browser-Notification erhalten und direkt zur Workouts-Seite springen.
+
+Installiertes Backend-Paket:
+
+```bash
+cd workout-tracker/backend
+npm install web-push
+```
+
+Einmalige VAPID-Key-Generierung:
+
+```bash
+cd workout-tracker/backend
+npx web-push generate-vapid-keys
+```
+
+Benötigte `.env`-Werte:
+
+```env
+VAPID_PUBLIC_KEY="..."
+VAPID_PRIVATE_KEY="..."
+VAPID_SUBJECT="mailto:admin@example.com"
+```
+
+### Umsetzung
+
+Backend:
+
+- `backend/push.js`: konfiguriert `web-push`, speichert Subscriptions und verschickt Notifications.
+- `backend/routes/push.js`: stellt `GET /api/push/public-key` und `POST /api/push/subscribe` bereit.
+- `backend/routes/workouts.js`: triggert Push bei `POST`, `PUT` und `DELETE` von Workout-Plänen.
+- `backend/prisma/schema.prisma`: enthält das Model `PushSubscription`.
+- `backend/prisma/migrations/20260603104500_add_push_subscriptions/migration.sql`: legt die Tabelle `push_subscriptions` an.
+
+Frontend:
+
+- `frontend/public/sw.js`: Service Worker empfängt Push-Events, zeigt Notification mit `title`, `body` und Link und öffnet beim Klick die Zielseite.
+- `frontend/src/api.js`: ergänzt `getPushPublicKey()` und `subscribeToPush()`.
+- `frontend/src/App.jsx`: fragt nach Login bzw. nach abgeschlossenem Verification/Onboarding mit `Notification.requestPermission()` nach Push-Erlaubnis, registriert den Service Worker und sendet die Subscription per `POST /api/push/subscribe` ans Backend.
+
+Die Subscription wird mit `endpoint`, `p256dh` und `auth` in SQLite gespeichert. Wenn der Push Service beim Versand `404` oder `410` zurückgibt, löscht `backend/push.js` die abgelaufene Subscription aus der DB.
+
+Payload-Beispiel für `plans:changed`:
+
+```json
+{
+  "title": "Workout plan created",
+  "body": "Push Day was added to your PROGYM workouts.",
+  "url": "/workouts"
+}
+```
+
+### Testfall
+
+1. Backend und Frontend starten.
+2. App in zwei Browser-Tabs öffnen.
+3. Mit demselben normalen Account einloggen. Der Demo-Account kann genutzt werden, aber Browser-Push muss im Browser erlaubt werden.
+4. Push-Erlaubnis im Browser bestätigen.
+5. In Tab 1 auf der Workouts-Seite einen Plan erstellen, bearbeiten oder löschen.
+6. Erwartung: Der Service Worker empfängt das Push-Event und zeigt eine Notification. Beim Klick öffnet bzw. fokussiert sie `/workouts`.
+
+Hinweis: Der vollständige Notification-Test hängt von Browser-Permissions, HTTPS bzw. `localhost` und Betriebssystem-Notification-Einstellungen ab. Per Shell wurde geprüft, dass Packages installiert sind, Prisma Client/Schema gültig sind und die Migration für `push_subscriptions` angewendet wurde. Der sichtbare Zwei-Tab-Notification-Test muss im Browser bestätigt werden.
+
+## iOS-App mit Capacitor
+
+Das Vite-Frontend wurde mit Capacitor als iOS-App vorbereitet. Capacitor verpackt den gebauten Web-Output aus `dist/` in ein natives Xcode-Projekt.
+
+Installierte Frontend-Pakete:
+
+```bash
+cd workout-tracker/frontend
+npm install @capacitor/core @capacitor/ios
+npm install -D @capacitor/cli
+```
+
+Capacitor-Konfiguration:
+
+- Datei: `frontend/capacitor.config.json`
+- App-Name: `PROGYM`
+- Bundle-ID: `com.progym.app`
+- Web-Output: `dist`
+- iOS-Projekt: `frontend/ios/App/App.xcodeproj`
+
+Wichtige Befehle:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+npx cap add ios
+npx cap sync ios
+npx cap open ios
+```
+
+Zusätzliche Scripts in `frontend/package.json`:
+
+```bash
+npm run cap:sync
+npm run cap:sync:ios
+npm run cap:open:ios
+```
+
+Für iOS ist die API-URL konfigurierbar. Im Browser nimmt die App weiterhin standardmäßig `http://<hostname>:3000/api`. Für Simulator oder echtes iPhone sollte vor dem Build eine feste Backend-URL gesetzt werden, weil `localhost` auf dem Gerät nicht automatisch der Mac mit dem Express-Backend ist:
+
+```bash
+VITE_API_URL="http://192.168.178.20:3000/api" npm run cap:sync:ios
+```
+
+Für den iOS Simulator kann je nach Setup auch `http://localhost:3000/api` funktionieren. Auf einem echten iPhone muss normalerweise die lokale Netzwerk-IP des Macs verwendet werden. Danach in Xcode `App.xcodeproj` öffnen, ein Team auswählen und die App im Simulator oder auf einem Gerät starten.
+
+## Commit-Zusammenfassung: Notifications und iOS-App
+
+Seit dem letzten Commit `924c348 feat: globale Suche, Quick-Log-Button und Favicon ergänzen` wurden mehrere zusammenhängende App-Erweiterungen umgesetzt.
+
+### Fachliche Änderungen
+
+- Notification-Bedarf der App analysiert und in der README dokumentiert.
+- Transactional E-Mail für die E-Mail-Verifikation umgesetzt.
+- Resend als Mail-Provider vorbereitet.
+- React Email Template für den Verifikationscode erstellt.
+- Demo-Account `jonasarnold@gmail.com` explizit vom Mailversand ausgeschlossen.
+- Web Push als Lernübung für Workout-Plan-Änderungen (`plans:changed`) ergänzt.
+- Push-Subscriptions in SQLite/Prisma gespeichert.
+- Abgelaufene Push-Subscriptions werden bei `404` oder `410` aus der DB gelöscht.
+- Service Worker unter `frontend/public/sw.js` ergänzt.
+- iOS-App mit Capacitor erstellt.
+- Xcode-Projekt unter `frontend/ios/App/App.xcodeproj` erzeugt.
+- API-URL über `VITE_API_URL` konfigurierbar gemacht, damit iPhone/Simulator das Backend auf dem Mac erreichen können.
+
+### Technische Dateien
+
+- Backend: `backend/mail.js`, `backend/emails/VerificationEmail.js`, `backend/push.js`, `backend/routes/push.js`
+- Backend-Routen: `backend/routes/auth.js`, `backend/routes/workouts.js`, `backend/server.js`
+- Prisma: `backend/prisma/schema.prisma`, Migration `20260603104500_add_push_subscriptions`
+- Frontend: `frontend/src/App.jsx`, `frontend/src/api.js`, `frontend/public/sw.js`
+- Capacitor: `frontend/capacitor.config.json`, `frontend/ios/`
+- Paketdateien: `package-lock.json`, `frontend/package.json`, `backend/package.json`
+
+### Verifikation
+
+Ausgeführt wurden:
+
+```bash
+npx prisma generate
+npx prisma validate
+npx prisma migrate deploy
+node --check mail.js
+node --check push.js
+node --check routes/push.js
+node --check routes/workouts.js
+node --check server.js
+npm run build
+npm run cap:sync:ios
+```
+
+Hinweis: `backend/database.sqlite` ist geändert, weil lokal die Push-Subscription-Migration angewendet wurde und der Account `isabelprieb@gmail.com` testweise wieder auf Registrierungsstatus gesetzt wurde.
+
 ## Global Search
 
 Das Search-Feld in der oberen Navigation ist jetzt funktional und dient als globale Suche innerhalb der App.
