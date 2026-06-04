@@ -63,6 +63,15 @@ export const api = {
     method: 'POST',
     redirectOnUnauthorized: false,
   }),
+  verifyEmailChange: async (code) => requestJson(`${API_URL}/auth/verify-email-change`, {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+    redirectOnUnauthorized: false,
+  }),
+  resendEmailChange: async () => requestJson(`${API_URL}/auth/resend-email-change`, {
+    method: 'POST',
+    redirectOnUnauthorized: false,
+  }),
   completeOnboarding: async (onboardingData) => requestJson(`${API_URL}/auth/onboarding`, {
     method: 'POST',
     body: JSON.stringify(onboardingData),

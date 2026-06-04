@@ -36,6 +36,7 @@ const isAllowedProfileImage = (profileImage) => (
 const selectPublicUser = {
   id: true,
   email: true,
+  pendingEmail: true,
   name: true,
   firstName: true,
   lastName: true,
@@ -154,6 +155,7 @@ function createAuthRouter() {
         user: {
           id: user.id,
           email: user.email,
+          pendingEmail: user.pendingEmail,
           name: user.name,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -209,21 +211,28 @@ function createAuthRouter() {
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
 
       if (email !== currentUser.email) {
-        const existingUser = await prisma.user.findUnique({ where: { email } });
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email },
+              { pendingEmail: email },
+            ],
+            NOT: { id: currentUser.id },
+          },
+        });
         if (existingUser && existingUser.id !== currentUser.id) {
           return res.status(409).json({ error: 'E-Mail bereits vergeben.' });
         }
       }
 
       const updateData = {
-        email,
         firstName,
         lastName,
         name: `${firstName} ${lastName}`.trim(),
       };
 
       if (email !== currentUser.email) {
-        updateData.emailVerified = isDemoAccount(email);
+        updateData.pendingEmail = isDemoAccount(email) ? null : email;
         updateData.verificationCode = isDemoAccount(email) ? null : createVerificationCode();
         if (updateData.verificationCode) {
           sendVerificationEmailLater({
@@ -231,6 +240,9 @@ function createAuthRouter() {
             firstName,
             code: updateData.verificationCode,
           });
+        } else {
+          updateData.email = email;
+          updateData.emailVerified = true;
         }
       }
 
@@ -294,6 +306,70 @@ function createAuthRouter() {
       }
 
       res.status(200).json({ user });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  router.post('/verify-email-change', authenticate, async (req, res) => {
+    const code = normalizeText(req.body.code);
+
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (!currentUser.pendingEmail) return res.status(400).json({ error: 'Keine ausstehende E-Mail-Änderung.' });
+
+      if (!code || code !== currentUser.verificationCode) {
+        return res.status(400).json({ error: 'Verification code is invalid.' });
+      }
+
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: currentUser.pendingEmail,
+          NOT: { id: currentUser.id },
+        },
+      });
+      if (existingUser) return res.status(409).json({ error: 'E-Mail bereits vergeben.' });
+
+      const user = await prisma.user.update({
+        where: { id: currentUser.id },
+        data: {
+          email: currentUser.pendingEmail,
+          pendingEmail: null,
+          emailVerified: true,
+          verificationCode: null,
+        },
+        select: selectPublicUser,
+      });
+
+      setAuthCookie(res, createToken(user));
+      res.status(200).json({ user });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  router.post('/resend-email-change', authenticate, async (req, res) => {
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (!currentUser.pendingEmail) return res.status(400).json({ error: 'Keine ausstehende E-Mail-Änderung.' });
+
+      const verificationCode = createVerificationCode();
+      await prisma.user.update({
+        where: { id: currentUser.id },
+        data: { verificationCode },
+      });
+      sendVerificationEmailLater({
+        to: currentUser.pendingEmail,
+        firstName: currentUser.firstName,
+        code: verificationCode,
+      });
+
+      res.status(200).json({
+        message: 'Verification code sent.',
+        ...(process.env.NODE_ENV !== 'production' ? { verificationCode } : {}),
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

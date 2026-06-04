@@ -3,14 +3,16 @@ import {
   Activity,
   Bell,
   Clock,
-  Download,
   Droplets,
   Flame,
+  Info,
   LogOut,
   Lock,
+  MailCheck,
   Minus,
+  Pencil,
   Plus,
-  CircleQuestionMark,
+  RefreshCw,
   Save,
   Scale,
   Shield,
@@ -33,12 +35,15 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   const storageKey = (key) => getUserStorageKey(key, currentUser);
   const [accountFirstName, setAccountFirstName] = useState(currentUser?.firstName || userDisplayName.split(/\s+/)[0] || '');
   const [accountLastName, setAccountLastName] = useState(currentUser?.lastName || userDisplayName.split(/\s+/).slice(1).join(' ') || '');
-  const [accountEmail, setAccountEmail] = useState(currentUser?.email || '');
+  const [accountEmail, setAccountEmail] = useState(currentUser?.pendingEmail || currentUser?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [accountStatus, setAccountStatus] = useState({ type: '', message: '' });
   const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  const [emailVerificationCode, setEmailVerificationCode] = useState('');
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [isResendingEmailCode, setIsResendingEmailCode] = useState(false);
   const [hydrationGoal, setHydrationGoal] = useState(() => {
     const savedGoal = window.localStorage.getItem(storageKey('hydrationGoalLiters'));
     return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
@@ -53,6 +58,9 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   const [hydrationAlertsEnabled, setHydrationAlertsEnabled] = useState(() => (
     window.localStorage.getItem(storageKey('hydrationAlertsEnabled')) !== 'false'
   ));
+  const [isWatchConnected, setIsWatchConnected] = useState(() => (
+    window.localStorage.getItem(storageKey('appleWatchConnected')) !== 'false'
+  ));
   const [activeReminder, setActiveReminder] = useState(null);
   const [isBmiInfoOpen, setIsBmiInfoOpen] = useState(false);
   const [gender, setGender] = useState(() => window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
@@ -66,11 +74,14 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
 
   useEffect(() => {
     const nextDisplayName = getUserDisplayName(currentUser);
+    // Keep the form draft in sync when the active account changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAccountFirstName(currentUser?.firstName || nextDisplayName.split(/\s+/)[0] || '');
     setAccountLastName(currentUser?.lastName || nextDisplayName.split(/\s+/).slice(1).join(' ') || '');
-    setAccountEmail(currentUser?.email || '');
+    setAccountEmail(currentUser?.pendingEmail || currentUser?.email || '');
     setCurrentPassword('');
     setNewPassword('');
+    setEmailVerificationCode('');
     setAccountStatus({ type: '', message: '' });
     setHydrationGoal(Number(window.localStorage.getItem(storageKey('hydrationGoalLiters')) || currentUser?.hydrationGoalLiters || 3.5));
     setDailyStepGoal(Number(window.localStorage.getItem(storageKey('dailyStepGoal'))) || 10000);
@@ -99,6 +110,10 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
       detail: { hydrationAlertsEnabled },
     }));
   }, [hydrationAlertsEnabled, currentUser?.id]);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey('appleWatchConnected'), isWatchConnected.toString());
+  }, [isWatchConnected, currentUser?.id]);
 
   useEffect(() => {
     const handleAlertPreferenceChange = (event) => {
@@ -136,7 +151,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     try {
       await api.updateTodayActivity({ step_goal: nextGoals.steps });
       setDailyGoalsStatus(t('Goals updated.'));
-    } catch (error) {
+    } catch {
       setDailyGoalsStatus(t('Saved locally. Sync failed.'));
     }
   };
@@ -179,7 +194,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
       const data = await api.updateCurrentUser({
         firstName: accountFirstName,
         lastName: accountLastName,
-        email: accountEmail,
+        email: currentUser?.email || accountEmail,
         gender,
         heightCm: height,
         weightKg: weight,
@@ -202,7 +217,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setHasUnsavedBiometrics(true);
   };
 
-  const saveAccountProfile = async () => {
+  const saveAccountProfile = async ({ includeEmailChange = false } = {}) => {
     setAccountStatus({ type: '', message: '' });
 
     if (!accountFirstName.trim() || !accountLastName.trim() || !accountEmail.trim()) {
@@ -216,18 +231,67 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
       const data = await api.updateCurrentUser({
         firstName: accountFirstName,
         lastName: accountLastName,
-        email: accountEmail,
+        email: includeEmailChange ? accountEmail : (currentUser?.email || accountEmail),
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,
       });
       onUserUpdate(data.user);
       setCurrentPassword('');
       setNewPassword('');
-      setAccountStatus({ type: 'success', message: t('Account updated.') });
+      setEmailVerificationCode('');
+      setAccountStatus({
+        type: 'success',
+        message: data.user.pendingEmail ? t('Verification code sent. Please confirm your new email.') : t('Account updated.'),
+      });
     } catch (error) {
       setAccountStatus({ type: 'error', message: error.message });
     } finally {
       setIsSavingAccount(false);
+    }
+  };
+
+  const requestEmailChange = async () => {
+    if (accountEmail.trim().toLowerCase() === (currentUser?.email || '').toLowerCase()) {
+      setAccountStatus({ type: 'error', message: t('Enter a new email address first.') });
+      return;
+    }
+
+    await saveAccountProfile({ includeEmailChange: true });
+  };
+
+  const verifyAccountEmail = async () => {
+    const code = emailVerificationCode.trim();
+    if (!code) {
+      setAccountStatus({ type: 'error', message: t('Please enter the verification code.') });
+      return;
+    }
+
+    setIsVerifyingEmail(true);
+    setAccountStatus({ type: '', message: '' });
+
+    try {
+      const data = await api.verifyEmailChange(code);
+      onUserUpdate(data.user);
+      setEmailVerificationCode('');
+      setAccountStatus({ type: 'success', message: t('Email verified.') });
+    } catch (error) {
+      setAccountStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsVerifyingEmail(false);
+    }
+  };
+
+  const resendEmailVerificationCode = async () => {
+    setIsResendingEmailCode(true);
+    setAccountStatus({ type: '', message: '' });
+
+    try {
+      await api.resendEmailChange();
+      setAccountStatus({ type: 'success', message: t('Verification code sent.') });
+    } catch (error) {
+      setAccountStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsResendingEmailCode(false);
     }
   };
 
@@ -254,7 +318,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
         const data = await api.updateCurrentUser({
           firstName: accountFirstName,
           lastName: accountLastName,
-          email: accountEmail,
+          email: currentUser?.email || accountEmail,
           profileImage: reader.result,
         });
         onUserUpdate(data.user);
@@ -287,7 +351,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
               <span className="profile-heading-icon"><User size={20} /></span>
               <h2>{t('ACCOUNT PROFILE')}</h2>
               <button className="biometrics-save-button unsaved" type="button" onClick={saveAccountProfile} disabled={isSavingAccount}>
-                <Save size={14} /> {isSavingAccount ? t('SAVING') : t('SAVE')}
+                <Save size={14} /> {isSavingAccount ? t('SAVING') : t('SAVE PROFILE')}
               </button>
             </div>
 
@@ -303,23 +367,63 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                 </div>
                 <label className="profile-avatar-upload" aria-label={t('CHANGE')}>
                   <input type="file" accept="image/png,image/jpeg,image/webp" onChange={updateProfileImage} disabled={isSavingAvatar} />
-                  <Plus size={14} />
+                  <Pencil size={14} />
                 </label>
               </div>
 
               <div className="account-form-grid">
-                <label className="profile-form-field">
-                  <span>{t('FIRST NAME')}</span>
-                  <input type="text" value={accountFirstName} onChange={(event) => setAccountFirstName(event.target.value)} />
+                <div className="account-name-row">
+                  <label className="profile-form-field">
+                    <span>{t('FIRST NAME')}</span>
+                    <input type="text" value={accountFirstName} onChange={(event) => setAccountFirstName(event.target.value)} />
+                  </label>
+                  <label className="profile-form-field">
+                    <span>{t('LAST NAME')}</span>
+                    <input type="text" value={accountLastName} onChange={(event) => setAccountLastName(event.target.value)} />
+                  </label>
+                </div>
+                <label className="profile-form-field account-email-field">
+                  <span className="account-email-label">
+                    {t('EMAIL ADDRESS')}
+                    <strong className={currentUser?.pendingEmail ? 'pending' : currentUser?.emailVerified ? 'verified' : ''}>
+                      {currentUser?.pendingEmail ? t('PENDING') : currentUser?.emailVerified ? t('VERIFIED') : t('UNVERIFIED')}
+                    </strong>
+                  </span>
+                  <div className="account-email-row">
+                    <input type="email" value={accountEmail} onChange={(event) => setAccountEmail(event.target.value)} />
+                    <button type="button" onClick={requestEmailChange} disabled={isSavingAccount}>
+                      {t('CHANGE EMAIL')}
+                    </button>
+                  </div>
                 </label>
-                <label className="profile-form-field">
-                  <span>{t('LAST NAME')}</span>
-                  <input type="text" value={accountLastName} onChange={(event) => setAccountLastName(event.target.value)} />
-                </label>
-                <label className="profile-form-field">
-                  <span>{t('EMAIL ADDRESS')}</span>
-                  <input type="email" value={accountEmail} onChange={(event) => setAccountEmail(event.target.value)} />
-                </label>
+                {currentUser?.pendingEmail && (
+                  <div className="account-email-verification">
+                    <div className="account-email-verification-copy">
+                      <MailCheck size={18} />
+                      <div>
+                        <strong>{t('Confirm new email')}</strong>
+                        <p>{t('Enter the verification code sent to')} {currentUser.pendingEmail}.</p>
+                      </div>
+                    </div>
+                    <div className="account-code-row">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength="6"
+                        value={emailVerificationCode}
+                        onChange={(event) => setEmailVerificationCode(event.target.value)}
+                        placeholder={t('6-digit code')}
+                        aria-label={t('Verification code')}
+                      />
+                      <button type="button" onClick={verifyAccountEmail} disabled={isVerifyingEmail}>
+                        <Shield size={14} /> {isVerifyingEmail ? t('VERIFYING') : t('VERIFY')}
+                      </button>
+                      <button type="button" className="ghost" onClick={resendEmailVerificationCode} disabled={isResendingEmailCode}>
+                        <RefreshCw size={14} /> {isResendingEmailCode ? t('SENDING') : t('RESEND')}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <label className="profile-form-field password-field">
                   <span>{t('CHANGE PASSWORD')}</span>
                   <div className="profile-password-row">
@@ -344,6 +448,14 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                     {accountStatus.message}
                   </div>
                 )}
+                <div className="account-footer-actions">
+                  <button className="account-footer-button" type="button" onClick={onLogout}>
+                    <LogOut size={14} /> {t('LOG OUT')}
+                  </button>
+                  <button className="account-footer-button danger" type="button">
+                    {t('DELETE ACCOUNT')}
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -353,46 +465,58 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
               <span className="profile-heading-icon"><TrendingUp size={20} /></span>
               <h2>{t('ADVANCED BIOMETRICS')}</h2>
               <button className={`biometrics-save-button ${hasUnsavedBiometrics ? 'unsaved' : 'saved'}`} type="button" onClick={saveBiometrics}>
-                <Save size={14} /> {t('SAVE')}
+                {hasUnsavedBiometrics ? t('SAVE') : t('ELITE TIER')}
               </button>
             </div>
 
             <div className="biometrics-grid">
+              <div className="biometric-metric biometric-gender-card">
+                <span>{t('ASSIGNED GENDER')}</span>
+                <div className="biometric-segment-control" role="group" aria-label={t('GENDER')}>
+                  {['Male', 'Female', 'Other'].map((option) => (
+                    <button
+                      key={option}
+                      className={gender === option ? 'active' : ''}
+                      type="button"
+                      onClick={() => updateBiometricField(setGender)(option)}
+                    >
+                      {t(option)}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <label className="profile-form-field">
-                <span>{t('GENDER')}</span>
-                <select value={gender} onChange={(event) => updateBiometricField(setGender)(event.target.value)}>
-                  <option value="Male">{t('Male')}</option>
-                  <option value="Female">{t('Female')}</option>
-                  <option value="Other">{t('Other')}</option>
-                </select>
+                <span>{t('HEIGHT PROFILE')}</span>
+                <div className="biometric-number-pill">
+                  <input type="number" value={height} onChange={(event) => updateBiometricField(setHeight)(event.target.value)} aria-label={t('HEIGHT (CM)')} />
+                  <small>{t('CM')}</small>
+                </div>
               </label>
               <label className="profile-form-field">
-                <span>{t('HEIGHT (CM)')}</span>
-                <input type="number" value={height} onChange={(event) => updateBiometricField(setHeight)(event.target.value)} />
-              </label>
-              <label className="profile-form-field">
-                <span>{t('WEIGHT (KG)')}</span>
-                <input type="number" value={weight} onChange={(event) => updateBiometricField(setWeight)(event.target.value)} />
+                <span>{t('WEIGHT MATRIX')}</span>
+                <div className="biometric-number-pill">
+                  <input type="number" value={weight} onChange={(event) => updateBiometricField(setWeight)(event.target.value)} aria-label={t('WEIGHT (KG)')} />
+                  <small>{t('KG')}</small>
+                </div>
               </label>
             </div>
 
             <div className="bmi-control-row">
-              <div>
-                <h3>{t('CALCULATE BMI')}</h3>
-                <p>{t('AUTOMATED INDEX TRACKING')}</p>
-              </div>
-              <div className={`bmi-result-pill ${!isBmiTrackingEnabled ? 'inactive' : ''}`}>
-                <Scale size={16} />
-                <span>{isBmiTrackingEnabled && bmiValue ? `BMI: ${bmiValue}` : t('BMI OFF')}</span>
-              </div>
               <button
                 className="bmi-info-button"
                 type="button"
                 aria-label={t('WHAT IS BMI?')}
                 onClick={() => setIsBmiInfoOpen(true)}
               >
-                <CircleQuestionMark size={18} />
+                <Scale size={20} />
               </button>
+              <div>
+                <h3>{t('BODY MASS INDEX')}</h3>
+                <p>{isBmiTrackingEnabled && bmiValue ? bmiValue : t('BMI OFF')}</p>
+              </div>
+              <div className={`bmi-result-pill ${!isBmiTrackingEnabled ? 'inactive' : ''}`}>
+                <span>{isBmiTrackingEnabled ? t('OPTIMAL RANGE') : t('TRACKING OFF')}</span>
+              </div>
               <button
                 className={`profile-mini-toggle ${isBmiTrackingEnabled ? 'active' : ''}`}
                 type="button"
@@ -489,7 +613,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
             </div>
 
             <div className="hydration-recommendation">
-              <Target size={16} />
+              <Info size={16} />
               <span>{t('Recommended: 2.5L - 3.5L')}</span>
             </div>
           </section>
@@ -548,25 +672,18 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
             {dailyGoalsStatus && <p className="profile-goals-status">{dailyGoalsStatus}</p>}
           </section>
 
-          <section className="profile-panel compact-panel watch-panel">
+          <section className={`profile-panel compact-panel watch-panel ${isWatchConnected ? 'connected' : 'disconnected'}`}>
             <div className="watch-card-topline">
               <span className="watch-icon"><Watch size={20} /></span>
-              <span className="status-badge">{t('CONNECTED')}</span>
+              <span className="status-badge">{isWatchConnected ? t('CONNECTED') : t('DISCONNECTED')}</span>
             </div>
             <h2>{t('APPLE WATCH')}</h2>
-            <p>{t('HEALTHKIT ENABLED')}</p>
-            <button className="profile-danger-action" type="button">{t('DISCONNECT')}</button>
+            <p>{isWatchConnected ? t('HEALTHKIT ENABLED') : t('HEALTHKIT DISCONNECTED')}</p>
+            <button className="profile-danger-action" type="button" onClick={() => setIsWatchConnected((connected) => !connected)}>
+              {isWatchConnected ? t('DISCONNECT') : t('CONNECT')}
+            </button>
           </section>
 
-          <section className="profile-panel compact-panel privacy-panel">
-            <div className="profile-panel-heading">
-              <span className="profile-heading-icon"><Shield size={20} /></span>
-              <h2>{t('PRIVACY')}</h2>
-            </div>
-            <button className="profile-outline-action" type="button"><Download size={14} /> {t('EXPORT PERSONAL DATA')}</button>
-            <button className="profile-outline-action" type="button" onClick={onLogout}><LogOut size={14} /> {t('LOG OUT')}</button>
-            <button className="profile-danger-action" type="button">{t('DELETE ACCOUNT')}</button>
-          </section>
         </aside>
       </div>
 

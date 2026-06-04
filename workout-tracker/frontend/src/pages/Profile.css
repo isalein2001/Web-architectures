@@ -36,10 +36,11 @@
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.75fr);
   grid-template-areas:
+    "account watch"
     "account hydration"
     "biometrics daily-goals"
-    "encryption watch"
-    "privacy alerts";
+    "encryption daily-goals"
+    "alerts alerts";
   gap: 24px;
   align-items: stretch;
 }
@@ -342,6 +343,145 @@
   gap: 24px;
 }
 
+.biometrics-panel {
+  border-color: rgba(255, 255, 255, 0.025);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 82%, rgba(197, 254, 0, 0.08), transparent 31%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    #111210;
+}
+
+.profile-main-column .biometrics-panel {
+  padding: 30px;
+}
+
+.biometrics-panel .profile-panel-heading {
+  margin-bottom: 28px;
+}
+
+.biometrics-panel .profile-heading-icon {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.biometrics-panel .profile-heading-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 3;
+}
+
+.biometrics-panel .profile-panel-heading h2 {
+  color: #f8f8f8;
+  font-size: 1rem;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.biometrics-panel .biometrics-save-button {
+  min-height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.09);
+  font-size: 0.58rem;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 0 0 1px rgba(197, 254, 0, 0.08);
+}
+
+.biometrics-panel .biometrics-save-button:hover {
+  color: #070807;
+  background: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.biometrics-panel .biometrics-grid {
+  gap: 28px;
+  align-items: end;
+}
+
+.biometrics-panel .profile-form-field,
+.biometric-metric {
+  gap: 14px;
+}
+
+.biometrics-panel .profile-form-field span,
+.biometric-metric > span {
+  color: #bcbcbc;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.36em;
+}
+
+.biometric-segment-control {
+  display: inline-flex;
+  width: max-content;
+  min-height: 42px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #171717;
+}
+
+.biometric-segment-control button {
+  min-width: 58px;
+  border: 0;
+  border-radius: 8px;
+  color: #bdbdbd;
+  background: transparent;
+  font-size: 0.62rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.biometric-segment-control button.active {
+  color: var(--color-primary);
+  background: #252525;
+}
+
+.biometric-number-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #171717;
+}
+
+.biometric-number-pill input {
+  width: 82px;
+  height: auto;
+  padding: 0;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 1.45rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+.biometric-number-pill input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.biometric-number-pill small {
+  color: #cfcfcf;
+  font-size: 0.64rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
 .bmi-control-row {
   display: grid;
   grid-template-columns: 1fr auto 40px auto;
@@ -350,6 +490,19 @@
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.biometrics-panel .bmi-control-row {
+  grid-template-columns: 72px minmax(0, 1fr) auto auto;
+  gap: 20px;
+  margin-top: 40px;
+  padding: 26px;
+  border: 1px solid rgba(197, 254, 0, 0.18);
+  border-radius: 34px;
+  background: #080908;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.018),
+    0 0 34px rgba(197, 254, 0, 0.08);
 }
 
 .bmi-control-row h3,
@@ -362,6 +515,14 @@
   text-transform: uppercase;
 }
 
+.biometrics-panel .bmi-control-row h3 {
+  margin-bottom: 2px;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.22em;
+}
+
 .bmi-control-row p,
 .profile-toggle-row p,
 .watch-panel p {
@@ -370,6 +531,16 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.biometrics-panel .bmi-control-row p {
+  color: #fff;
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  font-style: italic;
+  font-weight: 950;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
   text-transform: uppercase;
 }
 
@@ -386,6 +557,17 @@
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+.biometrics-panel .bmi-result-pill {
+  min-height: 36px;
+  padding: 0 20px;
+  border-color: rgba(197, 254, 0, 0.28);
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.11);
+  font-size: 0.66rem;
+  font-style: italic;
+  font-weight: 950;
 }
 
 .bmi-result-pill.inactive {
@@ -405,6 +587,21 @@
   background: #101010;
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.biometrics-panel .bmi-info-button {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  color: #080908;
+  background: var(--color-primary);
+  box-shadow: 0 0 28px rgba(197, 254, 0, 0.45);
+}
+
+.biometrics-panel .bmi-info-button:hover {
+  color: #080908;
+  border-color: transparent;
+  background: #d9ff35;
 }
 
 .bmi-info-button:hover {
@@ -1615,9 +1812,1801 @@
     text-align: left;
   }
 
-  .profile-reminder-toast {
-    right: 18px;
-    bottom: calc(98px + env(safe-area-inset-bottom));
-    width: calc(100vw - 36px);
+.profile-reminder-toast {
+  right: 18px;
+  bottom: calc(98px + env(safe-area-inset-bottom));
+  width: calc(100vw - 36px);
+}
+}
+
+/* Account profile: performance-card look */
+.account-panel {
+  border-color: rgba(255, 255, 255, 0.035);
+  border-radius: 34px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    #151515;
+}
+
+.profile-main-column .account-panel {
+  padding: 34px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 34px;
+}
+
+.account-panel .profile-heading-icon {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.account-panel .profile-heading-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--color-primary);
+  stroke-width: 2.6;
+}
+
+.account-panel .profile-panel-heading h2 {
+  color: #fff;
+  font-size: 1.22rem;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.account-panel .biometrics-save-button {
+  min-height: 30px;
+  padding: 0 14px;
+  border: 0;
+  color: #070807;
+  background: var(--color-primary);
+  font-size: 0.6rem;
+  font-style: italic;
+  box-shadow: 0 0 18px rgba(197, 254, 0, 0.18);
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.account-panel .profile-avatar-edit {
+  width: 138px;
+  margin-top: 4px;
+}
+
+.account-panel .profile-avatar-ring {
+  width: 138px;
+  height: 138px;
+  border: 0;
+  background: #f8f8f8;
+  box-shadow: none;
+}
+
+.account-panel .profile-avatar-face {
+  width: 112px;
+  height: 112px;
+  color: #171717;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(197, 254, 0, 0.2), transparent 58%),
+    #ececec;
+  font-size: 1.5rem;
+}
+
+.account-panel .profile-avatar-upload {
+  right: -10px;
+  bottom: -2px;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  color: #080908;
+  background: var(--color-primary);
+  box-shadow: 0 0 22px rgba(197, 254, 0, 0.32);
+}
+
+.account-panel .account-form-grid {
+  grid-template-columns: 1fr;
+  gap: 26px;
+}
+
+.account-name-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.account-panel .profile-form-field {
+  gap: 12px;
+}
+
+.account-panel .profile-form-field span {
+  color: #acacac;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.22em;
+}
+
+.account-panel .profile-form-field input {
+  height: 54px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 22px;
+  color: #fff;
+  background: #101010;
+  font-size: 1rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.018);
+}
+
+.account-panel .profile-form-field input:focus {
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(197, 254, 0, 0.28),
+    0 0 20px rgba(197, 254, 0, 0.08);
+}
+
+.account-panel .profile-password-row {
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.account-panel .profile-account-status {
+  border-radius: 999px;
+}
+
+@media (max-width: 980px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    width: 126px;
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 126px;
+    height: 126px;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-main-column .account-panel {
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .account-panel .profile-panel-heading {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .account-panel .biometrics-save-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-left: 0;
+  }
+
+  .account-name-row,
+  .account-panel .profile-password-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-form-field span {
+    letter-spacing: 0.16em;
+  }
+}
+
+@media (max-width: 980px) {
+  .biometrics-panel .biometrics-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .biometric-segment-control,
+  .biometric-number-pill {
+    width: 100%;
+  }
+
+  .biometric-segment-control button {
+    flex: 1;
+  }
+
+  .biometrics-panel .bmi-control-row {
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .biometrics-panel .bmi-result-pill {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-main-column .biometrics-panel {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .biometrics-panel .profile-panel-heading {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .biometrics-panel .biometrics-save-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-left: 0;
+  }
+
+  .biometrics-panel .profile-form-field span,
+  .biometric-metric > span {
+    letter-spacing: 0.18em;
+  }
+
+  .biometrics-panel .bmi-control-row {
+    grid-template-columns: 1fr;
+    border-radius: 24px;
+  }
+
+  .biometrics-panel .bmi-info-button {
+    width: 54px;
+    height: 54px;
+  }
+
+  .biometrics-panel .bmi-result-pill {
+    grid-column: auto;
+  }
+}
+
+/* Compact dashboard-aligned settings */
+.profile-page {
+  max-width: 1320px;
+}
+
+.profile-hero {
+  margin-bottom: 24px;
+}
+
+.profile-settings-grid {
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+}
+
+.profile-panel,
+.account-panel,
+.biometrics-panel {
+  border-radius: 16px;
+  border-color: rgba(255, 255, 255, 0.03);
+  background: #121212;
+}
+
+.profile-main-column .profile-panel,
+.profile-main-column .account-panel,
+.profile-main-column .biometrics-panel,
+.compact-panel {
+  padding: 24px;
+}
+
+.profile-panel-heading,
+.account-panel .profile-panel-heading,
+.biometrics-panel .profile-panel-heading {
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.profile-heading-icon,
+.account-panel .profile-heading-icon,
+.biometrics-panel .profile-heading-icon,
+.watch-icon {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(197, 254, 0, 0.12);
+  border-radius: 50%;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.08);
+  box-shadow: none;
+}
+
+.profile-heading-icon svg,
+.account-panel .profile-heading-icon svg,
+.biometrics-panel .profile-heading-icon svg,
+.watch-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke-width: 2.4;
+}
+
+.profile-panel-heading h2,
+.account-panel .profile-panel-heading h2,
+.biometrics-panel .profile-panel-heading h2,
+.watch-panel h2 {
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.biometrics-save-button,
+.account-panel .biometrics-save-button,
+.biometrics-panel .biometrics-save-button,
+.profile-outline-action,
+.profile-danger-action,
+.daily-goals-save {
+  min-height: 34px;
+  width: auto;
+  padding: 0 13px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  box-shadow: none;
+}
+
+.account-panel .biometrics-save-button {
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.06);
+  border: 1px solid rgba(197, 254, 0, 0.22);
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: minmax(180px, 0.42fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.account-panel .profile-avatar-edit {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.account-panel .profile-avatar-ring {
+  width: 108px;
+  height: 108px;
+  border: 1px solid rgba(197, 254, 0, 0.16);
+  background: #0e0e0e;
+}
+
+.account-panel .profile-avatar-face {
+  width: 88px;
+  height: 88px;
+  color: var(--color-primary);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(197, 254, 0, 0.1), transparent 62%),
+    #050505;
+  font-size: 1.1rem;
+}
+
+.account-panel .profile-avatar-upload {
+  right: calc(50% - 60px);
+  bottom: calc(50% - 58px);
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(197, 254, 0, 0.24);
+  color: #0c0c0c;
+  background: var(--color-primary);
+  box-shadow: 0 0 14px rgba(197, 254, 0, 0.22);
+}
+
+.account-panel .account-form-grid {
+  gap: 14px;
+}
+
+.account-name-row,
+.account-panel .profile-password-row {
+  gap: 14px;
+}
+
+.account-panel .profile-form-field,
+.biometrics-panel .profile-form-field,
+.biometric-metric {
+  gap: 8px;
+}
+
+.account-panel .profile-form-field span,
+.biometrics-panel .profile-form-field span,
+.biometric-metric > span {
+  color: var(--color-text-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+.account-panel .profile-form-field input,
+.profile-form-field input,
+.profile-form-field select {
+  height: 44px;
+  border-radius: 12px;
+  padding: 0 16px;
+  background: #0e0e0e;
+  font-size: 0.88rem;
+}
+
+.account-panel .profile-form-field input {
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+}
+
+.account-panel .profile-password-row input {
+  min-width: 0;
+}
+
+.account-panel .profile-account-status {
+  min-height: 34px;
+  border-radius: 12px;
+}
+
+.biometrics-panel {
+  background:
+    linear-gradient(145deg, rgba(197, 254, 0, 0.035), rgba(255, 255, 255, 0.01) 34%, rgba(255, 255, 255, 0)),
+    #121212;
+}
+
+.biometrics-panel .biometrics-grid {
+  gap: 14px;
+}
+
+.biometric-segment-control {
+  min-height: 38px;
+  padding: 3px;
+  border-radius: 12px;
+  background: #0e0e0e;
+}
+
+.biometric-segment-control button {
+  min-width: 54px;
+  border-radius: 9px;
+  font-size: 0.58rem;
+}
+
+.biometric-number-pill {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: #0e0e0e;
+}
+
+.biometric-number-pill input {
+  width: 70px;
+  font-size: 1.1rem;
+}
+
+.biometric-number-pill small {
+  font-size: 0.58rem;
+}
+
+.biometrics-panel .bmi-control-row {
+  grid-template-columns: 46px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  border-color: rgba(197, 254, 0, 0.14);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+}
+
+.biometrics-panel .bmi-info-button {
+  width: 42px;
+  height: 42px;
+  box-shadow: 0 0 14px rgba(197, 254, 0, 0.24);
+}
+
+.biometrics-panel .bmi-control-row h3 {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+}
+
+.biometrics-panel .bmi-control-row p {
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+}
+
+.biometrics-panel .bmi-result-pill {
+  min-height: 32px;
+  padding: 0 13px;
+  font-size: 0.58rem;
+  border-radius: 999px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 150px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-settings-grid {
+    gap: 16px;
+  }
+
+  .profile-main-column .profile-panel,
+  .profile-main-column .account-panel,
+  .profile-main-column .biometrics-panel,
+  .compact-panel {
+    padding: 18px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 118px;
+  }
+
+  .account-name-row,
+  .account-panel .profile-password-row {
+    grid-template-columns: 1fr;
+  }
+
+  .biometrics-panel .bmi-control-row {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .biometrics-panel .bmi-result-pill,
+  .biometrics-panel .profile-mini-toggle {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+/* Visual cleanup: calmer, dashboard-consistent settings */
+.profile-settings-grid {
+  gap: 18px;
+}
+
+.profile-panel,
+.account-panel,
+.biometrics-panel,
+.encryption-panel,
+.hydration-goal-panel,
+.daily-goals-panel,
+.alerts-panel,
+.watch-panel,
+.privacy-panel {
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  border-radius: 16px;
+  background: #121212;
+  box-shadow: none;
+}
+
+.profile-main-column .profile-panel,
+.profile-main-column .account-panel,
+.profile-main-column .biometrics-panel,
+.profile-main-column .encryption-panel,
+.compact-panel {
+  padding: 22px;
+}
+
+.profile-panel-heading,
+.account-panel .profile-panel-heading,
+.biometrics-panel .profile-panel-heading {
+  margin-bottom: 18px;
+}
+
+.profile-heading-icon,
+.account-panel .profile-heading-icon,
+.biometrics-panel .profile-heading-icon,
+.watch-icon {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.account-panel .profile-avatar-edit {
+  min-height: 218px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.account-panel .profile-avatar-ring {
+  width: 168px;
+  height: 168px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0e0e0e;
+}
+
+.account-panel .profile-avatar-face {
+  width: 144px;
+  height: 144px;
+  font-size: 1.55rem;
+}
+
+.account-panel .profile-avatar-upload {
+  right: calc(50% - 84px);
+  bottom: calc(50% - 84px);
+  width: 40px;
+  height: 40px;
+}
+
+.account-panel .account-form-grid {
+  gap: 12px;
+}
+
+.account-name-row,
+.account-panel .profile-password-row {
+  gap: 12px;
+}
+
+.account-panel .profile-form-field input,
+.profile-form-field input,
+.profile-form-field select,
+.biometric-number-pill,
+.biometric-segment-control,
+.profile-goal-field > div {
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: #0e0e0e;
+}
+
+.account-panel .profile-form-field input,
+.profile-form-field input,
+.profile-form-field select {
+  height: 42px;
+}
+
+.biometrics-panel .biometrics-grid {
+  gap: 12px;
+}
+
+.biometrics-panel .bmi-control-row,
+.hydration-recommendation,
+.profile-toggle-row,
+.profile-goal-field > div,
+.bmi-formula-card,
+.bmi-info-grid > div,
+.bmi-range-card {
+  border-color: rgba(255, 255, 255, 0.04);
+  background: #0e0e0e;
+  box-shadow: none;
+}
+
+.biometrics-panel .bmi-control-row {
+  margin-top: 14px;
+  padding: 12px;
+}
+
+.biometrics-panel .bmi-info-button {
+  width: 38px;
+  height: 38px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.07);
+  box-shadow: none;
+}
+
+.biometrics-panel .bmi-control-row p {
+  font-size: 1.28rem;
+  font-style: normal;
+}
+
+.biometrics-panel .bmi-result-pill,
+.status-badge,
+.badge-outline {
+  border: 1px solid rgba(197, 254, 0, 0.18);
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.055);
+}
+
+.biometrics-panel .biometrics-save-button,
+.account-panel .biometrics-save-button,
+.profile-outline-action,
+.daily-goals-save {
+  border-color: rgba(255, 255, 255, 0.07);
+  color: #d8d8d8;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.biometrics-panel .biometrics-save-button.unsaved,
+.account-panel .biometrics-save-button:hover,
+.biometrics-panel .biometrics-save-button:hover,
+.profile-outline-action:hover {
+  border-color: rgba(197, 254, 0, 0.24);
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.055);
+}
+
+.hydration-goal-value {
+  margin-bottom: 16px;
+}
+
+.hydration-goal-value span {
+  color: #fff;
+  font-size: 2.45rem;
+}
+
+.hydration-recommendation {
+  margin-top: 14px;
+  padding: 10px 0 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 0;
+  background: transparent;
+}
+
+.profile-toggle-row {
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+}
+
+.profile-toggle-row + .profile-toggle-row,
+.privacy-panel .profile-outline-action + .profile-outline-action,
+.privacy-panel .profile-outline-action + .profile-danger-action {
+  margin-top: 2px;
+}
+
+.profile-mini-toggle {
+  background: #2b2b2b;
+}
+
+.profile-mini-toggle.active {
+  background: var(--color-primary);
+}
+
+.profile-danger-action {
+  border: 1px solid rgba(255, 122, 95, 0.18);
+  color: #ff907b;
+  background: rgba(255, 122, 95, 0.055);
+}
+
+.encryption-panel {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+}
+
+.encryption-copy h2 {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+
+.encryption-copy p {
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+}
+
+.encryption-badges {
+  gap: 10px;
+}
+
+.encryption-visual {
+  min-height: 96px;
+  width: 96px;
+}
+
+.encryption-visual::before {
+  width: 88px;
+  height: 88px;
+  opacity: 0.28;
+}
+
+.encryption-visual svg {
+  width: 34px;
+  height: 34px;
+  filter: none;
+}
+
+.profile-daily-goals-grid,
+.privacy-panel,
+.watch-panel {
+  gap: 10px;
+}
+
+.profile-goal-field > div {
+  min-height: 40px;
+}
+
+.watch-card-topline {
+  margin-bottom: 8px;
+}
+
+.watch-panel .profile-danger-action {
+  margin-top: 4px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 148px;
+    height: 148px;
+  }
+
+  .account-panel .profile-avatar-face {
+    width: 126px;
+    height: 126px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    right: calc(50% - 74px);
+    bottom: calc(50% - 74px);
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 170px;
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 138px;
+    height: 138px;
+  }
+
+  .account-panel .profile-avatar-face {
+    width: 116px;
+    height: 116px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    right: calc(50% - 70px);
+    bottom: calc(50% - 70px);
+  }
+
+  .encryption-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Account widget refinement */
+.account-panel .profile-panel-heading {
+  align-items: center;
+}
+
+.account-panel .biometrics-save-button {
+  display: inline-flex;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px;
+  color: var(--color-primary);
+}
+
+.account-panel .biometrics-save-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 26px;
+}
+
+.account-panel .profile-avatar-edit {
+  min-height: 248px;
+  align-self: stretch;
+}
+
+.account-panel .profile-avatar-ring {
+  width: 206px;
+  height: 206px;
+}
+
+.account-panel .profile-avatar-face {
+  width: 178px;
+  height: 178px;
+  font-size: 1.9rem;
+}
+
+.account-panel .profile-avatar-upload {
+  right: calc(50% - 102px);
+  bottom: calc(50% - 102px);
+  width: 44px;
+  height: 44px;
+}
+
+.account-panel .account-form-grid {
+  align-content: center;
+  gap: 14px;
+}
+
+.account-email-field {
+  min-width: 0;
+}
+
+.account-email-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.account-email-row input {
+  min-width: 0;
+}
+
+.account-email-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid rgba(197, 254, 0, 0.18);
+  border-radius: 12px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.055);
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.account-email-row button:hover {
+  border-color: rgba(197, 254, 0, 0.32);
+  background: rgba(197, 254, 0, 0.08);
+}
+
+.account-email-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.account-email-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.account-email-label strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: #aaa;
+  background: transparent;
+  font-size: 0.54rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.account-email-label strong::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.account-email-label strong.verified {
+  color: var(--color-primary);
+  background: transparent;
+}
+
+.account-email-label strong.pending {
+  color: #ffc36b;
+  background: transparent;
+}
+
+.account-email-verification {
+  display: grid;
+  gap: 13px;
+  padding: 15px;
+  border: 1px solid rgba(197, 254, 0, 0.12);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(197, 254, 0, 0.055), rgba(255, 255, 255, 0.012)),
+    #0e0e0e;
+}
+
+.account-email-verification-copy {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
+.account-email-verification-copy svg {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+
+.account-email-verification-copy strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.account-email-verification-copy p {
+  margin: 0;
+  color: #9d9d9d;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.account-code-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.75fr) auto auto;
+  gap: 10px;
+}
+
+.account-code-row input,
+.account-code-row button {
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.account-code-row input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 14px;
+  color: #fff;
+  background: #0a0a0a;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  outline: none;
+}
+
+.account-code-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid rgba(197, 254, 0, 0.2);
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.06);
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.account-code-row button.ghost {
+  border-color: rgba(255, 255, 255, 0.07);
+  color: #d8d8d8;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.account-code-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.account-footer-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.account-footer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  color: #8f8f8f;
+  background: transparent;
+  font-size: 0.6rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.account-footer-button:hover {
+  color: var(--color-primary);
+}
+
+.account-footer-button.danger {
+  color: #a9776f;
+}
+
+.account-footer-button.danger:hover {
+  color: #ff907b;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 176px;
+    height: 176px;
+  }
+
+  .account-panel .profile-avatar-face {
+    width: 150px;
+    height: 150px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    right: calc(50% - 88px);
+    bottom: calc(50% - 88px);
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-profile-body,
+  .account-email-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 220px;
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 178px;
+    height: 178px;
+  }
+
+  .account-panel .profile-avatar-face {
+    width: 152px;
+    height: 152px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    right: calc(50% - 90px);
+    bottom: calc(50% - 90px);
+  }
+
+  .account-email-row button {
+    width: 100%;
+  }
+
+  .account-code-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-footer-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* Account widget modern pass */
+.account-panel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.008)),
+    #121212;
+}
+
+.profile-main-column .account-panel {
+  padding: 28px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 26px;
+}
+
+.account-panel .biometrics-save-button {
+  min-height: 38px;
+  padding: 0 16px;
+  border-color: rgba(197, 254, 0, 0.22);
+  color: #101010;
+  background: var(--color-primary);
+}
+
+.account-panel .biometrics-save-button:hover {
+  color: #101010;
+  border-color: rgba(197, 254, 0, 0.32);
+  background: #d7ff2e;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 315px minmax(0, 1fr);
+  gap: 30px;
+  min-height: 300px;
+  align-items: stretch;
+}
+
+.account-panel .profile-avatar-edit {
+  position: relative;
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(197, 254, 0, 0.08), transparent 42%),
+    #0e0e0e;
+}
+
+.account-panel .profile-avatar-ring {
+  width: 226px;
+  height: 226px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background: #111;
+}
+
+.account-panel .profile-avatar-face {
+  width: 196px;
+  height: 196px;
+  font-size: 2rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: 50%;
+  right: auto;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  min-width: 132px;
+  height: 38px;
+  padding: 0 13px;
+  border: 1px solid rgba(197, 254, 0, 0.22);
+  border-radius: 999px;
+  color: var(--color-primary);
+  background: rgba(10, 10, 10, 0.86);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(10px);
+}
+
+.account-panel .profile-avatar-upload span {
+  color: inherit;
+  font-size: 0.56rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.account-panel .profile-avatar-upload svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 3;
+}
+
+.account-panel .account-form-grid {
+  align-content: center;
+  gap: 20px;
+}
+
+.account-name-row,
+.account-panel .profile-password-row {
+  gap: 16px;
+}
+
+.account-panel .profile-form-field {
+  gap: 10px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 50px;
+}
+
+.account-panel .profile-form-field input {
+  border-radius: 14px;
+  padding: 0 18px;
+}
+
+.account-email-row {
+  gap: 12px;
+}
+
+.account-email-row button {
+  padding: 0 16px;
+  border-radius: 14px;
+}
+
+.account-panel .profile-account-status {
+  margin-top: -2px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 260px minmax(0, 1fr);
+    min-height: 280px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 280px;
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 196px;
+    height: 196px;
+  }
+
+  .account-panel .profile-avatar-face {
+    width: 170px;
+    height: 170px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel {
+    padding: 20px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 270px;
+  }
+
+  .account-panel .profile-avatar-ring {
+    width: 196px;
+    height: 196px;
+  }
+
+  .account-panel .profile-avatar-face {
+    width: 170px;
+    height: 170px;
+  }
+}
+
+/* Softer avatar zone */
+.account-panel .profile-avatar-edit {
+  min-height: 300px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(197, 254, 0, 0.075), transparent 46%),
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.05), transparent 62%);
+}
+
+.account-panel .profile-avatar-ring {
+  position: relative;
+  border: 2px solid rgba(197, 254, 0, 0.44);
+  background: transparent;
+  box-shadow: 0 0 0 rgba(197, 254, 0, 0);
+  animation: profileAvatarRingPulse 3.6s ease-in-out infinite;
+}
+
+.account-panel .profile-avatar-ring::after {
+  content: none;
+}
+
+.account-panel .profile-avatar-face {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.055), transparent 56%),
+    #0b0b0b;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.32);
+}
+
+@keyframes profileAvatarRingPulse {
+  0%,
+  100% {
+    border-color: rgba(197, 254, 0, 0.34);
+    box-shadow: 0 0 0 rgba(197, 254, 0, 0);
+  }
+
+  50% {
+    border-color: rgba(197, 254, 0, 0.68);
+    box-shadow: 0 0 18px rgba(197, 254, 0, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-panel .profile-avatar-ring {
+    animation: none;
+  }
+}
+
+.account-panel .profile-avatar-upload {
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  background: rgba(18, 18, 18, 0.92);
+}
+
+/* Account widget composition polish */
+.account-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 42%, rgba(197, 254, 0, 0.08), transparent 26%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035), transparent 54%);
+}
+
+.account-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-main-column .account-panel {
+  padding: 28px 30px 30px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 265px minmax(0, 620px);
+  justify-content: start;
+  gap: 20px;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-items: start;
+  place-items: start;
+  min-height: 286px;
+  padding-top: 16px;
+  background:
+    radial-gradient(circle at 45% 45%, rgba(197, 254, 0, 0.08), transparent 48%),
+    radial-gradient(circle at 38% 45%, rgba(255, 255, 255, 0.055), transparent 64%);
+}
+
+.account-panel .profile-avatar-ring {
+  margin-left: 6px;
+}
+
+.account-panel .profile-avatar-upload {
+  left: 119px;
+  bottom: 26px;
+  transform: translateX(-50%);
+}
+
+.account-panel .account-form-grid {
+  width: min(100%, 620px);
+  justify-self: start;
+  align-content: center;
+  gap: 18px;
+}
+
+.account-name-row,
+.account-panel .profile-password-row {
+  gap: 14px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 48px;
+}
+
+.account-email-verification {
+  max-width: 620px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 230px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .account-panel .profile-avatar-ring {
+    margin-left: 0;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 98px;
+    transform: translateX(-50%);
+  }
+}
+
+/* Avatar edit button and safer uploaded image fit */
+.account-panel .profile-avatar-face.has-image {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-color: #0b0b0b;
+}
+
+.account-panel .profile-avatar-upload {
+  left: 166px;
+  top: 190px;
+  bottom: auto;
+  transform: none;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: #101010;
+  background: var(--color-primary);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+}
+
+.account-panel .profile-avatar-upload span {
+  display: none;
+}
+
+.account-panel .profile-avatar-upload svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .profile-avatar-upload {
+    left: 140px;
+    top: 180px;
+    transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 46px);
+    top: 168px;
+    transform: none;
+  }
+}
+
+/* Right stack: Apple Watch + Hydration polish */
+.watch-panel,
+.hydration-goal-panel {
+  overflow: hidden;
+  min-height: 0;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.008)),
+    #121212;
+}
+
+.watch-panel.disconnected {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255, 94, 94, 0.16), transparent 30%),
+    linear-gradient(145deg, rgba(255, 94, 94, 0.055), rgba(255, 255, 255, 0.008)),
+    #121212;
+  border-color: rgba(255, 94, 94, 0.12);
+}
+
+.watch-panel::before,
+.hydration-goal-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 88% 18%, rgba(197, 254, 0, 0.09), transparent 28%);
+}
+
+.watch-panel.disconnected::before {
+  background: radial-gradient(circle at 88% 18%, rgba(255, 94, 94, 0.14), transparent 30%);
+}
+
+.watch-panel > *,
+.hydration-goal-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.watch-panel {
+  gap: 12px;
+  align-content: stretch;
+}
+
+.watch-card-topline {
+  margin-bottom: 4px;
+}
+
+.watch-icon {
+  width: 42px;
+  height: 42px;
+  color: #101010;
+  background: var(--color-primary);
+  border: 0;
+  box-shadow: 0 0 18px rgba(197, 254, 0, 0.2);
+}
+
+.watch-panel.disconnected .watch-icon {
+  color: #fff;
+  background: #ff5e5e;
+  box-shadow: 0 0 18px rgba(255, 94, 94, 0.2);
+}
+
+.watch-panel h2 {
+  margin: 0;
+  font-size: 1.28rem;
+  line-height: 1;
+}
+
+.watch-panel p {
+  max-width: 220px;
+  color: #9d9d9d;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.watch-panel .status-badge {
+  min-height: 26px;
+  padding: 0 11px;
+  border-color: rgba(197, 254, 0, 0.18);
+  background: rgba(197, 254, 0, 0.055);
+}
+
+.watch-panel.disconnected .status-badge {
+  border-color: rgba(255, 94, 94, 0.22);
+  color: #ff7c7c;
+  background: rgba(255, 94, 94, 0.07);
+}
+
+.watch-panel .status-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 10px rgba(197, 254, 0, 0.7);
+}
+
+.watch-panel.disconnected .status-badge::before {
+  background: #ff5e5e;
+  box-shadow: 0 0 10px rgba(255, 94, 94, 0.7);
+}
+
+.watch-panel .profile-danger-action {
+  width: max-content;
+  min-height: 34px;
+  margin-top: auto;
+  padding: 0 13px;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #cfcfcf;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.watch-panel .profile-danger-action:hover {
+  color: #ff907b;
+  border-color: rgba(255, 122, 95, 0.22);
+  background: rgba(255, 122, 95, 0.055);
+}
+
+.watch-panel.disconnected .profile-danger-action {
+  border-color: rgba(255, 94, 94, 0.2);
+  color: #ff7c7c;
+  background: rgba(255, 94, 94, 0.06);
+}
+
+.watch-panel.disconnected .profile-danger-action:hover {
+  color: #fff;
+  border-color: rgba(255, 94, 94, 0.34);
+  background: rgba(255, 94, 94, 0.1);
+}
+
+/* Account footer should sit lower in the profile card */
+.account-panel .account-form-grid {
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+}
+
+.account-footer-actions {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-form-grid {
+    min-height: 0;
+  }
+}
+
+.hydration-goal-panel {
+  display: grid;
+  align-content: start;
+}
+
+.hydration-goal-panel .profile-panel-heading {
+  margin-bottom: 12px;
+}
+
+.hydration-goal-panel .profile-heading-icon {
+  color: #101010;
+  background: var(--color-primary);
+  border: 0;
+}
+
+.hydration-goal-value {
+  align-items: flex-end;
+  margin: 0 0 14px;
+}
+
+.hydration-goal-value span {
+  font-size: 2.85rem;
+  letter-spacing: -0.04em;
+}
+
+.hydration-goal-value small {
+  max-width: 110px;
+  line-height: 1.25;
+}
+
+.profile-hydration-controls {
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 14px;
+  background: #0e0e0e;
+}
+
+.profile-hydration-controls button {
+  width: 32px;
+  height: 32px;
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.profile-hydration-controls input {
+  height: 4px;
+  cursor: pointer;
+}
+
+.hydration-recommendation {
+  margin-top: 12px;
+  padding-top: 12px;
+  color: #bcbcbc;
+}
+
+.hydration-recommendation svg {
+  width: 15px;
+  height: 15px;
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .watch-panel .profile-danger-action {
+    width: 100%;
+  }
+
+  .hydration-goal-value {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hydration-goal-value small {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    place-items: center;
+    justify-items: center;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 50%;
+    transform: translateX(-50%);
   }
 }

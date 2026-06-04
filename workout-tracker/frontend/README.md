@@ -1334,6 +1334,76 @@ Der Backend-Server muss für Login und API-Requests auf Port `3000` laufen. Der 
 jonasarnold@gmail.com / 123
 ```
 
+## Folgeiteration: Account Settings und sichere E-Mail-Änderung
+
+Die Account-Settings-Seite wurde überarbeitet, damit sie sich stärker am Dashboard-Stil orientiert und weniger überladen wirkt. Der Schwerpunkt lag auf dem `Account Profile`-Widget und dem rechten Stack aus Apple-Watch- und Hydration-Widget.
+
+### Account Profile Widget
+
+Das Account-Widget wurde visuell und funktional erweitert:
+
+- größeres Profilbild mit feinem, langsam pulsierendem grünem Ring
+- Edit-Button als kleines Stift-Icon unten rechts am Profilbild
+- bessere Bilddarstellung bei Uploads, damit Profilbilder nicht mehr stark hineingezoomt werden
+- modernere, linkslastigere Anordnung von Avatar und Formular
+- dezenter Status für verifizierte E-Mail-Adressen
+- `LOG OUT` und `DELETE ACCOUNT` wurden aus dem alten Privacy-Widget entfernt und fein unten im Account-Widget platziert
+- das separate Privacy-Widget wurde entfernt
+
+### Sichere E-Mail-Änderung
+
+Die E-Mail-Adresse wird nicht mehr einfach direkt ersetzt. Stattdessen gibt es jetzt einen Pending-Flow:
+
+1. Der Nutzer trägt im Account-Widget eine neue E-Mail ein.
+2. `CHANGE EMAIL` speichert diese Adresse als `pendingEmail`.
+3. Das Backend sendet einen Verifizierungscode an die neue Adresse.
+4. Im Account-Widget erscheint ein Code-Feld mit `VERIFY` und `RESEND`.
+5. Erst nach erfolgreicher Code-Bestätigung wird `users.email` wirklich aktualisiert.
+
+Dafür wurde das Prisma-User-Modell um `pendingEmail` ergänzt. Die Migration liegt unter:
+
+```text
+backend/prisma/migrations/20260604120000_add_pending_email/migration.sql
+```
+
+Neue Auth-Endpunkte:
+
+- `POST /api/auth/verify-email-change`
+- `POST /api/auth/resend-email-change`
+
+Der Demo-Account `jonasarnold@gmail.com` bleibt weiterhin von echten Mail-Benachrichtigungen ausgenommen.
+
+### Apple Watch und Hydration Goal
+
+Die beiden Widgets stehen jetzt rechts neben bzw. unter dem Account-Widget:
+
+- Apple Watch zeigt einen Connected-/Disconnected-Status.
+- Connected nutzt grüne Akzente.
+- Disconnected nutzt rote Akzente und einen roten Gradient.
+- Hydration Goal wurde kompakter gestaltet.
+- Die Recommended-Zeile nutzt jetzt ein weißes Info-Icon.
+
+### Verifikation dieser Iteration
+
+Frontend:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+npx eslint src/pages/Profile.jsx
+```
+
+Backend:
+
+```bash
+cd workout-tracker/backend
+node -c routes/auth.js
+npx prisma migrate deploy
+npx prisma generate
+```
+
+Ergebnis: Build, Backend-Syntaxcheck, Migration und Prisma-Generierung laufen erfolgreich. ESLint meldet keine Errors, nur bestehende `storageKey`-Dependency-Warnings in `Profile.jsx`.
+
 ## Verification
 
 Backend checks:
