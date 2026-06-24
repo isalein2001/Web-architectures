@@ -31,7 +31,7 @@ const readyWorkoutPlans = [
     title: 'FULL BODY WORKOUT',
     badge: 'BEGINNER PLAN',
     iconKey: 'activity',
-    image: '/achievements-bg.png',
+    image: '/achievements-bg.jpg',
     exercises: ['Bench Press (3x12)', 'Lat Pulldown (3x12)', 'Lateral Raise (4x12)', 'Leg Press (4x10)', 'Seated Row (3x12)', 'Hamstring Curl (3x15)', 'Plank Hold (3x45s)'],
   },
 ];
@@ -136,7 +136,7 @@ const normalizePlan = (plan, source = 'custom') => {
     planId: typeof plan.id === 'number' ? plan.id : null,
     title: plan.title || plan.name || 'WORKOUT',
     badge: plan.badge || (source === 'backend' ? 'SAVED PLAN' : 'WORKOUT PLAN'),
-    image: plan.image || '/hero-bg.png',
+    image: plan.image || '/hero-bg.jpg',
     iconKey: plan.iconKey || 'dumbbell',
     source,
     exercises: rawExercises.filter((exercise) => exercise.name),
@@ -226,7 +226,7 @@ export default function WorkoutLogger({ currentUser }) {
       planId: null,
       title: t('FREESTYLE WORKOUT'),
       badge: t('ON THE FLY'),
-      image: '/hero-bg.png',
+      image: '/hero-bg.jpg',
       iconKey: 'activity',
       exercises: [],
     };

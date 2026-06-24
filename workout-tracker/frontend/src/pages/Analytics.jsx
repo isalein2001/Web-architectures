@@ -115,11 +115,11 @@ const DIVERSITY_BUBBLE_SPREAD_LAYOUT = [
   { x: 89, y: 82 },
 ];
 const MOST_TRAINED_IMAGES = [
-  '/most-trained-1.png',
-  '/most-trained-2.png',
-  '/most-trained-3.png',
-  '/most-trained-4.png',
-  '/most-trained-5.png',
+  '/most-trained-1.jpg',
+  '/most-trained-2.jpg',
+  '/most-trained-3.jpg',
+  '/most-trained-4.jpg',
+  '/most-trained-5.jpg',
 ];
 
 const getStableImageIndex = (value = '') => {
@@ -233,7 +233,7 @@ const readyMadeCalendarWorkouts = [
     id: 'ready-full-body-workout',
     title: 'FULL BODY WORKOUT',
     badge: 'BEGINNER PLAN',
-    image: '/achievements-bg.png',
+    image: '/achievements-bg.jpg',
     iconKey: 'activity',
     exercises: ['Bench Press (3x12)', 'Lat Pulldown (3x12)', 'Lateral Raise (4x12)'],
     extraExercises: ['Leg Press (4x10)', 'Seated Row (3x12)', 'Hamstring Curl (3x15)', 'Plank Hold (3x45s)'],
@@ -1817,7 +1817,7 @@ export default function Analytics({ currentUser }) {
                     >
                       <span
                         className="analytics-workout-select-cover"
-                        style={{ backgroundImage: `url(${workout.image || '/hero-bg.png'})` }}
+                        style={{ backgroundImage: `url(${workout.image || '/hero-bg.jpg'})` }}
                       >
                         <WorkoutIcon size={18} />
                       </span>

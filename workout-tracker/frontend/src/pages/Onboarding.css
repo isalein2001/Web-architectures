@@ -6,7 +6,7 @@
   color: #fff;
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.62)),
-    url('/auth-gym-bg.png') center / cover;
+    url('/auth-gym-bg.jpg') center / cover;
 }
 
 .onboarding-shell {

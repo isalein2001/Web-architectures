@@ -36,7 +36,7 @@ const readyPlans = [
   {
     title: 'FULL BODY WORKOUT',
     badge: 'BEGINNER PLAN',
-    image: '/achievements-bg.png',
+    image: '/achievements-bg.jpg',
     iconKey: 'activity',
     exercises: ['Bench Press (3x12)', 'Lat Pulldown (3x12)', 'Lateral Raise (4x12)'],
     extraExercises: ['Leg Press (4x10)', 'Seated Row (3x12)', 'Hamstring Curl (3x15)', 'Plank Hold (3x45s)'],
@@ -103,7 +103,7 @@ const mapBackendPlanToSavedPlan = (plan) => {
     backendPlanId: plan.id,
     title: plan.name,
     badge: 'SAVED PLAN',
-    image: '/hero-bg.png',
+    image: '/hero-bg.jpg',
     iconKey: 'dumbbell',
     builderExercises: (plan.exercises || []).map((exercise) => ({
       id: exercise.id || Date.now() + Math.random(),
@@ -372,7 +372,7 @@ export default function Workouts({ currentUser }) {
       backendPlanId: persistedPlan?.id || savedPlans.find((plan) => plan.id === editingPlanId)?.backendPlanId || null,
       title: workoutName.trim().toUpperCase(),
       badge: t('CUSTOM PLAN'),
-      image: coverImage || '/hero-bg.png',
+      image: coverImage || '/hero-bg.jpg',
       iconKey: selectedIconKey,
       builderExercises: enteredExercises.map((exercise) => ({
         ...exercise,

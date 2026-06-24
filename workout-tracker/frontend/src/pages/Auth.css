@@ -8,7 +8,7 @@
     radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12), transparent 18%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.86)),
     linear-gradient(90deg, rgba(0, 0, 0, 0.96), rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.96)),
-    url('/auth-gym-bg.png');
+    url('/auth-gym-bg.jpg');
   background-size: cover;
   background-position: center;
 }
