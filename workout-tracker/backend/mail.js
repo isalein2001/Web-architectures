@@ -10,7 +10,7 @@ const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLo
 
 const getMailConfig = () => ({
   apiKey: process.env.RESEND_API_KEY,
-  from: process.env.MAIL_FROM || 'PROGYM <onboarding@resend.dev>',
+  from: process.env.MAIL_FROM || 'NEXT REPS <onboarding@resend.dev>',
   appUrl: normalizeBaseUrl(process.env.APP_URL),
 });
 
@@ -46,15 +46,15 @@ async function sendVerificationEmail({ to, firstName, code }) {
     await resend.emails.send({
       from,
       to: normalizedTo || to,
-      subject: 'Verify your PROGYM email',
+      subject: 'Verify your NEXT REPS email',
       html,
       text: [
         `Hi ${firstName || 'there'},`,
         '',
-        `Your PROGYM verification code is ${code}.`,
+        `Your NEXT REPS verification code is ${code}.`,
         `Open ${verifyUrl} and enter the code to verify your account.`,
         '',
-        'If you did not create or update a PROGYM account, you can ignore this email.',
+        'If you did not create or update a NEXT REPS account, you can ignore this email.',
       ].join('\n'),
     });
   } catch (error) {

@@ -1,8 +1,8 @@
 self.addEventListener('push', (event) => {
   const payload = event.data?.json?.() || {};
-  const title = payload.title || 'PROGYM';
+  const title = payload.title || 'NEXT REPS';
   const options = {
-    body: payload.body || 'There is a new PROGYM update.',
+    body: payload.body || 'There is a new NEXT REPS update.',
     icon: '/favicon.svg?v=2',
     badge: '/favicon.svg?v=2',
     data: {

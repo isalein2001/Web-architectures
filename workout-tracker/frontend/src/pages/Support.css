@@ -48,6 +48,15 @@
   box-shadow: var(--shadow-elevate);
 }
 
+.support-faq-item {
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.support-faq-item:last-child {
+  border-bottom: 0;
+}
+
 .support-faq-row {
   display: flex;
   align-items: center;
@@ -57,7 +66,6 @@
   padding: 0 36px;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: #fff;
   font: inherit;
   font-size: 1rem;
@@ -67,10 +75,6 @@
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.support-faq-row:last-child {
-  border-bottom: 0;
-}
-
 .support-faq-row svg {
   color: var(--color-primary);
   flex: 0 0 auto;
@@ -78,12 +82,52 @@
 }
 
 .support-faq-row:hover,
-.support-faq-row.open {
-  background-color: rgba(197, 254, 0, 0.025);
+.support-faq-item.open .support-faq-row {
+  background:
+    linear-gradient(90deg, rgba(197, 254, 0, 0.055), transparent 56%),
+    rgba(255, 255, 255, 0.012);
 }
 
-.support-faq-row.open svg {
+.support-faq-item.open .support-faq-row svg {
   transform: rotate(45deg);
+}
+
+.support-faq-answer {
+  position: relative;
+  margin: 0;
+  padding: 10px 36px 34px 52px;
+  color: #b7b7b7;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(197, 254, 0, 0.055), transparent 58%),
+    rgba(197, 254, 0, 0.012);
+}
+
+.support-faq-answer[hidden] {
+  display: none;
+}
+
+.support-faq-answer::before {
+  content: '';
+  position: absolute;
+  left: 36px;
+  top: 14px;
+  bottom: 34px;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--color-primary);
+  box-shadow: 0 0 18px rgba(197, 254, 0, 0.42);
+}
+
+.support-faq-answer p {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0;
+  color: #e4e4e4;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.75;
 }
 
 .support-main-grid {
@@ -332,6 +376,21 @@
     min-height: 74px;
     padding: 0 22px;
     font-size: 0.82rem;
+  }
+
+  .support-faq-answer {
+    margin: 0;
+    padding: 8px 22px 28px 36px;
+  }
+
+  .support-faq-answer p {
+    font-size: 0.88rem;
+  }
+
+  .support-faq-answer::before {
+    left: 22px;
+    top: 12px;
+    bottom: 28px;
   }
 
   .support-contact-pill {

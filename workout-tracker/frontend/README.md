@@ -263,7 +263,7 @@ Redis wäre eher sinnvoll für kurzlebige Daten wie aktive Reminder, temporäre 
 
 ## Echtzeit-Bedarf und Technologieentscheidung
 
-Vor der Auswahl einer Echtzeit-Technologie wurde geprüft, ob PROGYM produktiv wirklich Live-Kommunikation braucht.
+Vor der Auswahl einer Echtzeit-Technologie wurde geprüft, ob NEXT REPS produktiv wirklich Live-Kommunikation braucht.
 
 | Frage | Antwort |
 | --- | --- |
@@ -274,7 +274,7 @@ Vor der Auswahl einer Echtzeit-Technologie wurde geprüft, ob PROGYM produktiv w
 
 ### Entscheidung
 
-Für PROGYM ist aktuell **keine produktiv notwendige Echtzeit-Kommunikation** erforderlich. Die App ist primär ein persönlicher Workout-Tracker: Nutzer erstellen eigene Pläne, speichern eigene Sessions und sehen eigene Analytics. Da fremde Nutzer diese Daten nicht verändern dürfen, entsteht kein starker Bedarf für sofortige Live-Synchronisation.
+Für NEXT REPS ist aktuell **keine produktiv notwendige Echtzeit-Kommunikation** erforderlich. Die App ist primär ein persönlicher Workout-Tracker: Nutzer erstellen eigene Pläne, speichern eigene Sessions und sehen eigene Analytics. Da fremde Nutzer diese Daten nicht verändern dürfen, entsteht kein starker Bedarf für sofortige Live-Synchronisation.
 
 Für den produktiven Stand reichen normale REST-Requests, ein Reload oder gezieltes Refetching nach erfolgreichen Änderungen aus. Ein Polling-Mechanismus wäre als Lernübung vertretbar, z. B. um Dashboard- oder Analytics-Daten alle 30 Sekunden neu abzufragen. Dieser Mechanismus wäre aber ausdrücklich **nicht produktiv notwendig**, sondern nur eine Übung, um periodische Aktualisierung kennenzulernen.
 
@@ -282,7 +282,7 @@ SSE wäre erst sinnvoll, wenn der Server echte einseitige Live-Ereignisse senden
 
 ## SSE-Lernübung: Live-Update für Workout-Pläne
 
-Obwohl PROGYM produktiv aktuell keine zwingende Echtzeit-Kommunikation braucht, wurde als Lernübung ein Server-Sent-Events-Mechanismus für Workout-Pläne eingebaut.
+Obwohl NEXT REPS produktiv aktuell keine zwingende Echtzeit-Kommunikation braucht, wurde als Lernübung ein Server-Sent-Events-Mechanismus für Workout-Pläne eingebaut.
 
 ### Umsetzung
 
@@ -352,7 +352,7 @@ Präzisierung im zweiten Versuch:
 | Richtung | Server -> Client | Bidirektional |
 | Komplexität im Code | Gering. Ein Express-Endpoint mit `text/event-stream` und ein `EventSource` im Frontend reichen aus. | Mittel. Es braucht ein eigenes Verbindungsprotokoll, Event-Handling in beide Richtungen und meist zusätzliche Infrastruktur oder eine Bibliothek wie `socket.io`. |
 | Reconnect bei Verbindungsabbruch | Automatisch durch den Browser. `EventSource` versucht die Verbindung nach einem Abbruch erneut aufzubauen. | Muss selbst implementiert werden oder wird von einer Bibliothek wie `socket.io` übernommen. |
-| Geeignet für euer Projekt | ✅ Als Lernübung und für einseitige Hinweise wie `plans:changed`. Produktiv aber aktuell nicht zwingend nötig. | ❌ Aktuell nicht passend, weil PROGYM keinen Chat, kein kollaboratives Editing und keine bidirektionale Live-Interaktion braucht. |
+| Geeignet für euer Projekt | ✅ Als Lernübung und für einseitige Hinweise wie `plans:changed`. Produktiv aber aktuell nicht zwingend nötig. | ❌ Aktuell nicht passend, weil NEXT REPS keinen Chat, kein kollaboratives Editing und keine bidirektionale Live-Interaktion braucht. |
 | Warum? | Die App muss dem Client höchstens sagen: "Daten haben sich geändert, bitte neu laden." Genau dafür reicht Server -> Client aus. | WebSockets wären überdimensioniert, solange der Client nicht dauerhaft aktiv Nachrichten an andere Clients oder den Server streamen muss. |
 
 ### Verhalten bei Server-Neustart
@@ -380,7 +380,7 @@ frontend/
     └── Analytics.jsx      # localStorage-sync für lokale Kalenderdaten
 ```
 
-Socket.io wurde bewusst nicht integriert, weil die Architekturentscheidung für diese Aufgabe auf SSE gefallen ist. WebSockets wären für den aktuellen Codeumfang überdimensioniert: Es gibt keinen Chat, kein kollaboratives Editing und keine bidirektionale Live-Interaktion. Falls die Aufgabenabgabe zwingend auch socket.io verlangt, müsste zusätzlich ein WebSocket-Server im Backend und ein `socket.io-client` im Frontend ergänzt werden; fachlich notwendig ist das für PROGYM aktuell nicht.
+Socket.io wurde bewusst nicht integriert, weil die Architekturentscheidung für diese Aufgabe auf SSE gefallen ist. WebSockets wären für den aktuellen Codeumfang überdimensioniert: Es gibt keinen Chat, kein kollaboratives Editing und keine bidirektionale Live-Interaktion. Falls die Aufgabenabgabe zwingend auch socket.io verlangt, müsste zusätzlich ein WebSocket-Server im Backend und ein `socket.io-client` im Frontend ergänzt werden; fachlich notwendig ist das für NEXT REPS aktuell nicht.
 
 ### Erfolgskriterien
 
@@ -408,7 +408,7 @@ Langfristig würden vor allem serverseitig gespeicherte, gemeinsam sichtbare Än
 
 ## Notification-Bedarf
 
-PROGYM ist aktuell ein persönlicher Workout-Tracker. Es gibt keine Freunde, Teams, geteilten Pläne, Trainer-Accounts oder Kommentare. Deshalb betrifft fast keine Aktion direkt einen anderen fremden Nutzer. Potenziell betroffen ist höchstens derselbe Nutzer auf einem anderen Gerät oder in einem zweiten Browser-Tab. Für solche Fälle reichen meistens In-App-Updates, Reloads oder SSE-Events; externe Notifications wären schnell störend.
+NEXT REPS ist aktuell ein persönlicher Workout-Tracker. Es gibt keine Freunde, Teams, geteilten Pläne, Trainer-Accounts oder Kommentare. Deshalb betrifft fast keine Aktion direkt einen anderen fremden Nutzer. Potenziell betroffen ist höchstens derselbe Nutzer auf einem anderen Gerät oder in einem zweiten Browser-Tab. Für solche Fälle reichen meistens In-App-Updates, Reloads oder SSE-Events; externe Notifications wären schnell störend.
 
 | Event in der App | Notification sinnvoll? | Typ | Kanal | Begründung |
 | --- | --- | --- | --- | --- |
@@ -476,7 +476,7 @@ Benötigte `.env`-Werte:
 
 ```env
 RESEND_API_KEY="re_..."
-MAIL_FROM="PROGYM <onboarding@resend.dev>"
+MAIL_FROM="NEXT REPS <onboarding@resend.dev>"
 APP_URL="http://localhost:5173"
 ```
 
@@ -518,7 +518,7 @@ Präzisierung im zweiten Versuch:
 
 ## Web Push mit VAPID
 
-Web Push wurde als **Lernübung** für das bestehende Event `plans:changed` umgesetzt. Produktiv ist Push für Workout-Plan-Änderungen aktuell nicht zwingend nötig, weil PROGYM keine geteilten Pläne oder fremde Nutzerinteraktion hat. Für die Aufgabe ist das Event aber gut testbar: Wenn Tab 1 einen Workout-Plan erstellt, bearbeitet oder löscht, kann derselbe eingeloggte Nutzer in Tab 2 eine Browser-Notification erhalten und direkt zur Workouts-Seite springen.
+Web Push wurde als **Lernübung** für das bestehende Event `plans:changed` umgesetzt. Produktiv ist Push für Workout-Plan-Änderungen aktuell nicht zwingend nötig, weil NEXT REPS keine geteilten Pläne oder fremde Nutzerinteraktion hat. Für die Aufgabe ist das Event aber gut testbar: Wenn Tab 1 einen Workout-Plan erstellt, bearbeitet oder löscht, kann derselbe eingeloggte Nutzer in Tab 2 eine Browser-Notification erhalten und direkt zur Workouts-Seite springen.
 
 Installiertes Backend-Paket:
 
@@ -565,7 +565,7 @@ Payload-Beispiel für `plans:changed`:
 ```json
 {
   "title": "Workout plan created",
-  "body": "Push Day was added to your PROGYM workouts.",
+  "body": "Push Day was added to your NEXT REPS workouts.",
   "url": "/workouts"
 }
 ```
@@ -596,8 +596,8 @@ npm install -D @capacitor/cli
 Capacitor-Konfiguration:
 
 - Datei: `frontend/capacitor.config.json`
-- App-Name: `PROGYM`
-- Bundle-ID: `com.progym.app`
+- App-Name: `NEXT REPS`
+- Bundle-ID: `com.nextreps.app`
 - Web-Output: `dist`
 - iOS-Projekt: `frontend/ios/App/App.xcodeproj`
 
@@ -714,14 +714,14 @@ Der bisherige `+LOG`-Button im Dashboard war funktional, aber visuell nicht eind
 - Text `QUICK LOG` als primäre Aktion
 - Zusatz `WATER & STEPS`, damit direkt klar ist, was geloggt wird
 - größerer Klickbereich
-- grüner Glow und Hover-Zustand im PROGYM-Stil
+- grüner Glow und Hover-Zustand im NEXT REPS-Stil
 - neue Übersetzungen in `LanguageContext.jsx`
 
 Damit ist der Button deutlicher als Tracking-Aktion erkennbar, ohne den Dashboard-Hero zu überladen.
 
 ### Favicon
 
-Das alte lila Standard-Favicon wurde ersetzt. Das neue Favicon nutzt den dunklen PROGYM-Look mit neon-grünem Pulse-Symbol und passt damit besser zur restlichen Oberfläche.
+Das alte lila Standard-Favicon wurde ersetzt. Das neue Favicon nutzt den dunklen NEXT REPS-Look mit neon-grünem Pulse-Symbol und passt damit besser zur restlichen Oberfläche.
 
 Technisch wurde zusätzlich in `frontend/index.html` ein Cache-Busting-Parameter gesetzt:
 
@@ -762,7 +762,7 @@ Konkrete Risiken:
 Für die geschützten API-Routen wurde eine Express-Middleware `authenticate` ergänzt:
 
 - Datei: `backend/middleware/authenticate.js`
-- Sie liest den JWT aus dem HttpOnly-Cookie `progym_token`.
+- Sie liest den JWT aus dem HttpOnly-Cookie `nextreps_token`.
 - Optional akzeptiert sie auch einen `Authorization: Bearer <token>` Header.
 - Sie prüft den Token mit `jwt.verify(token, process.env.JWT_SECRET)`.
 - Bei Erfolg wird der entschlüsselte Payload in `req.user` gespeichert.
@@ -1277,7 +1277,7 @@ Das Widget wurde visuell mehrfach iteriert:
 - kleinere Typografie für kleine Bubbles, damit Übungsnamen besser lesbar bleiben
 - transparente grüne Bubble-Flächen statt stark glänzender Effekte
 
-Das Widget bleibt im dunklen PROGYM-Stil und nutzt Grün nur als Akzent.
+Das Widget bleibt im dunklen NEXT REPS-Stil und nutzt Grün nur als Akzent.
 
 ### Exercise-Diversity-Infoblock
 

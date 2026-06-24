@@ -1,6 +1,6 @@
 {
-  "appId": "com.progym.app",
-  "appName": "PROGYM",
+  "appId": "com.nextreps.app",
+  "appName": "Next Reps",
   "webDir": "dist",
   "server": {
     "androidScheme": "https",

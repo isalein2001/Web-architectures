@@ -52,7 +52,7 @@ export default function Register({ onLogin }) {
 
   return (
     <div className="auth-page auth-register-page">
-      <div className="auth-logo">PROGYM</div>
+      <div className="auth-logo">NEXT REPS</div>
 
       <main className="auth-shell register-shell">
         <aside className="auth-copy">

@@ -95,7 +95,7 @@ function createWorkoutsRouter() {
       });
       sendPushToUserLater(req.user.userId, {
         title: 'Workout plan created',
-        body: `${plan.name} was added to your PROGYM workouts.`,
+        body: `${plan.name} was added to your NEXT REPS workouts.`,
         url: '/workouts',
       });
       res.status(201).json({ id: plan.id, name: plan.name, description: plan.description });

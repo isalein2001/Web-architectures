@@ -95,7 +95,7 @@ function AppLayout() {
               ? 'About Us'
               : location.pathname === '/support'
                 ? 'Support'
-                : 'PROGYM';
+                : 'NEXT REPS';
   const userDisplayName = getUserDisplayName(currentUser);
   const userInitials = getUserInitials(currentUser);
   const workoutRemindersStorageKey = getUserStorageKey('workoutRemindersEnabled', currentUser);
@@ -125,7 +125,7 @@ function AppLayout() {
     { type: 'Page', label: 'Settings', description: 'Account and preferences', path: '/settings', Icon: Activity },
     { type: 'Page', label: 'Profile', description: 'Body metrics and advanced biometrics', path: '/profile', Icon: User },
     { type: 'Page', label: 'Support', description: 'Help center and ticket form', path: '/support', Icon: LifeBuoy },
-    { type: 'Page', label: 'About Us', description: 'Founders and PROGYM philosophy', path: '/about', Icon: Info },
+    { type: 'Page', label: 'About Us', description: 'Founders and NEXT REPS philosophy', path: '/about', Icon: Info },
     { type: 'Action', label: 'Start Workout', description: 'Open workout launcher', path: '/start-workout', Icon: PlayCircle },
     { type: 'Action', label: 'Log Water', description: 'Open quick hydration log', action: () => openQuickLog('water'), Icon: Droplets },
     { type: 'Action', label: 'Log Steps', description: 'Open quick steps log', action: () => openQuickLog('steps'), Icon: Activity },
@@ -503,7 +503,7 @@ function AppLayout() {
         <section className="auth-card">
           <div className="auth-brand">
             <Activity size={24} />
-            <span>PROGYM</span>
+            <span>NEXT REPS</span>
           </div>
           <h1>Loading</h1>
           <p>Checking your session.</p>
@@ -560,7 +560,7 @@ function AppLayout() {
           >
             <div className="sidebar-logo">
               <Activity color="#C5FE00" size={28} />
-              <span>PROGYM</span>
+              <span>NEXT REPS</span>
             </div>
           </NavLink>
           <div className="sidebar-subtitle">{t('Member').toUpperCase()}</div>
@@ -607,10 +607,10 @@ function AppLayout() {
       <div className="main-area">
         {!isLanding && (
           <header className="topbar">
-            <NavLink to="/dashboard" className="mobile-topbar-brand" aria-label="PROGYM Dashboard">
+            <NavLink to="/dashboard" className="mobile-topbar-brand" aria-label="NEXT REPS Dashboard">
               <Activity color="#C5FE00" size={22} />
               <span>
-                <strong>PROGYM</strong>
+                <strong>NEXT REPS</strong>
                 <small>{t(pageTitleKey)}</small>
               </span>
             </NavLink>
@@ -835,7 +835,7 @@ function AppLayout() {
               </div>
             </div>
             <div className="footer-copyright">
-              © 2026 PROGYM PERFORMANCE SYSTEMS. ALL RIGHTS RESERVED.
+              © 2026 NEXT REPS PERFORMANCE SYSTEMS. ALL RIGHTS RESERVED.
             </div>
           </footer>
         </main>

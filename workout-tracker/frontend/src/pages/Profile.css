@@ -3515,6 +3515,253 @@
   }
 }
 
+/* Account profile final cleanup */
+.profile-main-column .account-panel {
+  padding: 30px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 24px;
+}
+
+.account-panel .account-profile-body {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 34px;
+  align-items: stretch;
+  min-height: 0;
+  height: auto;
+}
+
+.account-panel .profile-avatar-edit {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 100%;
+  max-width: none;
+  width: 100%;
+  padding: 8px 0 0;
+  border: 0;
+  background: none;
+}
+
+.account-panel .profile-avatar-edit::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  width: 228px;
+  height: 228px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 254, 0, 0.2), rgba(197, 254, 0, 0.075) 46%, transparent 72%);
+  filter: blur(10px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.account-panel .profile-avatar-ring {
+  position: relative;
+  z-index: 1;
+  width: 206px;
+  height: 206px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.account-panel .profile-avatar-ring::after {
+  content: none;
+}
+
+.account-panel .profile-avatar-face {
+  width: 206px;
+  height: 206px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.08), transparent 58%),
+    #0b0b0b;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
+  font-size: 2rem;
+}
+
+.account-panel .profile-avatar-upload {
+  position: absolute;
+  left: calc(50% + 72px);
+  top: 170px;
+  right: auto;
+  bottom: auto;
+  transform: none;
+  z-index: 2;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(197, 254, 0, 0.26);
+  border-radius: 50%;
+  background: rgba(12, 12, 12, 0.92);
+}
+
+.account-avatar-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.account-avatar-actions .account-footer-button {
+  width: auto;
+  min-height: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 0;
+  color: #bcbcbc;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.66rem;
+}
+
+.account-avatar-actions .account-footer-button:hover {
+  color: #fff;
+  background: transparent;
+  transform: none;
+}
+
+.account-avatar-actions .account-footer-button.danger {
+  color: #ff7a86;
+  background: transparent;
+}
+
+.account-avatar-actions .account-footer-button.danger:hover {
+  color: #ff9aa3;
+  background: transparent;
+}
+
+.account-panel .account-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100%;
+  height: auto;
+  width: 100%;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.account-panel .profile-form-field {
+  gap: 8px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 50px;
+}
+
+.account-panel .profile-form-field input {
+  border-radius: 14px;
+}
+
+.account-email-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.account-email-row button {
+  min-width: 136px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d8d8d8;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+.account-email-row button:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.account-save-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.account-panel .account-save-button {
+  min-width: 156px;
+  min-height: 42px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 172px;
+    height: 172px;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    width: 194px;
+    height: 194px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 58px);
+    top: 140px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel {
+    padding: 22px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 0;
+    gap: 14px;
+  }
+
+  .account-avatar-actions {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-email-row button,
+  .account-save-button {
+    width: 100%;
+  }
+}
+
 .hydration-goal-panel {
   display: grid;
   align-content: start;
@@ -3608,5 +3855,972 @@
   .account-panel .profile-avatar-upload {
     left: 50%;
     transform: translateX(-50%);
+  }
+}
+
+/* Profile page declutter: dashboard owns hydration and daily goals */
+.profile-settings-grid {
+  grid-template-columns: minmax(230px, 0.72fr) minmax(230px, 0.72fr) minmax(320px, 0.92fr);
+  grid-template-areas:
+    "account account watch"
+    "account account alerts"
+    "biometrics biometrics biometrics"
+    "encryption encryption encryption";
+  gap: 30px;
+  align-items: stretch;
+}
+
+.profile-panel,
+.compact-panel {
+  min-width: 0;
+}
+
+.biometrics-panel {
+  min-height: 300px;
+}
+
+.alerts-panel,
+.watch-panel {
+  min-height: 0;
+}
+
+.encryption-panel {
+  min-height: 260px;
+}
+
+.biometrics-panel .biometrics-grid {
+  grid-template-columns: minmax(260px, 1.2fr) repeat(2, minmax(220px, 0.9fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.biometrics-panel .profile-form-field,
+.biometrics-panel .biometric-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  min-height: 126px;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.biometrics-panel .profile-form-field span,
+.biometrics-panel .biometric-metric > span {
+  margin: 0;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  letter-spacing: 0.24em;
+}
+
+.biometrics-panel .biometric-segment-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  min-height: 52px;
+  padding: 5px;
+  border-radius: 15px;
+}
+
+.biometrics-panel .biometric-segment-control button {
+  min-width: 0;
+  border-radius: 11px;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+
+.biometrics-panel .biometric-number-pill {
+  justify-content: space-between;
+  width: 100%;
+  min-height: 58px;
+  padding: 0 20px;
+  border-radius: 16px;
+}
+
+.biometrics-panel .biometric-number-pill input {
+  width: min(130px, 70%);
+  font-size: 1.65rem;
+  text-align: left;
+}
+
+.biometrics-panel .biometric-number-pill small {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.biometrics-panel .bmi-control-row {
+  grid-template-columns: 68px minmax(220px, 1fr) minmax(150px, auto) auto;
+  gap: 24px;
+  margin-top: 28px;
+  padding: 26px 28px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(197, 254, 0, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.014)),
+    #0a0b0a;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 42px rgba(0, 0, 0, 0.24);
+}
+
+.biometrics-panel .bmi-info-button {
+  width: 58px;
+  height: 58px;
+  box-shadow: 0 0 24px rgba(197, 254, 0, 0.34);
+}
+
+.biometrics-panel .bmi-control-row h3 {
+  margin-bottom: 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+}
+
+.biometrics-panel .bmi-control-row p {
+  font-size: clamp(2.35rem, 4vw, 3.45rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.biometrics-panel .bmi-result-pill {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+.biometrics-panel .profile-mini-toggle {
+  width: 54px;
+  height: 28px;
+}
+
+.biometrics-panel .profile-mini-toggle::after {
+  width: 20px;
+  height: 20px;
+}
+
+.biometrics-panel .profile-mini-toggle.active::after {
+  transform: translateX(26px);
+}
+
+.alerts-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.alerts-panel .profile-panel-heading {
+  margin-bottom: 2px;
+}
+
+.alerts-panel .profile-toggle-row {
+  min-height: 66px;
+  padding: 12px 0;
+}
+
+.watch-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.watch-panel h2 {
+  font-size: 1.32rem;
+}
+
+.watch-panel p {
+  max-width: 230px;
+  font-size: 0.7rem;
+}
+
+.watch-icon {
+  width: 46px;
+  height: 46px;
+}
+
+@media (max-width: 1180px) {
+  .profile-settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "account account"
+      "alerts watch"
+      "biometrics biometrics"
+      "encryption encryption";
+    gap: 24px;
+  }
+
+  .alerts-panel,
+  .watch-panel {
+    min-height: 260px;
+  }
+
+  .biometrics-panel .biometrics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .biometrics-panel .bmi-control-row {
+    grid-template-columns: 58px minmax(0, 1fr) auto auto;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-settings-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "account"
+      "alerts"
+      "watch"
+      "biometrics"
+      "encryption";
+    gap: 18px;
+  }
+
+  .alerts-panel,
+  .watch-panel,
+  .biometrics-panel,
+  .encryption-panel {
+    min-height: 0;
+  }
+
+  .biometrics-panel .biometrics-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .biometrics-panel .profile-form-field,
+  .biometrics-panel .biometric-metric {
+    min-height: 0;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .biometrics-panel .biometric-segment-control {
+    min-height: 48px;
+  }
+
+  .biometrics-panel .biometric-number-pill {
+    min-height: 54px;
+  }
+
+  .biometrics-panel .biometric-number-pill input {
+    font-size: 1.45rem;
+  }
+
+  .biometrics-panel .bmi-control-row {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .biometrics-panel .bmi-result-pill,
+  .biometrics-panel .profile-mini-toggle {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .biometrics-panel .bmi-control-row p {
+    font-size: 2.25rem;
+  }
+
+}
+
+.biometrics-panel .biometrics-save-button.unsaved {
+  border: 1px solid rgba(255, 79, 95, 0.48);
+  color: #ff8792;
+  background: rgba(255, 79, 95, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    0 0 18px rgba(255, 79, 95, 0.12);
+}
+
+.biometrics-panel .biometrics-save-button.unsaved:hover {
+  color: #101010;
+  border-color: rgba(255, 135, 146, 0.85);
+  background: #ff8792;
+}
+
+.biometrics-panel .biometrics-save-button.saved {
+  border: 1px solid rgba(197, 254, 0, 0.18);
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.055);
+}
+
+.biometrics-unsaved-note {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: -4px 0 22px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 79, 95, 0.2);
+  border-left: 4px solid #ff4f5f;
+  border-radius: 14px;
+  color: #ff9aa3;
+  background:
+    linear-gradient(90deg, rgba(255, 79, 95, 0.11), rgba(255, 79, 95, 0.035)),
+    rgba(255, 255, 255, 0.018);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .biometrics-unsaved-note {
+    margin: -2px 0 16px;
+    padding: 10px 14px;
+    font-size: 0.66rem;
+  }
+}
+
+/* Account profile final layout */
+.profile-main-column .account-panel {
+  padding: 30px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 22px;
+}
+
+.account-panel .account-profile-body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 34px;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.account-panel .profile-avatar-edit {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  min-height: 0;
+  padding: 10px 0 0;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 50% 76px, rgba(197, 254, 0, 0.34), transparent 40%),
+    radial-gradient(circle at 50% 76px, rgba(197, 254, 0, 0.16), transparent 62%);
+}
+
+.account-panel .profile-avatar-ring {
+  width: 132px;
+  height: 132px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.account-panel .profile-avatar-face {
+  width: 132px;
+  height: 132px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.08), transparent 58%),
+    #0b0b0b;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  font-size: 1.45rem;
+}
+
+.account-panel .profile-avatar-upload {
+  position: absolute;
+  left: calc(50% + 44px);
+  top: 104px;
+  bottom: auto;
+  transform: none;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(197, 254, 0, 0.26);
+  border-radius: 50%;
+  color: var(--color-primary);
+  background: rgba(12, 12, 12, 0.92);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
+}
+
+.account-avatar-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.account-avatar-actions .account-footer-button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+}
+
+.account-panel .account-form-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  gap: 18px;
+  justify-self: stretch;
+  align-content: stretch;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.account-panel .profile-form-field {
+  gap: 8px;
+}
+
+.account-email-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.account-email-row button {
+  min-width: 132px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d8d8d8;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+.account-email-row button:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.account-save-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.account-panel .account-save-button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(197, 254, 0, 0.26);
+  color: #101010;
+  background: var(--color-primary);
+  box-shadow: 0 0 18px rgba(197, 254, 0, 0.12);
+}
+
+.account-panel .account-save-button:hover {
+  color: #101010;
+  border-color: rgba(197, 254, 0, 0.38);
+  background: #d7ff2e;
+}
+
+.account-footer-actions {
+  display: none;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 116px;
+    height: 116px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 38px);
+    top: 92px;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    max-width: 260px;
+    justify-self: center;
+    width: 100%;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 44px);
+    top: 104px;
+    transform: none;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-email-row button,
+  .account-save-button {
+    width: 100%;
+  }
+}
+
+/* Account profile spacing refinement */
+.account-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-main-column .account-panel {
+  padding: 34px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 30px;
+}
+
+.account-panel .account-profile-body {
+  flex: 1;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 42px;
+  min-height: 560px;
+}
+
+.account-panel .profile-avatar-edit {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  padding: 18px 0 0;
+  background: none;
+}
+
+.account-panel .profile-avatar-edit::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 156px;
+  height: 156px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(197, 254, 0, 0.34), rgba(197, 254, 0, 0.12) 42%, transparent 72%);
+  filter: blur(4px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.account-panel .profile-avatar-ring {
+  position: relative;
+  z-index: 1;
+  width: 118px;
+  height: 118px;
+}
+
+.account-panel .profile-avatar-face {
+  width: 118px;
+  height: 118px;
+  font-size: 1.28rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 38px);
+  top: 94px;
+  z-index: 2;
+}
+
+.account-avatar-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin-top: 8px;
+}
+
+.account-avatar-actions .account-footer-button {
+  width: auto;
+  min-height: 0;
+  padding: 7px 4px;
+  border: 0;
+  border-radius: 0;
+  color: #bcbcbc;
+  background: transparent;
+  font-size: 0.68rem;
+  box-shadow: none;
+}
+
+.account-avatar-actions .account-footer-button:hover {
+  color: #fff;
+  background: transparent;
+  transform: none;
+}
+
+.account-avatar-actions .account-footer-button.danger {
+  color: #ff7a86;
+  background: transparent;
+}
+
+.account-avatar-actions .account-footer-button.danger:hover {
+  color: #ff9aa3;
+  background: transparent;
+}
+
+.account-panel .account-form-grid {
+  min-height: 100%;
+  gap: 24px;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 20px;
+}
+
+.account-panel .profile-form-field {
+  gap: 10px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 54px;
+}
+
+.account-panel .profile-form-field input {
+  border-radius: 16px;
+}
+
+.account-email-row {
+  gap: 14px;
+}
+
+.account-email-row button {
+  min-width: 142px;
+}
+
+.account-save-actions {
+  padding-top: 16px;
+}
+
+.account-panel .account-save-button {
+  min-width: 164px;
+  min-height: 46px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 28px;
+    min-height: 520px;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 108px;
+    height: 108px;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    width: 142px;
+    height: 142px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 34px);
+    top: 86px;
+  }
+}
+
+/* Account profile final alignment pass */
+.account-panel .account-profile-body {
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 36px;
+  align-items: stretch;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-content: space-between;
+  min-height: 100%;
+  padding: 4px 0 0;
+}
+
+.account-panel .profile-avatar-edit::before {
+  top: 8px;
+  width: 270px;
+  height: 270px;
+  background: radial-gradient(circle, rgba(197, 254, 0, 0.2), rgba(197, 254, 0, 0.07) 44%, transparent 72%);
+  filter: blur(12px);
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 240px;
+  height: 240px;
+}
+
+.account-panel .profile-avatar-face {
+  font-size: 2.25rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 82px);
+  top: 196px;
+}
+
+.account-avatar-actions {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.account-panel .account-form-grid {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: 18px;
+  height: 100%;
+  min-height: 100%;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 18px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 52px;
+}
+
+.account-panel .profile-account-status {
+  align-self: start;
+}
+
+.account-save-actions {
+  align-self: end;
+  margin-top: 0;
+  padding-top: 12px;
+}
+
+@media (max-width: 1180px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    width: 226px;
+    height: 226px;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 200px;
+    height: 200px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 68px);
+    top: 162px;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    min-height: 0;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    width: 206px;
+    height: 206px;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 180px;
+    height: 180px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 62px);
+    top: 146px;
+  }
+
+  .account-panel .account-form-grid {
+    display: flex;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel {
+    padding: 22px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    min-height: 0;
+  }
+
+  .account-panel .profile-avatar-edit {
+    padding-top: 12px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 38px);
+    top: 94px;
+  }
+
+  .account-avatar-actions {
+    flex-direction: row;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Account profile correction: keep widget size compact, fill inside cleanly */
+.profile-main-column .account-panel {
+  padding: 28px 30px 30px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 24px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 30px;
+  min-height: 0;
+  height: 100%;
+  align-items: stretch;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 0;
+  padding: 8px 0 0;
+  background: none;
+}
+
+.account-panel .profile-avatar-edit::before {
+  width: 128px;
+  height: 128px;
+  top: 10px;
+  background: radial-gradient(circle, rgba(197, 254, 0, 0.18), rgba(197, 254, 0, 0.06) 42%, transparent 70%);
+  filter: blur(8px);
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 112px;
+  height: 112px;
+}
+
+.account-panel .profile-avatar-face {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+  font-size: 1.2rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 34px);
+  top: 86px;
+}
+
+.account-avatar-actions {
+  gap: 4px;
+  margin-top: auto;
+}
+
+.account-avatar-actions .account-footer-button {
+  padding: 6px 4px;
+  font-size: 0.64rem;
+}
+
+.account-panel .account-form-grid {
+  min-height: 0;
+  height: 100%;
+  gap: 18px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 48px;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 14px;
+}
+
+.account-save-actions {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.account-panel .account-save-button {
+  min-width: 150px;
+  min-height: 40px;
+}
+
+@media (max-width: 1080px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 24px;
+    min-height: 0;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 104px;
+    height: 104px;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    width: 120px;
+    height: 120px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 32px);
+    top: 80px;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    justify-content: flex-start;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 34px);
+    top: 86px;
   }
 }

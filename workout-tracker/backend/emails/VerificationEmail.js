@@ -28,7 +28,7 @@ function VerificationEmail({ firstName = 'there', code, verifyUrl }) {
     Html,
     null,
     React.createElement(Head, null),
-    React.createElement(Preview, null, 'Verify your PROGYM email address'),
+    React.createElement(Preview, null, 'Verify your NEXT REPS email address'),
     React.createElement(
       Body,
       {
@@ -73,7 +73,7 @@ function VerificationEmail({ firstName = 'there', code, verifyUrl }) {
               lineHeight: '24px',
               color: colors.muted,
             },
-          }, `Hi ${firstName}, use this code to finish setting up your PROGYM account.`),
+          }, `Hi ${firstName}, use this code to finish setting up your NEXT REPS account.`),
           React.createElement(
             Section,
             {
@@ -124,7 +124,7 @@ function VerificationEmail({ firstName = 'there', code, verifyUrl }) {
               lineHeight: '20px',
               color: colors.muted,
             },
-          }, 'You can ignore this email if you did not create or update a PROGYM account.')
+          }, 'You can ignore this email if you did not create or update a NEXT REPS account.')
         )
       )
     )

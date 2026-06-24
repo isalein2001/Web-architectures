@@ -9,7 +9,7 @@ const founders = [
     role: 'THE DEVELOPER',
     avatarClass: 'isabel',
     description:
-      'Technical Lead - Focused on software architecture and data logic. She builds the robust engine behind PROGYM, ensuring every rep and set is recorded with precision and backed by reliable engineering.',
+      'Technical Lead - Focused on software architecture and data logic. She builds the robust engine behind NEXT REPS, ensuring every rep and set is recorded with precision and backed by reliable engineering.',
   },
   {
     name: 'MARCEL MILLER',
@@ -34,7 +34,7 @@ const philosophy = [
   {
     number: '03',
     title: 'EVOLUTION',
-    copy: 'The body is a machine that must be upgraded constantly. Stagnation is not an option in the PROGYM ecosystem.',
+    copy: 'The body is a machine that must be upgraded constantly. Stagnation is not an option in the NEXT REPS ecosystem.',
   },
 ];
 
@@ -68,9 +68,9 @@ export default function About() {
       <section className="team-story">
         <div className="team-copy">
           <div className="about-accent-line" />
-          <h2>{t('THE TEAM BEHIND')} <span>{t('PROGYM')}</span></h2>
+          <h2>{t('THE TEAM BEHIND')} <span>{t('NEXT REPS')}</span></h2>
           <p>
-            <span>{t('PROGYM')}</span> {t('started with a simple vision: we were tired of tattered notebooks and losing track of our progress between sets. We built this digital home to replace pens and paper with a seamless, intelligent platform for your hard work. From tracking every rep to visualizing long-term growth, we created the tool we always wanted for our own journey. No more guessing, just pure progress.')}
+            <span>{t('NEXT REPS')}</span> {t('started with a simple vision: we were tired of tattered notebooks and losing track of our progress between sets. We built this digital home to replace pens and paper with a seamless, intelligent platform for your hard work. From tracking every rep to visualizing long-term growth, we created the tool we always wanted for our own journey. No more guessing, just pure progress.')}
           </p>
         </div>
 

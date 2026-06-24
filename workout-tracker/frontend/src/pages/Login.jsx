@@ -29,7 +29,7 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="auth-page auth-login-page">
-      <div className="auth-logo">PROGYM</div>
+      <div className="auth-logo">NEXT REPS</div>
 
       <main className="auth-shell login-shell">
         <section className="auth-card login-card">
@@ -69,7 +69,7 @@ export default function Login({ onLogin }) {
           </form>
 
           <div className="auth-switch">
-            <span>New to PROGYM?</span>
+            <span>New to NEXT REPS?</span>
             <Link to="/register">Register</Link>
           </div>
         </section>

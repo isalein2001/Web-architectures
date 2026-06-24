@@ -580,8 +580,11 @@ export const LanguageProvider = ({ children }) => {
       "CENTER": "CENTER",
       "FREQUENTLY ASKED QUESTIONS": "HÄUFIG GESTELLTE FRAGEN",
       "HOW DO I SYNC MY WEARABLE DEVICE?": "WIE SYNCHRONISIERE ICH MEIN WEARABLE?",
+      "Open Settings, connect your wearable in the account preferences and allow activity access. Once connected, steps, hydration reminders and daily activity data will update automatically after your device syncs.": "Öffne die Einstellungen, verbinde dein Wearable in den Kontoeinstellungen und erlaube den Aktivitätszugriff. Danach werden Schritte, Hydration-Erinnerungen und tägliche Aktivitätsdaten automatisch aktualisiert, sobald dein Gerät synchronisiert.",
       "WHAT HAPPENS IF I MISS A SCHEDULED WORKOUT?": "WAS PASSIERT, WENN ICH EIN GEPLANTES WORKOUT VERPASSE?",
+      "Nothing is deleted or penalized. The workout stays in your plan history, and you can either start it later, log a different session or adjust your weekly schedule from the workouts page.": "Nichts wird gelöscht oder bestraft. Das Workout bleibt in deiner Plan-Historie, und du kannst es später starten, eine andere Einheit loggen oder deinen Wochenplan auf der Workouts-Seite anpassen.",
       "HOW DO I CREATE MY OWN PLAN?": "WIE ERSTELLE ICH MEINEN EIGENEN PLAN?",
+      "Go to Workouts, enter a plan name, add exercises with sets, reps, weight and rest time, then save the plan. Your custom plan will appear in the ready list and can be started whenever you train.": "Gehe zu Workouts, gib einen Plannamen ein, füge Übungen mit Sätzen, Wiederholungen, Gewicht und Pausenzeit hinzu und speichere den Plan. Dein eigener Plan erscheint danach in der Liste und kann jederzeit gestartet werden.",
       "STILL": "BRAUCHST DU",
       "NEED ASSISTANCE?": "NOCH HILFE?",
       "Our performance team is available for all users to help you reach your peak performance.": "Unser Performance-Team ist für alle Nutzer da, damit du deine Bestleistung erreichst.",
@@ -613,6 +616,9 @@ export const LanguageProvider = ({ children }) => {
       "PASSWORD": "PASSWORT",
       "CHANGE": "ÄNDERN",
       "ADVANCED BIOMETRICS": "ERWEITERTE BIOMETRIE",
+      "SAVE CHANGES": "ÄNDERUNGEN SPEICHERN",
+      "SAVED": "GESPEICHERT",
+      "Unsaved biometric changes. Press save to store this status.": "Ungespeicherte Biometrie-Änderungen. Drücke Speichern, um diesen Stand zu sichern.",
       "GENDER": "GESCHLECHT",
       "Male": "Männlich",
       "Female": "Weiblich",
@@ -673,7 +679,7 @@ export const LanguageProvider = ({ children }) => {
       "30.0 and above": "30.0 und höher",
       "Often classified as obesity and worth discussing in context.": "Wird oft als Adipositas eingeordnet und sollte im Kontext betrachtet werden.",
       "ADVANCED DATA ENCRYPTION PROTOCOL": "ERWEITERTES DATENVERSCHLÜSSELUNGSPROTOKOLL",
-      "All biometric data transmitted between your wearables and PROGYM servers is protected by 256-bit military-grade encryption. Your performance is private.": "Alle biometrischen Daten zwischen deinen Wearables und den PROGYM-Servern werden mit militärischer 256-Bit-Verschlüsselung geschützt. Deine Performance bleibt privat.",
+      "All biometric data transmitted between your wearables and NEXT REPS servers is protected by 256-bit military-grade encryption. Your performance is private.": "Alle biometrischen Daten zwischen deinen Wearables und den NEXT REPS-Servern werden mit militärischer 256-Bit-Verschlüsselung geschützt. Deine Performance bleibt privat.",
       "HIPAA COMPLIANT": "HIPAA-KONFORM",
       "END-TO-END ENCRYPTED": "ENDE-ZU-ENDE VERSCHLÜSSELT",
       "ELEVATE YOUR": "STEIGERE DEINE",
@@ -781,7 +787,7 @@ export const LanguageProvider = ({ children }) => {
       "FOUNDERS": "GRÜNDER",
       "THE DEVELOPER": "DIE ENTWICKLERIN",
       "THE DESIGNER": "DER DESIGNER",
-      "Technical Lead - Focused on software architecture and data logic. She builds the robust engine behind PROGYM, ensuring every rep and set is recorded with precision and backed by reliable engineering.": "Technical Lead - Fokussiert auf Softwarearchitektur und Datenlogik. Sie baut den robusten Motor hinter PROGYM und sorgt dafür, dass jede Wiederholung und jeder Satz präzise erfasst und technisch zuverlässig verarbeitet wird.",
+      "Technical Lead - Focused on software architecture and data logic. She builds the robust engine behind NEXT REPS, ensuring every rep and set is recorded with precision and backed by reliable engineering.": "Technical Lead - Fokussiert auf Softwarearchitektur und Datenlogik. Sie baut den robusten Motor hinter NEXT REPS und sorgt dafür, dass jede Wiederholung und jeder Satz präzise erfasst und technisch zuverlässig verarbeitet wird.",
       "Creative Lead - Specializing in UI/UX and visual strategy. He transforms complex workout data into a clean, intuitive experience, ensuring that tracking your progress is as seamless as the workout itself.": "Creative Lead - Spezialisiert auf UI/UX und visuelle Strategie. Er verwandelt komplexe Workout-Daten in eine klare, intuitive Erfahrung, damit dein Fortschritt so nahtlos getrackt wird wie das Workout selbst.",
       "THE TEAM BEHIND": "DAS TEAM HINTER",
       "started with a simple vision: we were tired of tattered notebooks and losing track of our progress between sets. We built this digital home to replace pens and paper with a seamless, intelligent platform for your hard work. From tracking every rep to visualizing long-term growth, we created the tool we always wanted for our own journey. No more guessing, just pure progress.": "entstand aus einer einfachen Vision: Wir hatten genug von zerfledderten Notizbüchern und davon, zwischen den Sätzen den Fortschritt aus den Augen zu verlieren. Wir haben dieses digitale Zuhause gebaut, um Stift und Papier durch eine nahtlose, intelligente Plattform für harte Arbeit zu ersetzen. Vom Tracken jeder Wiederholung bis zur Visualisierung langfristigen Wachstums haben wir das Tool geschaffen, das wir uns selbst immer gewünscht haben. Kein Rätselraten mehr, nur echter Fortschritt.",
@@ -794,7 +800,7 @@ export const LanguageProvider = ({ children }) => {
       "INTENSITY": "INTENSITÄT",
       "Comfort is the enemy of progress. We design for the threshold where physical limits are redefined.": "Komfort ist der Feind des Fortschritts. Wir gestalten für die Schwelle, an der körperliche Grenzen neu definiert werden.",
       "EVOLUTION": "EVOLUTION",
-      "The body is a machine that must be upgraded constantly. Stagnation is not an option in the PROGYM ecosystem.": "Der Körper ist eine Maschine, die ständig verbessert werden muss. Stillstand ist im PROGYM-Ökosystem keine Option."
+      "The body is a machine that must be upgraded constantly. Stagnation is not an option in the NEXT REPS ecosystem.": "Der Körper ist eine Maschine, die ständig verbessert werden muss. Stillstand ist im NEXT REPS-Ökosystem keine Option."
     }
   };
 

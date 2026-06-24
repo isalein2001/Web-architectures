@@ -2,7 +2,7 @@ require('dotenv/config');
 
 const jwt = require('jsonwebtoken');
 
-const AUTH_COOKIE_NAME = 'progym_token';
+const AUTH_COOKIE_NAME = 'nextreps_token';
 
 function readToken(req) {
   const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];

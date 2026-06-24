@@ -1,23 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Activity,
   Bell,
-  Clock,
-  Droplets,
-  Flame,
   Info,
   LogOut,
   Lock,
   MailCheck,
-  Minus,
   Pencil,
-  Plus,
   RefreshCw,
   Save,
   Scale,
   Shield,
   ShieldCheck,
-  Target,
   TrendingUp,
   User,
   Watch,
@@ -44,14 +37,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [isResendingEmailCode, setIsResendingEmailCode] = useState(false);
-  const [hydrationGoal, setHydrationGoal] = useState(() => {
-    const savedGoal = window.localStorage.getItem(storageKey('hydrationGoalLiters'));
-    return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
-  });
-  const [dailyStepGoal, setDailyStepGoal] = useState(() => Number(window.localStorage.getItem(storageKey('dailyStepGoal'))) || 10000);
-  const [dailyCalorieGoal, setDailyCalorieGoal] = useState(() => Number(window.localStorage.getItem(storageKey('dailyCalorieGoal'))) || 450);
-  const [dailyTrainingMinutesGoal, setDailyTrainingMinutesGoal] = useState(() => Number(window.localStorage.getItem(storageKey('dailyTrainingMinutesGoal'))) || 45);
-  const [dailyGoalsStatus, setDailyGoalsStatus] = useState('');
   const [workoutRemindersEnabled, setWorkoutRemindersEnabled] = useState(() => (
     window.localStorage.getItem(storageKey('workoutRemindersEnabled')) !== 'false'
   ));
@@ -61,7 +46,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   const [isWatchConnected, setIsWatchConnected] = useState(() => (
     window.localStorage.getItem(storageKey('appleWatchConnected')) !== 'false'
   ));
-  const [activeReminder, setActiveReminder] = useState(null);
   const [isBmiInfoOpen, setIsBmiInfoOpen] = useState(false);
   const [gender, setGender] = useState(() => window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
   const [height, setHeight] = useState(() => window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
@@ -83,19 +67,10 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setNewPassword('');
     setEmailVerificationCode('');
     setAccountStatus({ type: '', message: '' });
-    setHydrationGoal(Number(window.localStorage.getItem(storageKey('hydrationGoalLiters')) || currentUser?.hydrationGoalLiters || 3.5));
-    setDailyStepGoal(Number(window.localStorage.getItem(storageKey('dailyStepGoal'))) || 10000);
-    setDailyCalorieGoal(Number(window.localStorage.getItem(storageKey('dailyCalorieGoal'))) || 450);
-    setDailyTrainingMinutesGoal(Number(window.localStorage.getItem(storageKey('dailyTrainingMinutesGoal'))) || 45);
-    setDailyGoalsStatus('');
     setGender(window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
     setHeight(window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
     setWeight(window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
   }, [currentUser]);
-
-  useEffect(() => {
-    window.localStorage.setItem(storageKey('hydrationGoalLiters'), hydrationGoal.toString());
-  }, [hydrationGoal, currentUser?.id]);
 
   useEffect(() => {
     window.localStorage.setItem(storageKey('workoutRemindersEnabled'), workoutRemindersEnabled.toString());
@@ -115,58 +90,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     window.localStorage.setItem(storageKey('appleWatchConnected'), isWatchConnected.toString());
   }, [isWatchConnected, currentUser?.id]);
 
-  useEffect(() => {
-    const handleAlertPreferenceChange = (event) => {
-      if (typeof event.detail?.workoutRemindersEnabled === 'boolean') {
-        setWorkoutRemindersEnabled(event.detail.workoutRemindersEnabled);
-      }
-      if (typeof event.detail?.hydrationAlertsEnabled === 'boolean') {
-        setHydrationAlertsEnabled(event.detail.hydrationAlertsEnabled);
-      }
-    };
-
-    window.addEventListener('alert-preferences-change', handleAlertPreferenceChange);
-    return () => window.removeEventListener('alert-preferences-change', handleAlertPreferenceChange);
-  }, []);
-
-  const changeHydrationGoal = (amount) => {
-    setHydrationGoal((goal) => Number(Math.min(7, Math.max(1.5, goal + amount)).toFixed(1)));
-  };
-
-  const saveDailyGoals = async () => {
-    const nextGoals = {
-      steps: Math.max(1000, Math.min(100000, Math.round(Number(dailyStepGoal) || 10000))),
-      calories: Math.max(100, Math.min(8000, Math.round(Number(dailyCalorieGoal) || 450))),
-      trainingMinutes: Math.max(5, Math.min(300, Math.round(Number(dailyTrainingMinutesGoal) || 45))),
-    };
-
-    setDailyStepGoal(nextGoals.steps);
-    setDailyCalorieGoal(nextGoals.calories);
-    setDailyTrainingMinutesGoal(nextGoals.trainingMinutes);
-    window.localStorage.setItem(storageKey('dailyStepGoal'), nextGoals.steps.toString());
-    window.localStorage.setItem(storageKey('dailyCalorieGoal'), nextGoals.calories.toString());
-    window.localStorage.setItem(storageKey('dailyTrainingMinutesGoal'), nextGoals.trainingMinutes.toString());
-    window.dispatchEvent(new CustomEvent('daily-goals-change', { detail: nextGoals }));
-
-    try {
-      await api.updateTodayActivity({ step_goal: nextGoals.steps });
-      setDailyGoalsStatus(t('Goals updated.'));
-    } catch {
-      setDailyGoalsStatus(t('Saved locally. Sync failed.'));
-    }
-  };
-
-  const showDemoHydrationReminder = () => {
-    setHydrationAlertsEnabled(true);
-    setActiveReminder({
-      id: `hydration-demo-${Date.now()}`,
-      type: 'hydration',
-      title: t('HYDRATION REMINDER'),
-      message: t('Time to drink water. Keep your daily target on track.'),
-      meta: t('Demo reminder'),
-    });
-  };
-
   const calculateBmi = (heightCm, weightKg) => {
     const parsedHeight = Number(heightCm);
     const parsedWeight = Number(weightKg);
@@ -177,17 +100,17 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     return (parsedWeight / (heightMeters * heightMeters)).toFixed(1);
   };
 
+  const liveBmiValue = calculateBmi(height, weight);
+
   const saveBiometrics = async () => {
     window.localStorage.setItem(storageKey('profileGender'), gender);
     window.localStorage.setItem(storageKey('profileHeightCm'), height);
     window.localStorage.setItem(storageKey('profileWeightKg'), weight);
-    window.localStorage.setItem(storageKey('hydrationGoalLiters'), hydrationGoal.toString());
     window.localStorage.setItem(storageKey('bmiTrackingEnabled'), isBmiTrackingEnabled.toString());
 
-    const nextBmi = calculateBmi(height, weight);
-    if (isBmiTrackingEnabled && nextBmi) {
-      setBmiValue(nextBmi);
-      window.localStorage.setItem(storageKey('profileBmi'), nextBmi);
+    if (isBmiTrackingEnabled && liveBmiValue) {
+      setBmiValue(liveBmiValue);
+      window.localStorage.setItem(storageKey('profileBmi'), liveBmiValue);
     }
 
     try {
@@ -198,7 +121,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
         gender,
         heightCm: height,
         weightKg: weight,
-        hydrationGoalLiters: hydrationGoal,
       });
       onUserUpdate(data.user);
       setHasUnsavedBiometrics(false);
@@ -350,9 +272,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
             <div className="profile-panel-heading">
               <span className="profile-heading-icon"><User size={20} /></span>
               <h2>{t('ACCOUNT PROFILE')}</h2>
-              <button className="biometrics-save-button unsaved" type="button" onClick={saveAccountProfile} disabled={isSavingAccount}>
-                <Save size={14} /> {isSavingAccount ? t('SAVING') : t('SAVE PROFILE')}
-              </button>
             </div>
 
             <div className="account-profile-body">
@@ -369,6 +288,14 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                   <input type="file" accept="image/png,image/jpeg,image/webp" onChange={updateProfileImage} disabled={isSavingAvatar} />
                   <Pencil size={14} />
                 </label>
+                <div className="account-avatar-actions">
+                  <button className="account-footer-button" type="button" onClick={onLogout}>
+                    <LogOut size={14} /> {t('LOG OUT')}
+                  </button>
+                  <button className="account-footer-button danger" type="button">
+                    {t('DELETE ACCOUNT')}
+                  </button>
+                </div>
               </div>
 
               <div className="account-form-grid">
@@ -448,12 +375,9 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                     {accountStatus.message}
                   </div>
                 )}
-                <div className="account-footer-actions">
-                  <button className="account-footer-button" type="button" onClick={onLogout}>
-                    <LogOut size={14} /> {t('LOG OUT')}
-                  </button>
-                  <button className="account-footer-button danger" type="button">
-                    {t('DELETE ACCOUNT')}
+                <div className="account-save-actions">
+                  <button className="biometrics-save-button account-save-button" type="button" onClick={saveAccountProfile} disabled={isSavingAccount}>
+                    <Save size={14} /> {isSavingAccount ? t('SAVING') : t('SAVE PROFILE')}
                   </button>
                 </div>
               </div>
@@ -465,9 +389,15 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
               <span className="profile-heading-icon"><TrendingUp size={20} /></span>
               <h2>{t('ADVANCED BIOMETRICS')}</h2>
               <button className={`biometrics-save-button ${hasUnsavedBiometrics ? 'unsaved' : 'saved'}`} type="button" onClick={saveBiometrics}>
-                {hasUnsavedBiometrics ? t('SAVE') : t('ELITE TIER')}
+                {hasUnsavedBiometrics ? t('SAVE CHANGES') : t('SAVED')}
               </button>
             </div>
+
+            {hasUnsavedBiometrics && (
+              <div className="biometrics-unsaved-note" role="status">
+                {t('Unsaved biometric changes. Press save to store this status.')}
+              </div>
+            )}
 
             <div className="biometrics-grid">
               <div className="biometric-metric biometric-gender-card">
@@ -488,14 +418,26 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
               <label className="profile-form-field">
                 <span>{t('HEIGHT PROFILE')}</span>
                 <div className="biometric-number-pill">
-                  <input type="number" value={height} onChange={(event) => updateBiometricField(setHeight)(event.target.value)} aria-label={t('HEIGHT (CM)')} />
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={height}
+                    onChange={(event) => updateBiometricField(setHeight)(event.target.value)}
+                    aria-label={t('HEIGHT (CM)')}
+                  />
                   <small>{t('CM')}</small>
                 </div>
               </label>
               <label className="profile-form-field">
                 <span>{t('WEIGHT MATRIX')}</span>
                 <div className="biometric-number-pill">
-                  <input type="number" value={weight} onChange={(event) => updateBiometricField(setWeight)(event.target.value)} aria-label={t('WEIGHT (KG)')} />
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={weight}
+                    onChange={(event) => updateBiometricField(setWeight)(event.target.value)}
+                    aria-label={t('WEIGHT (KG)')}
+                  />
                   <small>{t('KG')}</small>
                 </div>
               </label>
@@ -512,7 +454,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
               </button>
               <div>
                 <h3>{t('BODY MASS INDEX')}</h3>
-                <p>{isBmiTrackingEnabled && bmiValue ? bmiValue : t('BMI OFF')}</p>
+                <p>{isBmiTrackingEnabled && (liveBmiValue || bmiValue) ? (liveBmiValue || bmiValue) : t('BMI OFF')}</p>
               </div>
               <div className={`bmi-result-pill ${!isBmiTrackingEnabled ? 'inactive' : ''}`}>
                 <span>{isBmiTrackingEnabled ? t('OPTIMAL RANGE') : t('TRACKING OFF')}</span>
@@ -530,7 +472,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
           <section className="profile-panel encryption-panel">
             <div className="encryption-copy">
               <h2>{t('ADVANCED DATA')} <span>{t('ENCRYPTION PROTOCOL')}</span></h2>
-              <p>{t('All biometric data transmitted between your wearables and PROGYM servers is protected by 256-bit military-grade encryption. Your performance is private.')}</p>
+              <p>{t('All biometric data transmitted between your wearables and NEXT REPS servers is protected by 256-bit military-grade encryption. Your performance is private.')}</p>
               <div className="encryption-badges">
                 <span><ShieldCheck size={16} /> {t('HIPAA COMPLIANT')}</span>
                 <span><ShieldCheck size={16} /> {t('END-TO-END ENCRYPTED')}</span>
@@ -562,6 +504,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                 onClick={() => setWorkoutRemindersEnabled((enabled) => !enabled)}
               ></button>
             </div>
+
             <div className="profile-toggle-row">
               <div>
                 <h3>{t('HYDRATION ALERTS')}</h3>
@@ -575,101 +518,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                 onClick={() => setHydrationAlertsEnabled((enabled) => !enabled)}
               ></button>
             </div>
-            {hydrationAlertsEnabled && (
-              <p className="alert-schedule-note">{t('Hydration reminders are scheduled for morning, midday and evening.')}</p>
-            )}
-            <button className="profile-outline-action alert-demo-button" type="button" onClick={showDemoHydrationReminder}>
-              <Bell size={14} /> {t('SHOW DEMO REMINDER')}
-            </button>
-          </section>
-
-          <section className="profile-panel compact-panel hydration-goal-panel">
-            <div className="profile-panel-heading">
-              <span className="profile-heading-icon"><Droplets size={20} /></span>
-              <h2>{t('HYDRATION GOAL')}</h2>
-            </div>
-
-            <div className="hydration-goal-value">
-              <span>{hydrationGoal.toFixed(1)}L</span>
-              <small>{t('DAILY WATER TARGET')}</small>
-            </div>
-
-            <div className="profile-hydration-controls">
-              <button type="button" onClick={() => changeHydrationGoal(-0.1)} aria-label={t('Decrease hydration goal')}>
-                <Minus size={15} />
-              </button>
-              <input
-                type="range"
-                min="1.5"
-                max="7"
-                step="0.1"
-                value={hydrationGoal}
-                onChange={(event) => setHydrationGoal(Number(event.target.value))}
-                aria-label={t('Hydration goal in liters')}
-              />
-              <button type="button" onClick={() => changeHydrationGoal(0.1)} aria-label={t('Increase hydration goal')}>
-                <Plus size={15} />
-              </button>
-            </div>
-
-            <div className="hydration-recommendation">
-              <Info size={16} />
-              <span>{t('Recommended: 2.5L - 3.5L')}</span>
-            </div>
-          </section>
-
-          <section className="profile-panel compact-panel daily-goals-panel">
-            <div className="profile-panel-heading">
-              <span className="profile-heading-icon"><Target size={20} /></span>
-              <h2>{t('DAILY GOALS')}</h2>
-            </div>
-
-            <div className="profile-daily-goals-grid">
-              <label className="profile-goal-field">
-                <span><Activity size={14} /> {t('STEPS')}</span>
-                <div>
-                  <input
-                    type="number"
-                    min="1000"
-                    step="500"
-                    value={dailyStepGoal}
-                    onChange={(event) => setDailyStepGoal(event.target.value)}
-                  />
-                  <small>{t('STEPS')}</small>
-                </div>
-              </label>
-              <label className="profile-goal-field">
-                <span><Flame size={14} /> {t('CALORIES')}</span>
-                <div>
-                  <input
-                    type="number"
-                    min="100"
-                    step="50"
-                    value={dailyCalorieGoal}
-                    onChange={(event) => setDailyCalorieGoal(event.target.value)}
-                  />
-                  <small>{t('KCAL')}</small>
-                </div>
-              </label>
-              <label className="profile-goal-field">
-                <span><Clock size={14} /> {t('TRAINING')}</span>
-                <div>
-                  <input
-                    type="number"
-                    min="5"
-                    step="5"
-                    value={dailyTrainingMinutesGoal}
-                    onChange={(event) => setDailyTrainingMinutesGoal(event.target.value)}
-                  />
-                  <small>{t('MIN')}</small>
-                </div>
-              </label>
-            </div>
-
-            <button className="profile-outline-action daily-goals-save" type="button" onClick={saveDailyGoals}>
-              <Save size={14} /> {t('SAVE GOALS')}
-            </button>
-            {dailyGoalsStatus && <p className="profile-goals-status">{dailyGoalsStatus}</p>}
           </section>
 
           <section className={`profile-panel compact-panel watch-panel ${isWatchConnected ? 'connected' : 'disconnected'}`}>
@@ -686,22 +534,6 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
 
         </aside>
       </div>
-
-      {activeReminder && (
-        <div className="profile-reminder-toast" role="status" aria-live="polite">
-          <div className="profile-reminder-icon">
-            {activeReminder.type === 'workout' ? <Bell size={20} /> : <Droplets size={20} />}
-          </div>
-          <div className="profile-reminder-content">
-            <span>{activeReminder.meta}</span>
-            <h3>{activeReminder.title}</h3>
-            <p>{activeReminder.message}</p>
-          </div>
-          <button type="button" onClick={() => setActiveReminder(null)} aria-label={t('Dismiss reminder')}>
-            <X size={16} />
-          </button>
-        </div>
-      )}
 
       {isBmiInfoOpen && (
         <div

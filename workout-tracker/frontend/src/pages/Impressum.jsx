@@ -22,7 +22,7 @@ export default function Impressum() {
             </div>
           </div>
 
-          <div className="entity-title">PROGYM ELITE PERFORMANCE GMBH</div>
+          <div className="entity-title">NEXT REPS ELITE PERFORMANCE GMBH</div>
 
           <div className="entity-grid">
             <div className="entity-details">
@@ -71,7 +71,7 @@ export default function Impressum() {
             <div className="row">
               <div className="detail-wrapper">
                 <div className="card-label">{t('EMAIL')}</div>
-                <div className="card-value">contact@progym.elite</div>
+                <div className="card-value">contact@nextreps.elite</div>
               </div>
               <div className="detail-wrapper">
                 <div className="card-label">{t('PHONE')}</div>

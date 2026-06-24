@@ -119,7 +119,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
     <div className="onboarding-page">
       <div className="onboarding-shell">
         <section className="onboarding-hero">
-          <span>Welcome to PROGYM</span>
+          <span>Welcome to NEXT REPS</span>
           <h1 className="onboarding-title">
             <span>Let’s tune</span>
             <span>your</span>

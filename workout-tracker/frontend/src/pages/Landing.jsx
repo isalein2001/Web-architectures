@@ -76,7 +76,7 @@ export default function Landing() {
             className="landing-logo"
             style={{ scale: logoScale, opacity: logoOpacity }}
           >
-            PROGYM
+            NEXT REPS
           </motion.div>
 
           <motion.div 
