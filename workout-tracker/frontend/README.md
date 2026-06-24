@@ -1,19 +1,144 @@
 # Workout Tracker
 
-React/Vite frontend with an Express.js + SQLite backend.
+React/Vite frontend with an Express.js + Prisma backend.
 
 The project keeps frontend and backend separate:
 
 - `frontend/`: React + Vite UI
-- `backend/`: Express API with SQLite persistence
-- `backend/database.sqlite`: local SQLite database
-- `backend/database.js`: database initialization and schema creation
+- `backend/`: Express API with Prisma persistence
+- `backend/prisma/schema.prisma`: Prisma data model
+- `backend/prisma/migrations/`: database migrations
 - `backend/server.js`: Express app setup and route mounting
 - `backend/routes/`: resource-specific API route modules
 
+## Deployment-Skizze für den Upload
+
+Für die gemeinsame Auslieferung auf konsoleH ist die Anwendung als eine Domain mit API-Pfadpräfix geplant:
+
+| Bestandteil | Läuft als | Hostname / Pfad | Wird ausgeliefert von |
+| --- | --- | --- | --- |
+| Frontend (React) | statisches Build (`dist/`) | `nextreps.de` | Express (`express.static`) |
+| Backend (Express) | Node.js-App | `nextreps.de/api` | konsoleH Node.js |
+| Datenbank (SQL) | MySQL/MariaDB | `localhost` auf dem Server | konsoleH DB-Verwaltung |
+
+Der entscheidende Unterschied zur getrennten Variante: Frontend und Backend laufen unter derselben Domain. Die API hängt unter dem Pfad-Präfix `/api` und nicht unter einer eigenen Subdomain.
+
+## Produktionsdatenbank mit MySQL/MariaDB
+
+Für den Server wird die lokale SQLite-Datei durch eine MySQL/MariaDB-Datenbank aus konsoleH ersetzt. In konsoleH wird dafür unter „Datenbanken" eine neue Datenbank angelegt. Danach werden Datenbankname, Benutzer, Passwort und Host in der Backend-Umgebung eingetragen.
+
+Die Verbindung läuft über `DATABASE_URL` in `backend/.env`:
+
+```env
+DATABASE_URL="mysql://BENUTZER:PASSWORT@localhost:3306/DATENBANKNAME"
+```
+
+Die echte `.env` mit Passwort gehört niemals ins Git. Im Repository liegt nur `backend/.env.example` mit Platzhaltern. Auf dem Server werden dieselben Werte später direkt in der Node.js-App-Umgebung bzw. Server-Konfiguration gesetzt.
+
+Prisma ist in `backend/prisma/schema.prisma` auf MySQL umgestellt:
+
+```prisma
+datasource db {
+  provider = "mysql"
+}
+```
+
+Da das Projekt Prisma 7 nutzt, steht die Verbindungs-URL nicht mehr im Schema selbst. Sie wird in `backend/prisma.config.ts` aus `DATABASE_URL` gelesen. Der Runtime-Client nutzt dafür den MariaDB/MySQL-Adapter `@prisma/adapter-mariadb`.
+
+Einige `String`-Felder haben explizite MySQL-Typen bekommen. Das ist wichtig, weil MySQL bei indexierten oder eindeutigen Textfeldern feste Längen braucht. Beispiele:
+
+- E-Mail-Felder: `@db.VarChar(191)`, damit `@unique` zuverlässig funktioniert.
+- Push-Endpunkte: `@db.VarChar(512)`, weil Browser-Push-URLs länger sein können.
+- Notizen und Beschreibungen: `@db.Text`.
+- Profilbild-Data-URLs: `@db.LongText`, weil diese sehr lang werden können.
+- Datum als Tageswert: `@db.VarChar(10)` für Werte wie `2026-06-24`.
+
+Die vorhandenen Defaults wie `@default(now())`, `@updatedAt`, `@default(autoincrement())`, Boolean-Defaults und `onDelete`-Regeln sind mit MySQL kompatibel. Fachlich mussten die Modelle deshalb nicht neu strukturiert werden.
+
+Wichtige Prisma-Befehle nach dem Eintragen der MySQL-`DATABASE_URL`:
+
+```bash
+cd workout-tracker/backend
+npx prisma validate
+npx prisma generate
+npx prisma migrate deploy
+```
+
+Für neue Migrationen in der Entwicklung wird statt `migrate deploy` wie gewohnt `npx prisma migrate dev` verwendet. `migrate deploy` ist für den Server gedacht, weil es vorhandene Migrationen ausführt, aber keine neue Migration interaktiv erstellt.
+
+## Production-Build und API-Pfade
+
+Lokal läuft das Frontend während der Entwicklung mit dem Vite-Dev-Server auf Port `5173`. In Produktion gibt es keinen Vite-Dev-Server mehr. Stattdessen wird das Frontend einmal gebaut:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+```
+
+Dabei entsteht der Ordner `dist/` mit `index.html` und gebündelten Assets. Diese Dateien werden in Produktion ausgeliefert, nicht der React-Quellcode.
+
+Da Frontend und Backend in Produktion unter derselben Origin laufen, verwendet das Frontend relative API-Pfade. Die zentrale API-Basis in `frontend/src/api.js` ist:
+
+```js
+export const API_URL = '/api';
+```
+
+Alle Requests gehen dadurch an Pfade wie `/api/auth/login`, `/api/plans` oder `/api/events`. In Produktion löst der Browser diese Pfade automatisch gegen dieselbe Domain auf, auf der auch das Frontend ausgeliefert wird.
+
+Für die lokale Entwicklung leitet Vite diese relativen `/api`-Requests an das lokale Express-Backend auf Port `3000` weiter. Das steht in `frontend/vite.config.js`:
+
+```js
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
+});
+```
+
+Damit wird keine `VITE_API_URL` mehr benötigt: lokal und in Produktion nutzt das Frontend dieselben relativen `/api/...`-Pfade.
+
+## Express-Auslieferung und SPA-Routing
+
+Der Express-Server liefert in Produktion API und React-App aus einer Node.js-App aus. Die Middleware-Reihenfolge in `backend/server.js` ist wichtig:
+
+1. API-Routen unter `/api` werden zuerst registriert.
+2. Unbekannte `/api`-Pfade antworten mit JSON-`404`, damit API-Clients kein HTML bekommen.
+3. Danach liefert `express.static` den Vite-Build aus `frontend/dist/` aus.
+4. Als letzter Schritt leitet eine Catch-all-Middleware alle übrigen Pfade auf `index.html`, damit React Router Routen wie `/login`, `/dashboard` oder `/settings` clientseitig übernehmen kann.
+
+Die statischen Assets im `assets/`-Ordner bekommen lange Cache-Header:
+
+```text
+Cache-Control: public, max-age=31536000, immutable
+```
+
+`index.html` bekommt dagegen:
+
+```text
+Cache-Control: no-cache
+```
+
+Das ist wichtig, weil `index.html` auf die aktuellen gebündelten Asset-Dateien verweist. Würde der Browser `index.html` zu lange cachen, könnte er nach einem Deployment noch alte JS-/CSS-Dateinamen laden. Die gehashten Dateien in `assets/` dürfen dagegen lange gecacht werden, weil sich ihr Dateiname ändert, sobald sich ihr Inhalt ändert.
+
+Der Server nutzt Express 5. Deshalb wird kein `app.get('*', ...)` verwendet, weil sich die Wildcard-Pfadsyntax geändert hat. Stattdessen steht am Ende:
+
+```js
+app.use((req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+```
+
+Warum müssen die API-Routen vor dem SPA-Fallback stehen? Wenn der Fallback vorher käme, würde ein Request wie `POST /api/auth/login` nicht die Login-Route erreichen. Stattdessen bekäme der Client `index.html` als HTML-Antwort, obwohl er JSON erwartet. Login und andere API-Aufrufe würden dadurch fehlschlagen.
+
+Was passiert ohne SPA-Fallback? Direkte Aufrufe auf Client-Routen wie `/login` oder `/dashboard` würden beim Server landen. Ohne Fallback sucht Express nach einer echten Serverroute oder Datei für diesen Pfad und liefert einen Fehler bzw. keine sinnvolle React-App-Antwort. Mit Fallback bekommt der Browser immer `index.html`, und React Router zeigt die passende Seite.
+
 ## Datenmodell
 
-Die Entwicklungsdatenbank ist eine lokale SQLite-Datenbank unter `backend/database.sqlite`. Das aktuelle Backend initialisiert das Schema in `backend/database.js`. Inhaltlich passt das Modell auch zu einer Umsetzung mit `better-sqlite3`; aktuell nutzt der Code noch das Paket `sqlite` mit `sqlite3` als Treiber.
+Das aktuelle Produktivziel ist eine MySQL/MariaDB-Datenbank über Prisma. Ältere lokale Entwicklungsstände nutzten eine SQLite-Datei unter `backend/database.sqlite`; für die Auslieferung auf konsoleH ist aber `DATABASE_URL` auf MySQL/MariaDB maßgeblich.
 
 Tabellen-Skizze:
 
@@ -73,9 +198,9 @@ onboarding_completed
 - `workout_logs.set_number`, `reps`, `weight` und `rest_seconds` sind optional bzw. können leer oder `0` sein, wenn der Nutzer beim Tracking nicht alles einträgt.
 - `daily_activities.steps`, `step_goal`, `water_intake_ml` und `water_goal_ml` besitzen Default-Werte und können über die API aktualisiert werden.
 
-### Noch nicht in SQLite gespeichert
+### Noch nicht in der Datenbank gespeichert
 
-Einige Features werden aktuell bewusst im Frontend über `localStorage` gespeichert und sind noch nicht Teil des SQLite-Schemas:
+Einige Features werden aktuell bewusst im Frontend über `localStorage` gespeichert und sind noch nicht Teil des Prisma-Schemas:
 
 - Kalenderplanung: `workoutSchedule`
 - BMI/Profileinstellungen: `profileGender`, `profileHeightCm`, `profileWeightKg`, `profileBmi`, `bmiTrackingEnabled`
@@ -86,22 +211,23 @@ Diese Daten könnten später als eigene Tabellen ergänzt werden, zum Beispiel `
 
 ## Prisma ORM Setup
 
-Prisma wurde im Express-Backend als ORM für SQLite eingerichtet. Die bestehenden API-Routen funktionieren weiterhin unter denselben Pfaden, verwenden intern aber Prisma Client statt manueller SQL-Abfragen.
+Prisma ist im Express-Backend als ORM eingerichtet. Für Produktion ist das Schema auf MySQL/MariaDB umgestellt; die bestehenden API-Routen funktionieren weiterhin unter denselben Pfaden und verwenden intern Prisma Client statt manueller SQL-Abfragen.
 
 Neue/angepasste Dateien im Backend:
 
 - `backend/prisma/schema.prisma`: Prisma-Datenmodell
 - `backend/prisma/migrations/0_init/migration.sql`: erste Baseline-Migration
 - `backend/prisma.config.ts`: Prisma-Konfiguration mit `DATABASE_URL`
-- `backend/.env`: SQLite-Verbindung zur bestehenden Datenbank
-- `backend/prismaClient.js`: Prisma Client mit `@prisma/adapter-better-sqlite3`
+- `backend/.env`: echte Datenbankverbindung über `DATABASE_URL` (nicht committen)
+- `backend/.env.example`: Beispiel-`DATABASE_URL` für MySQL/MariaDB
+- `backend/prismaClient.js`: Prisma Client mit MariaDB/MySQL-Adapter
 
 Installierte Pakete:
 
 - `prisma` als Dev-Dependency für CLI, Migrationen und Schema-Tools
 - `@prisma/client` für Datenbankabfragen im Code
-- `@prisma/adapter-better-sqlite3` als SQLite-Adapter
-- `better-sqlite3` als SQLite-Treiber
+- `@prisma/adapter-mariadb` als Prisma-7-Adapter für MySQL/MariaDB
+- `mariadb` als Datenbanktreiber
 - `dotenv` zum Laden von `DATABASE_URL`
 
 Wichtige Befehle:
@@ -113,7 +239,7 @@ npx prisma generate
 npx prisma migrate status
 ```
 
-Die erste Migration wurde als Baseline markiert, weil die SQLite-Tabellen bereits vor Prisma existierten:
+Die erste lokale SQLite-Migration wurde als Baseline markiert, weil die Tabellen bereits vor Prisma existierten:
 
 ```bash
 npx prisma migrate resolve --applied 0_init
@@ -122,10 +248,11 @@ npx prisma migrate resolve --applied 0_init
 ### Prisma Schema kurz erklärt
 
 - `@id`: markiert den Primärschlüssel einer Tabelle.
-- `@default(autoincrement())`: SQLite vergibt die ID automatisch.
+- `@default(autoincrement())`: die Datenbank vergibt die ID automatisch.
 - `@unique`: der Wert darf in der Tabelle nur einmal vorkommen, z. B. bei `users.email`.
+- `@db.VarChar(191)`, `@db.Text`, `@db.LongText`: legen passende MySQL-Spaltentypen fest.
 - `String?`, `Int?`, `Float?`: Das Feld ist optional und darf `NULL` sein.
-- `@map("plan_id")`: Der Prisma-Feldname heißt z. B. `planId`, die echte Spalte in SQLite heißt aber `plan_id`.
+- `@map("plan_id")`: Der Prisma-Feldname heißt z. B. `planId`, die echte Spalte in der Datenbank heißt aber `plan_id`.
 - `@@map("plans")`: Der Prisma-Modelname heißt `Plan`, die echte Tabelle heißt `plans`.
 - `@@index([userId])`: legt einen Index auf `user_id` an, damit Owner-Filter schneller abgefragt werden können.
 - `@relation(fields: [planId], references: [id])`: beschreibt einen Foreign Key zwischen zwei Tabellen.
@@ -619,13 +746,9 @@ npm run cap:sync:ios
 npm run cap:open:ios
 ```
 
-Für iOS ist die API-URL konfigurierbar. Im Browser nimmt die App weiterhin standardmäßig `http://<hostname>:3000/api`. Für Simulator oder echtes iPhone sollte vor dem Build eine feste Backend-URL gesetzt werden, weil `localhost` auf dem Gerät nicht automatisch der Mac mit dem Express-Backend ist:
+Die App verwendet relative API-Pfade unter `/api`. Für die Produktion passt das zur Same-Origin-Auslieferung über Express. Für lokale Browser-Entwicklung übernimmt der Vite-Dev-Proxy die Weiterleitung an `http://localhost:3000`.
 
-```bash
-VITE_API_URL="http://192.168.178.20:3000/api" npm run cap:sync:ios
-```
-
-Für den iOS Simulator kann je nach Setup auch `http://localhost:3000/api` funktionieren. Auf einem echten iPhone muss normalerweise die lokale Netzwerk-IP des Macs verwendet werden. Danach in Xcode `App.xcodeproj` öffnen, ein Team auswählen und die App im Simulator oder auf einem Gerät starten.
+Bei iOS/Capacitor muss die gebaute App ebenfalls eine erreichbare Origin haben, unter der `/api` verfügbar ist. Für Produktion ist das die gemeinsame Domain. Für lokale Gerätetests braucht ihr entweder einen erreichbaren lokalen Server, der Frontend und API zusammen ausliefert, oder eine passende Proxy-/Tunnel-Lösung. Danach in Xcode `App.xcodeproj` öffnen, ein Team auswählen und die App im Simulator oder auf einem Gerät starten.
 
 ## Commit-Zusammenfassung: Notifications und iOS-App
 
@@ -644,7 +767,7 @@ Seit dem letzten Commit `924c348 feat: globale Suche, Quick-Log-Button und Favic
 - Service Worker unter `frontend/public/sw.js` ergänzt.
 - iOS-App mit Capacitor erstellt.
 - Xcode-Projekt unter `frontend/ios/App/App.xcodeproj` erzeugt.
-- API-URL über `VITE_API_URL` konfigurierbar gemacht, damit iPhone/Simulator das Backend auf dem Mac erreichen können.
+- API-Aufrufe auf relative `/api`-Pfade umgestellt; im Dev leitet Vite per Proxy an das lokale Backend weiter.
 
 ### Technische Dateien
 

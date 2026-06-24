@@ -3,26 +3,26 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
 }
 
 model User {
   id           Int      @id @default(autoincrement())
-  email        String   @unique
-  pendingEmail String?  @unique @map("pending_email")
-  name         String?
-  firstName    String?  @map("first_name")
-  lastName     String?  @map("last_name")
+  email        String   @unique @db.VarChar(191)
+  pendingEmail String?  @unique @map("pending_email") @db.VarChar(191)
+  name         String?  @db.VarChar(191)
+  firstName    String?  @map("first_name") @db.VarChar(191)
+  lastName     String?  @map("last_name") @db.VarChar(191)
   emailVerified Boolean @default(false) @map("email_verified")
-  verificationCode String? @map("verification_code")
+  verificationCode String? @map("verification_code") @db.VarChar(16)
   onboardingCompleted Boolean @default(false) @map("onboarding_completed")
   heightCm     Int?     @map("height_cm")
   weightKg     Float?   @map("weight_kg")
-  gender       String?
+  gender       String?  @db.VarChar(32)
   hydrationGoalLiters Float? @map("hydration_goal_liters")
-  fitnessGoal  String?  @map("fitness_goal")
-  profileImage  String?  @map("profile_image")
-  passwordHash String   @map("password_hash")
+  fitnessGoal  String?  @map("fitness_goal") @db.VarChar(191)
+  profileImage  String?  @map("profile_image") @db.LongText
+  passwordHash String   @map("password_hash") @db.VarChar(255)
   createdAt    DateTime @default(now()) @map("created_at")
   plans        Plan[]
   sessions     WorkoutSession[]
@@ -35,9 +35,9 @@ model User {
 model PushSubscription {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
+  endpoint  String   @unique @db.VarChar(512)
+  p256dh    String   @db.VarChar(255)
+  auth      String   @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -49,7 +49,7 @@ model PushSubscription {
 model DailyActivity {
   id            Int      @id @default(autoincrement())
   userId        Int      @map("user_id")
-  date          String
+  date          String   @db.VarChar(10)
   waterIntakeMl Int      @default(0) @map("water_intake_ml")
   waterGoalMl   Int      @default(3000) @map("water_goal_ml")
   steps         Int      @default(0)
@@ -65,8 +65,8 @@ model DailyActivity {
 
 model Plan {
   id          Int              @id @default(autoincrement())
-  name        String
-  description String?
+  name        String           @db.VarChar(191)
+  description String?          @db.Text
   userId      Int?             @map("user_id")
   user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercises   PlanExercise[]
@@ -79,9 +79,9 @@ model Plan {
 model PlanExercise {
   id           Int     @id @default(autoincrement())
   planId       Int?    @map("plan_id")
-  exerciseName String  @map("exercise_name")
+  exerciseName String  @map("exercise_name") @db.VarChar(191)
   targetSets   Int?    @map("target_sets")
-  targetReps   String? @map("target_reps")
+  targetReps   String? @map("target_reps") @db.VarChar(64)
   plan         Plan?   @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@map("plan_exercises")
@@ -89,13 +89,13 @@ model PlanExercise {
 
 model WorkoutSession {
   id     Int          @id @default(autoincrement())
-  date   String
+  date   String       @db.VarChar(10)
   planId Int?         @map("plan_id")
   userId Int?         @map("user_id")
-  notes  String?
+  notes  String?      @db.Text
   caloriesBurned Int? @map("calories_burned")
   durationSeconds Int? @map("duration_seconds")
-  intensity String?
+  intensity String?   @db.VarChar(32)
   plan   Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
   user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs   WorkoutLog[]
@@ -107,7 +107,7 @@ model WorkoutSession {
 model WorkoutLog {
   id           Int             @id @default(autoincrement())
   sessionId    Int?            @map("session_id")
-  exerciseName String          @map("exercise_name")
+  exerciseName String          @map("exercise_name") @db.VarChar(191)
   setNumber    Int?            @map("set_number")
   reps         Int?
   weight       Float?
