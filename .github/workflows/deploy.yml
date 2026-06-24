@@ -18,18 +18,18 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-          cache-dependency-path: './frontend/package-lock.json'
+          cache-dependency-path: './workout-tracker/frontend/package-lock.json'
 
       - name: Build Frontend
         run: |
-          cd frontend
+          cd workout-tracker/frontend
           npm ci
           npm run build
 
       - name: Copy Frontend Build to Backend Public
         run: |
-          mkdir -p backend/public
-          cp -r frontend/dist/* backend/public/
+          mkdir -p workout-tracker/backend/public
+          cp -r workout-tracker/frontend/dist/* workout-tracker/backend/public/
 
       # --- AB HIER FÜR SSH-PASSWORT OPTIMIERT ---
       
@@ -52,13 +52,13 @@ jobs:
             --exclude='.env' \
             --exclude='.git' \
             --exclude='.prisma/client' \
-            backend/ ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }}:~/meinprojekt.de
+            workout-tracker/backend/ ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }}:~/workout-tracker
 
       # Der finale SSH-Befehl nutzt ebenfalls sshpass
       - name: Execute Server Tasks via SSH
         run: |
           sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
-            cd ~/meinprojekt.de
+            cd ~/workout-tracker
             
             echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
             npm ci --omit=dev
