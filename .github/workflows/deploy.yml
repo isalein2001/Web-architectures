@@ -58,7 +58,7 @@ jobs:
       - name: Execute Server Tasks via SSH
         run: |
           sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
-            cd ~/workout-tracker
+            cd ~/workout-tracker/backend
             
             echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
             npm ci --omit=dev

@@ -49,9 +49,8 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Serve the Vite production build. In this repo the backend and frontend
-// folders are siblings, so the build output is ../frontend/dist.
-const distPath = path.join(__dirname, '..', 'frontend', 'dist');
+// Serve the Vite production build.
+const distPath = path.join(__dirname, 'public');
 app.use(express.static(distPath, {
   setHeaders: (res, filePath) => {
     if (filePath.includes(`${path.sep}assets${path.sep}`)) {
