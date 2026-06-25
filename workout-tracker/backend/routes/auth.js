@@ -66,7 +66,13 @@ const setAuthCookie = (res, token) => {
   });
 };
 
-const isNativeClient = (req) => req.get('x-nextreps-client') === 'native';
+const isNativeClient = (req) => {
+  const origin = req.get('origin') || '';
+  return req.get('x-nextreps-client') === 'native'
+    || origin === 'https://localhost'
+    || origin === 'capacitor://localhost'
+    || origin === 'ionic://localhost';
+};
 
 const authPayload = (req, token) => (
   isNativeClient(req) ? { token } : {}

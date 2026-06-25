@@ -1,11 +1,13 @@
 import { Capacitor } from '@capacitor/core';
 
-const isNativeRuntime = Capacitor.isNativePlatform();
+const isNativeRuntime = Capacitor.getPlatform() !== 'web';
 const nativeTokenKey = 'nextrepsNativeToken';
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
+const configuredApiBaseIsAbsolute = /^https?:\/\//i.test(configuredApiBase || '');
 
 export const API_URL = isNativeRuntime
-  ? (import.meta.env.VITE_API_BASE_URL || 'https://next-reps.de/api')
-  : '/api';
+  ? (configuredApiBaseIsAbsolute ? configuredApiBase : 'https://next-reps.de/api')
+  : (configuredApiBase || '/api');
 
 const getNativeToken = () => (
   isNativeRuntime && typeof window !== 'undefined'
