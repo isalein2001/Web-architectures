@@ -622,6 +622,120 @@ const getProgressiveOverloadScore = (currentEntries = [], previousEntries = []) 
   return Math.round(score / currentMetrics.length);
 };
 
+const buildLatestWeightMilestone = (sessions = []) => {
+  const bestWeightByExercise = {};
+  const milestones = sessions
+    .flatMap((session) => {
+      const date = getSessionDate(session);
+      if (!date) return [];
+
+      return (session.logs || [])
+        .map((log) => ({
+          sessionId: session.id,
+          date,
+          exerciseName: (log.exercise_name || '').trim(),
+          weight: Number(log.weight) || 0,
+        }))
+        .filter((entry) => entry.exerciseName && entry.weight > 0);
+    })
+    .sort((firstEntry, secondEntry) => (
+      firstEntry.date - secondEntry.date
+      || (firstEntry.sessionId || 0) - (secondEntry.sessionId || 0)
+    ))
+    .reduce((foundMilestones, entry) => {
+      const key = entry.exerciseName.toLowerCase();
+      const previousBest = bestWeightByExercise[key] || 0;
+
+      if (entry.weight > previousBest) {
+        if (previousBest > 0) {
+          foundMilestones.push({
+            exerciseName: entry.exerciseName,
+            weight: entry.weight,
+            improvement: entry.weight - previousBest,
+            date: entry.date,
+          });
+        }
+        bestWeightByExercise[key] = entry.weight;
+      }
+
+      return foundMilestones;
+    }, []);
+
+  return milestones
+    .sort((firstMilestone, secondMilestone) => (
+      secondMilestone.date - firstMilestone.date
+      || secondMilestone.improvement - firstMilestone.improvement
+    ))[0] || null;
+};
+
+const formatRelativeMilestoneTime = (date) => {
+  if (!date) return 'Log more workouts to unlock milestones';
+
+  const minutesAgo = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+  if (minutesAgo < 60) return minutesAgo <= 1 ? 'Unlocked just now' : `Unlocked ${minutesAgo}m ago`;
+
+  const hoursAgo = Math.round(minutesAgo / 60);
+  if (hoursAgo < 24) return `Unlocked ${hoursAgo}h ago`;
+
+  const daysAgo = Math.round(hoursAgo / 24);
+  return daysAgo === 1 ? 'Unlocked yesterday' : `Unlocked ${daysAgo}d ago`;
+};
+
+const buildWeeklyTrainingQuality = (sessions = [], workoutSchedule = {}, referenceDate = new Date()) => {
+  const weekStart = startOfDay(startOfWeek(referenceDate, { weekStartsOn: 1 }));
+  const weekEnd = endOfDay(addDaysNative(weekStart, 6));
+  const todayEnd = endOfDay(referenceDate);
+  const sessionsThisWeek = sessions.filter((session) => {
+    const date = getSessionDate(session);
+    return date && isWithinRange(date, weekStart, weekEnd);
+  });
+  const completedSessionCount = sessionsThisWeek.length;
+  const plannedSessionCount = Object.keys(workoutSchedule).filter((dateKey) => {
+    const plannedDate = new Date(`${dateKey}T00:00:00`);
+    return !Number.isNaN(plannedDate.getTime()) && isWithinRange(plannedDate, weekStart, weekEnd);
+  }).length;
+  const targetSessions = Math.max(plannedSessionCount || 3, 1);
+  const consistencyScore = Math.min((completedSessionCount / targetSessions) * 100, 100);
+  const weeklyEntries = getLogEntries(sessionsThisWeek);
+  const averageSetsPerSession = completedSessionCount
+    ? weeklyEntries.length / completedSessionCount
+    : 0;
+  const setQualityScore = Math.min((averageSetsPerSession / 12) * 100, 100);
+  const sessionsWithIntensity = sessionsThisWeek.filter((session) => session.intensity).length;
+  const intensityScore = completedSessionCount
+    ? (sessionsWithIntensity / completedSessionCount) * 100
+    : 0;
+  const previousWeekStart = startOfDay(addDaysNative(weekStart, -7));
+  const previousWeekEnd = endOfDay(addDaysNative(weekStart, -1));
+  const previousEntries = getStrengthEntries(sessions).filter((entry) => isWithinRange(entry.date, previousWeekStart, previousWeekEnd));
+  const currentEntries = getStrengthEntries(sessionsThisWeek);
+  const overloadScore = getProgressiveOverloadScore(currentEntries, previousEntries);
+  const score = Math.round(
+    (consistencyScore * 0.42)
+    + (setQualityScore * 0.28)
+    + (overloadScore * 0.22)
+    + (intensityScore * 0.08)
+  );
+  const completedPlannedByToday = Object.keys(workoutSchedule).filter((dateKey) => {
+    const plannedDate = new Date(`${dateKey}T00:00:00`);
+    return !Number.isNaN(plannedDate.getTime()) && isWithinRange(plannedDate, weekStart, todayEnd);
+  }).length;
+  const targetLabel = plannedSessionCount
+    ? `${completedSessionCount}/${Math.max(completedPlannedByToday, plannedSessionCount)} planned sessions completed`
+    : `${completedSessionCount}/${targetSessions} weekly sessions completed`;
+
+  return {
+    score: Math.min(Math.max(score, 0), 100),
+    completedSessionCount,
+    targetSessions,
+    averageSetsPerSession,
+    label: targetLabel,
+    message: completedSessionCount
+      ? `${targetLabel} · ${Math.round(averageSetsPerSession)} sets per session`
+      : 'Log your first workout this week to build a quality score',
+  };
+};
+
 const buildPerformanceIntelligence = (sessions = [], referenceDate = new Date()) => {
   const now = endOfDay(referenceDate);
   const last30Start = startOfDay(addDaysNative(now, -29));
@@ -698,10 +812,21 @@ function buildSmoothLinePath(points) {
   return path;
 }
 
-function MilestoneCard() {
+function MilestoneCard({ milestone }) {
   const { t } = useLanguage();
   const [fireworks, setFireworks] = useState([]);
   const fireworksTimer = useRef(null);
+  const hasMilestone = Boolean(milestone);
+  const milestoneTitle = hasMilestone
+    ? `${milestone.exerciseName} +${Number(milestone.improvement).toLocaleString('de-DE', {
+      maximumFractionDigits: 1,
+    })}${t('KG')}`
+    : t('No new milestone yet');
+  const milestoneMeta = hasMilestone
+    ? `${Number(milestone.weight).toLocaleString('de-DE', {
+      maximumFractionDigits: 1,
+    })}${t('KG')} ${t('new best')} · ${t(formatRelativeMilestoneTime(milestone.date))}`
+    : t('Log a heavier set than before to unlock your next milestone');
 
   useEffect(() => () => {
     window.clearTimeout(fireworksTimer.current);
@@ -767,8 +892,8 @@ function MilestoneCard() {
         </div>
       ))}
       <div className="ms-badge">{t('NEW MILESTONE')}</div>
-      <h3>{t('BENCH PRESS +5KG')}</h3>
-      <p>{t('Unlocked 2h ago')}</p>
+      <h3>{milestoneTitle}</h3>
+      <p>{milestoneMeta}</p>
     </div>
   );
 }
@@ -842,9 +967,17 @@ export default function Analytics({ currentUser }) {
   const analyticsReferenceDate = useMemo(() => new Date(), [analyticsWindowKey]);
   const strengthAnalytics = useMemo(() => buildStrengthAnalytics(displaySessions), [displaySessions]);
   const topExerciseMetrics = useMemo(() => buildTopExerciseMetrics(displaySessions), [displaySessions]);
+  const latestWeightMilestone = useMemo(
+    () => buildLatestWeightMilestone(displaySessions),
+    [displaySessions]
+  );
   const performanceIntelligence = useMemo(
     () => buildPerformanceIntelligence(displaySessions, analyticsReferenceDate),
     [displaySessions, analyticsReferenceDate]
+  );
+  const weeklyTrainingQuality = useMemo(
+    () => buildWeeklyTrainingQuality(displaySessions, workoutSchedule, analyticsReferenceDate),
+    [displaySessions, workoutSchedule, analyticsReferenceDate]
   );
   const mostTrainedExerciseImage = shouldUseDemoAnalytics
     ? MOST_TRAINED_IMAGES[1]
@@ -1217,7 +1350,7 @@ export default function Analytics({ currentUser }) {
             );
           })}
 
-          <MilestoneCard />
+          <MilestoneCard milestone={latestWeightMilestone} />
         </div>
 
         <div className="analytics-intelligence-grid">
@@ -1457,11 +1590,11 @@ export default function Analytics({ currentUser }) {
           <div className="quality-card-top">
             <div>
               <span>{t('WEEKLY TRAINING QUALITY')}</span>
-              <h3>94<span>%</span></h3>
+              <h3>{weeklyTrainingQuality.score}<span>%</span></h3>
             </div>
             <Award size={24} />
           </div>
-          <p>{t('Your progress toward a perfect training week')}</p>
+          <p>{t(weeklyTrainingQuality.message)}</p>
         </div>
       </div>
 
