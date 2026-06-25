@@ -84,9 +84,6 @@ export const api = {
       body: JSON.stringify(credentials),
       redirectOnUnauthorized: false,
     });
-    if (isNativeRuntime && !data.token) {
-      throw new Error('Native login token missing.');
-    }
     setNativeToken(data.token);
     return data;
   },
@@ -96,9 +93,6 @@ export const api = {
       body: JSON.stringify(credentials),
       redirectOnUnauthorized: false,
     });
-    if (isNativeRuntime && !data.token) {
-      throw new Error('Native login token missing.');
-    }
     setNativeToken(data.token);
     return data;
   },
