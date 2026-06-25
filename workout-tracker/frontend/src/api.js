@@ -5,6 +5,8 @@ const nativeTokenKey = 'nextrepsNativeToken';
 const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
 const configuredApiBaseIsAbsolute = /^https?:\/\//i.test(configuredApiBase || '');
 
+export const isNativeApp = isNativeRuntime;
+
 export const API_URL = isNativeRuntime
   ? (configuredApiBaseIsAbsolute ? configuredApiBase : 'https://next-reps.de/api')
   : (configuredApiBase || '/api');
@@ -39,6 +41,15 @@ export const authFetch = async (url, options = {}) => {
   });
 
   if (res.status === 401 && redirectOnUnauthorized && typeof window !== 'undefined') {
+    if (isNativeRuntime) {
+      window.localStorage.setItem('nextrepsLastAuthError', JSON.stringify({
+        url,
+        status: res.status,
+        at: new Date().toISOString(),
+      }));
+      return res;
+    }
+
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
       credentials: 'include',
@@ -73,6 +84,9 @@ export const api = {
       body: JSON.stringify(credentials),
       redirectOnUnauthorized: false,
     });
+    if (isNativeRuntime && !data.token) {
+      throw new Error('Native login token missing.');
+    }
     setNativeToken(data.token);
     return data;
   },
@@ -82,6 +96,9 @@ export const api = {
       body: JSON.stringify(credentials),
       redirectOnUnauthorized: false,
     });
+    if (isNativeRuntime && !data.token) {
+      throw new Error('Native login token missing.');
+    }
     setNativeToken(data.token);
     return data;
   },

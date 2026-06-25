@@ -14,7 +14,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import Onboarding from "./pages/Onboarding";
-import { api } from "./api";
+import { api, isNativeApp } from "./api";
 import { getUserDisplayName, getUserInitials, getUserStorageKey } from "./userStorage";
 import "./index.css";
 import "./App.css";
@@ -340,6 +340,7 @@ function AppLayout() {
 
   useEffect(() => {
     if (!currentUser?.id || !currentUser.emailVerified || !currentUser.onboardingCompleted) return;
+    if (isNativeApp) return;
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
     if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
 
