@@ -74,4 +74,10 @@ jobs:
             mkdir -p tmp
             touch tmp/restart.txt
             touch server.js 2>/dev/null || touch app.js 2>/dev/null
+
+            echo "Starte Node.js-App neu, damit Backend-Code neu geladen wird..."
+            if command -v passenger-config >/dev/null 2>&1; then
+              passenger-config restart-app "$(pwd)" || true
+            fi
+            pkill -u "$(whoami)" -f "node.*server.js" || true
           EOF
