@@ -66,17 +66,7 @@ const setAuthCookie = (res, token) => {
   });
 };
 
-const isNativeClient = (req) => {
-  const origin = req.get('origin') || '';
-  return req.get('x-nextreps-client') === 'native'
-    || origin === 'https://localhost'
-    || origin === 'capacitor://localhost'
-    || origin === 'ionic://localhost';
-};
-
-const authPayload = (req, token) => (
-  isNativeClient(req) ? { token } : {}
-);
+const authPayload = (token) => ({ token });
 
 function createAuthRouter() {
   const router = express.Router();
@@ -134,7 +124,7 @@ function createAuthRouter() {
 
       res.status(201).json({
         user,
-        ...authPayload(req, token),
+        ...authPayload(token),
         ...(process.env.NODE_ENV !== 'production' && verificationCode ? { verificationCode } : {}),
       });
     } catch (error) {
@@ -165,7 +155,7 @@ function createAuthRouter() {
       setAuthCookie(res, token);
 
       res.status(200).json({
-        ...authPayload(req, token),
+        ...authPayload(token),
         user: {
           id: user.id,
           email: user.email,
