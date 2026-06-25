@@ -8,8 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "cap:sync": "npm run build && cap sync",
-    "cap:sync:ios": "npm run build && cap sync ios",
+    "cap:sync": "npm run build && cap sync && node scripts/patch-ios-healthkit-plugin.mjs",
+    "cap:sync:ios": "npm run build && cap sync ios && node scripts/patch-ios-healthkit-plugin.mjs",
     "cap:open:ios": "cap open ios"
   },
   "dependencies": {
