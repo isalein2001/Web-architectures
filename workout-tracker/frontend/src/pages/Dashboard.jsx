@@ -258,10 +258,12 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
   const stepsValue = displayActivity?.steps || 0;
   const waterProgress = Math.min(100, Math.round((waterIntakeMl / Math.max(waterGoalMl, 1)) * 100));
+  const healthCalories = Number(displayActivity?.active_energy_kcal) || 0;
+  const healthMinutes = Number(displayActivity?.exercise_minutes) || 0;
   const workoutCalories = displaySessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
   const stepCalories = Math.round(stepsValue * (Number(currentUser?.weightKg) || 75) * 0.00055);
-  const caloriesValue = workoutCalories + stepCalories;
-  const minutesValue = Math.round(displaySessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
+  const caloriesValue = healthCalories || (workoutCalories + stepCalories);
+  const minutesValue = healthMinutes || Math.round(displaySessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
   const stepsProgress = Math.min(100, Math.round((stepsValue / Math.max(stepGoal, 1)) * 100));
   const caloriesProgress = Math.min(100, Math.round((caloriesValue / Math.max(dailyGoals.calories || 1, 1)) * 100));
   const minutesProgress = Math.min(100, Math.round((minutesValue / Math.max(dailyGoals.trainingMinutes || 1, 1)) * 100));
@@ -324,6 +326,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         window.localStorage.setItem(getUserStorageKey('appleHealthMetrics', currentUser), JSON.stringify(metrics));
         const activity = await api.updateTodayActivity({
           steps: Number(metrics.steps) || 0,
+          active_energy_kcal: Number(metrics.activeEnergyKcal) || 0,
+          exercise_minutes: Number(metrics.exerciseMinutes) || 0,
         });
         setTodayActivity(activity);
         window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));

@@ -22,6 +22,8 @@ const serializeActivity = (activity) => ({
   water_goal_ml: activity.waterGoalMl,
   steps: activity.steps,
   step_goal: activity.stepGoal,
+  active_energy_kcal: activity.activeEnergyKcal,
+  exercise_minutes: activity.exerciseMinutes,
 });
 
 const getDefaultWaterGoalMl = async (userId) => {
@@ -107,6 +109,22 @@ function createDailyActivityRouter() {
         return res.status(400).json({ error: 'Step goal must be between 1000 and 100000.' });
       }
       updateData.stepGoal = stepGoal;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'active_energy_kcal')) {
+      const activeEnergyKcal = Number(req.body.active_energy_kcal);
+      if (!Number.isInteger(activeEnergyKcal) || activeEnergyKcal < 0 || activeEnergyKcal > 20000) {
+        return res.status(400).json({ error: 'Active energy must be between 0 and 20000 kcal.' });
+      }
+      updateData.activeEnergyKcal = activeEnergyKcal;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'exercise_minutes')) {
+      const exerciseMinutes = Number(req.body.exercise_minutes);
+      if (!Number.isInteger(exerciseMinutes) || exerciseMinutes < 0 || exerciseMinutes > 1440) {
+        return res.status(400).json({ error: 'Exercise minutes must be between 0 and 1440.' });
+      }
+      updateData.exerciseMinutes = exerciseMinutes;
     }
 
     if (Object.keys(updateData).length === 0) {

@@ -54,6 +54,8 @@ model DailyActivity {
   waterGoalMl   Int      @default(3000) @map("water_goal_ml")
   steps         Int      @default(0)
   stepGoal      Int      @default(10000) @map("step_goal")
+  activeEnergyKcal Int   @default(0) @map("active_energy_kcal")
+  exerciseMinutes Int    @default(0) @map("exercise_minutes")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)

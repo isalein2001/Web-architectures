@@ -137,6 +137,8 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
 
       const activity = await api.updateTodayActivity({
         steps: nextMetrics.steps,
+        active_energy_kcal: nextMetrics.activeEnergyKcal,
+        exercise_minutes: nextMetrics.exerciseMinutes,
       });
       window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
       window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: nextMetrics }));
