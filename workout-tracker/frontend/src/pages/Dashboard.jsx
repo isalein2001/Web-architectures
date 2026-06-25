@@ -206,6 +206,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const hydrationGoalStorageKey = getUserStorageKey('hydrationGoalLiters', currentUser);
+  const appleWatchConnectedStorageKey = getUserStorageKey('appleWatchConnected', currentUser);
+  const appleHealthMetricsStorageKey = getUserStorageKey('appleHealthMetrics', currentUser);
   const dailyStepGoalStorageKey = getUserStorageKey(DAILY_STEP_GOAL_STORAGE_KEY, currentUser);
   const dailyCalorieGoalStorageKey = getUserStorageKey(DAILY_CALORIE_GOAL_STORAGE_KEY, currentUser);
   const dailyTrainingMinutesGoalStorageKey = getUserStorageKey(DAILY_TRAINING_MINUTES_GOAL_STORAGE_KEY, currentUser);
@@ -224,6 +226,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [todayActivity, setTodayActivity] = useState(dailyActivity || null);
+  const [appleHealthMetrics, setAppleHealthMetrics] = useState(() => loadJsonFromStorage(appleHealthMetricsStorageKey, null));
   const [hydrationGoal, setHydrationGoal] = useState(() => {
     const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
     return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
@@ -256,10 +259,11 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const stepGoal = dailyGoals.steps || displayActivity?.step_goal || 10000;
   const currentHydration = waterIntakeMl / 1000;
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
-  const stepsValue = displayActivity?.steps || 0;
+  const healthSteps = Number(appleHealthMetrics?.steps) || 0;
+  const stepsValue = healthSteps || displayActivity?.steps || 0;
   const waterProgress = Math.min(100, Math.round((waterIntakeMl / Math.max(waterGoalMl, 1)) * 100));
-  const healthCalories = Number(displayActivity?.active_energy_kcal) || 0;
-  const healthMinutes = Number(displayActivity?.exercise_minutes) || 0;
+  const healthCalories = Number(appleHealthMetrics?.activeEnergyKcal) || Number(displayActivity?.active_energy_kcal) || 0;
+  const healthMinutes = Number(appleHealthMetrics?.exerciseMinutes) || Number(displayActivity?.exercise_minutes) || 0;
   const workoutCalories = displaySessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
   const stepCalories = Math.round(stepsValue * (Number(currentUser?.weightKg) || 75) * 0.00055);
   const caloriesValue = healthCalories || (workoutCalories + stepCalories);
@@ -307,21 +311,41 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   }, [dailyActivity]);
 
   useEffect(() => {
+    const savedMetrics = loadJsonFromStorage(appleHealthMetricsStorageKey, null);
+    setAppleHealthMetrics(savedMetrics);
+    if (savedMetrics) {
+      window.localStorage.setItem(appleWatchConnectedStorageKey, 'true');
+    }
+  }, [appleHealthMetricsStorageKey, appleWatchConnectedStorageKey, currentUser?.id]);
+
+  useEffect(() => {
     const handleDailyActivityChange = (event) => {
       setTodayActivity(event.detail);
     };
+    const handleAppleHealthSync = (event) => {
+      if (!event.detail) return;
+      setAppleHealthMetrics(event.detail);
+      window.localStorage.setItem(appleWatchConnectedStorageKey, 'true');
+    };
 
     window.addEventListener('daily-activity-change', handleDailyActivityChange);
-    return () => window.removeEventListener('daily-activity-change', handleDailyActivityChange);
-  }, []);
+    window.addEventListener('apple-health-sync', handleAppleHealthSync);
+    return () => {
+      window.removeEventListener('daily-activity-change', handleDailyActivityChange);
+      window.removeEventListener('apple-health-sync', handleAppleHealthSync);
+    };
+  }, [appleWatchConnectedStorageKey]);
 
   useEffect(() => {
     if (!isHealthKitRuntime()) return undefined;
-    if (window.localStorage.getItem(getUserStorageKey('appleWatchConnected', currentUser)) !== 'true') return undefined;
+    const hasSavedHealthMetrics = Boolean(loadJsonFromStorage(appleHealthMetricsStorageKey, null));
+    if (window.localStorage.getItem(appleWatchConnectedStorageKey) !== 'true' && !hasSavedHealthMetrics) return undefined;
+    window.localStorage.setItem(appleWatchConnectedStorageKey, 'true');
 
     const syncConnectedAppleHealth = async () => {
       try {
-        const { activity } = await syncAppleHealthActivity(currentUser);
+        const { metrics, activity } = await syncAppleHealthActivity(currentUser);
+        setAppleHealthMetrics(metrics);
         if (activity) setTodayActivity(activity);
       } catch (error) {
         console.error('[HealthKit] Dashboard sync failed:', error);
@@ -331,7 +355,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     syncConnectedAppleHealth();
     window.addEventListener('focus', syncConnectedAppleHealth);
     return () => window.removeEventListener('focus', syncConnectedAppleHealth);
-  }, [currentUser?.id]);
+  }, [appleHealthMetricsStorageKey, appleWatchConnectedStorageKey, currentUser?.id]);
 
   useEffect(() => {
     const handleDailyGoalsChange = (event) => {
