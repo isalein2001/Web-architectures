@@ -562,7 +562,7 @@ function AppLayout() {
   }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isLanding ? 'app-container--landing' : ''}`}>
       {/* Left Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-brand">

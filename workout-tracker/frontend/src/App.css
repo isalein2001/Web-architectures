@@ -1028,11 +1028,29 @@
 
 @media (max-width: 900px) {
   .app-container {
+    position: relative;
     width: 100%;
     overflow-x: hidden;
     background:
       linear-gradient(180deg, rgba(197, 254, 0, 0.035), transparent 210px),
       var(--color-background);
+  }
+
+  .app-container::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 18px;
+    height: max(env(safe-area-inset-top), 18px);
+    background: #0E0E0E;
+    z-index: 69;
+    pointer-events: none;
+  }
+
+  .app-container--landing::before {
+    display: none;
   }
 
   .sidebar {
@@ -1146,11 +1164,11 @@
 
   .topbar {
     left: 0;
-    height: 62px;
-    padding: 0 14px;
+    height: calc(62px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 14px 0;
     border-bottom-color: rgba(255,255,255,0.07);
     background:
-      linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(14, 14, 14, 0.88));
+      linear-gradient(180deg, #0E0E0E 0%, #0E0E0E env(safe-area-inset-top), rgba(14, 14, 14, 0.98) 32%, rgba(14, 14, 14, 0.9) 100%);
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
     backdrop-filter: blur(18px);
     z-index: 70;
@@ -1251,7 +1269,7 @@
     position: absolute;
     left: 14px;
     right: 14px;
-    top: 10px;
+    top: calc(10px + env(safe-area-inset-top));
     z-index: 95;
     display: flex;
     place-items: initial;
@@ -1415,8 +1433,8 @@
   }
 
   .main-content {
-    margin-top: 62px;
-    min-height: calc(100vh - 62px);
+    margin-top: calc(62px + env(safe-area-inset-top));
+    min-height: calc(100vh - 62px - env(safe-area-inset-top));
     padding: 16px 12px calc(104px + env(safe-area-inset-bottom));
   }
 
@@ -1458,7 +1476,7 @@
 
 @media (max-width: 520px) {
   .topbar {
-    padding: 0 12px;
+    padding: env(safe-area-inset-top) 12px 0;
   }
 
   .mobile-topbar-brand small {
