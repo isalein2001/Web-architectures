@@ -66,6 +66,12 @@ const setAuthCookie = (res, token) => {
   });
 };
 
+const isNativeClient = (req) => req.get('x-nextreps-client') === 'native';
+
+const authPayload = (req, token) => (
+  isNativeClient(req) ? { token } : {}
+);
+
 function createAuthRouter() {
   const router = express.Router();
 
@@ -122,6 +128,7 @@ function createAuthRouter() {
 
       res.status(201).json({
         user,
+        ...authPayload(req, token),
         ...(process.env.NODE_ENV !== 'production' && verificationCode ? { verificationCode } : {}),
       });
     } catch (error) {
@@ -152,6 +159,7 @@ function createAuthRouter() {
       setAuthCookie(res, token);
 
       res.status(200).json({
+        ...authPayload(req, token),
         user: {
           id: user.id,
           email: user.email,

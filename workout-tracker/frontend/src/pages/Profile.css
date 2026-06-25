@@ -3497,6 +3497,51 @@
   background: rgba(255, 94, 94, 0.1);
 }
 
+.watch-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.watch-metrics span,
+.watch-sync-status {
+  width: fit-content;
+  min-height: 24px;
+  padding: 5px 9px;
+  border: 1px solid rgba(197, 254, 0, 0.14);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(197, 254, 0, 0.045);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.watch-sync-status {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+
+.profile-watch-sync-action {
+  width: max-content;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(197, 254, 0, 0.16);
+  border-radius: 999px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.055);
+  font-size: 0.68rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.profile-watch-sync-action:disabled,
+.watch-panel .profile-danger-action:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 /* Account footer should sit lower in the profile card */
 .account-panel .account-form-grid {
   display: flex;

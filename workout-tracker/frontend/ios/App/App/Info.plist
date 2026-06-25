@@ -24,6 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Next Reps uses Apple Health data such as steps, active energy and exercise minutes to update your daily activity and training progress.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Next Reps does not write workout data yet. This permission is reserved for future workout sync features.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

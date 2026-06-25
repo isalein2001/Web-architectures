@@ -19,6 +19,7 @@ import {
 import { LanguageContext } from '../context/LanguageContext';
 import { getUserDisplayName, getUserInitials, getUserStorageKey } from '../userStorage';
 import { api } from '../api';
+import { healthKit } from '../healthKit';
 import './Profile.css';
 
 export default function Profile({ currentUser, onLogout, onUserUpdate }) {
@@ -44,8 +45,19 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     window.localStorage.getItem(storageKey('hydrationAlertsEnabled')) !== 'false'
   ));
   const [isWatchConnected, setIsWatchConnected] = useState(() => (
-    window.localStorage.getItem(storageKey('appleWatchConnected')) !== 'false'
+    window.localStorage.getItem(storageKey('appleWatchConnected')) === 'true'
   ));
+  const [isWatchSyncing, setIsWatchSyncing] = useState(false);
+  const [watchSyncStatus, setWatchSyncStatus] = useState('');
+  const [watchMetrics, setWatchMetrics] = useState(() => {
+    const savedMetrics = window.localStorage.getItem(storageKey('appleHealthMetrics'));
+    if (!savedMetrics) return null;
+    try {
+      return JSON.parse(savedMetrics);
+    } catch {
+      return null;
+    }
+  });
   const [isBmiInfoOpen, setIsBmiInfoOpen] = useState(false);
   const [gender, setGender] = useState(() => window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
   const [height, setHeight] = useState(() => window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
@@ -89,6 +101,59 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   useEffect(() => {
     window.localStorage.setItem(storageKey('appleWatchConnected'), isWatchConnected.toString());
   }, [isWatchConnected, currentUser?.id]);
+
+  useEffect(() => {
+    if (watchMetrics) {
+      window.localStorage.setItem(storageKey('appleHealthMetrics'), JSON.stringify(watchMetrics));
+    } else {
+      window.localStorage.removeItem(storageKey('appleHealthMetrics'));
+    }
+  }, [watchMetrics, currentUser?.id]);
+
+  const syncAppleHealth = async () => {
+    setIsWatchSyncing(true);
+    setWatchSyncStatus('');
+
+    try {
+      const availability = await healthKit.isAvailable();
+      if (!availability.available) {
+        setIsWatchConnected(false);
+        setWatchSyncStatus('APPLE HEALTH IS ONLY AVAILABLE IN THE IOS APP');
+        return;
+      }
+
+      await healthKit.requestAuthorization();
+      const metrics = await healthKit.getTodayActivity();
+      const nextMetrics = {
+        steps: Number(metrics.steps) || 0,
+        activeEnergyKcal: Number(metrics.activeEnergyKcal) || 0,
+        exerciseMinutes: Number(metrics.exerciseMinutes) || 0,
+        workoutCount: Number(metrics.workoutCount) || 0,
+        lastSyncAt: metrics.lastSyncAt || new Date().toISOString(),
+      };
+      setWatchMetrics(nextMetrics);
+      setIsWatchConnected(true);
+      setWatchSyncStatus('APPLE HEALTH SYNCED');
+
+      const activity = await api.updateTodayActivity({
+        steps: nextMetrics.steps,
+      });
+      window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+      window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: nextMetrics }));
+    } catch (error) {
+      console.error(error);
+      setIsWatchConnected(false);
+      setWatchSyncStatus(error.message || 'APPLE HEALTH SYNC FAILED');
+    } finally {
+      setIsWatchSyncing(false);
+    }
+  };
+
+  const disconnectAppleHealth = () => {
+    setIsWatchConnected(false);
+    setWatchMetrics(null);
+    setWatchSyncStatus('DISCONNECTED');
+  };
 
   const calculateBmi = (heightCm, weightKg) => {
     const parsedHeight = Number(heightCm);
@@ -526,10 +591,36 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
               <span className="status-badge">{isWatchConnected ? t('CONNECTED') : t('DISCONNECTED')}</span>
             </div>
             <h2>{t('APPLE WATCH')}</h2>
-            <p>{isWatchConnected ? t('HEALTHKIT ENABLED') : t('HEALTHKIT DISCONNECTED')}</p>
-            <button className="profile-danger-action" type="button" onClick={() => setIsWatchConnected((connected) => !connected)}>
-              {isWatchConnected ? t('DISCONNECT') : t('CONNECT')}
+            <p>
+              {isWatchConnected
+                ? `${t('HEALTHKIT ENABLED')}${watchMetrics?.steps ? ` · ${watchMetrics.steps.toLocaleString()} ${t('STEPS')}` : ''}`
+                : t('HEALTHKIT DISCONNECTED')}
+            </p>
+            {watchMetrics && (
+              <div className="watch-metrics">
+                <span>{watchMetrics.activeEnergyKcal.toLocaleString()} kcal</span>
+                <span>{watchMetrics.exerciseMinutes.toLocaleString()} min</span>
+              </div>
+            )}
+            {watchSyncStatus && <small className="watch-sync-status">{t(watchSyncStatus)}</small>}
+            <button
+              className="profile-danger-action"
+              type="button"
+              disabled={isWatchSyncing}
+              onClick={isWatchConnected ? disconnectAppleHealth : syncAppleHealth}
+            >
+              {isWatchSyncing ? t('SYNCING') : isWatchConnected ? t('DISCONNECT') : t('CONNECT')}
             </button>
+            {isWatchConnected && (
+              <button
+                className="profile-watch-sync-action"
+                type="button"
+                disabled={isWatchSyncing}
+                onClick={syncAppleHealth}
+              >
+                {t('SYNC NOW')}
+              </button>
+            )}
           </section>
 
         </aside>

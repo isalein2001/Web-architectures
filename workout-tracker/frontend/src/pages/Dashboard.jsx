@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserDisplayName, getUserFirstName, getUserStorageKey } from '../userStorage';
+import { healthKit, isHealthKitRuntime } from '../healthKit';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
@@ -311,6 +312,31 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     window.addEventListener('daily-activity-change', handleDailyActivityChange);
     return () => window.removeEventListener('daily-activity-change', handleDailyActivityChange);
   }, []);
+
+  useEffect(() => {
+    if (!isHealthKitRuntime()) return undefined;
+    if (window.localStorage.getItem(getUserStorageKey('appleWatchConnected', currentUser)) !== 'true') return undefined;
+
+    const syncConnectedAppleHealth = async () => {
+      try {
+        await healthKit.requestAuthorization();
+        const metrics = await healthKit.getTodayActivity();
+        window.localStorage.setItem(getUserStorageKey('appleHealthMetrics', currentUser), JSON.stringify(metrics));
+        const activity = await api.updateTodayActivity({
+          steps: Number(metrics.steps) || 0,
+        });
+        setTodayActivity(activity);
+        window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+        window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: metrics }));
+      } catch (error) {
+        console.error('[HealthKit] Dashboard sync failed:', error);
+      }
+    };
+
+    syncConnectedAppleHealth();
+    window.addEventListener('focus', syncConnectedAppleHealth);
+    return () => window.removeEventListener('focus', syncConnectedAppleHealth);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     const handleDailyGoalsChange = (event) => {

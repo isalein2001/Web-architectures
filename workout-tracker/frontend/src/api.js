@@ -1,11 +1,36 @@
-export const API_URL = '/api';
+import { Capacitor } from '@capacitor/core';
+
+const isNativeRuntime = Capacitor.isNativePlatform();
+const nativeTokenKey = 'nextrepsNativeToken';
+
+export const API_URL = isNativeRuntime
+  ? (import.meta.env.VITE_API_BASE_URL || 'https://next-reps.de/api')
+  : '/api';
+
+const getNativeToken = () => (
+  isNativeRuntime && typeof window !== 'undefined'
+    ? window.localStorage.getItem(nativeTokenKey)
+    : null
+);
+
+const setNativeToken = (token) => {
+  if (!isNativeRuntime || typeof window === 'undefined') return;
+  if (token) {
+    window.localStorage.setItem(nativeTokenKey, token);
+  } else {
+    window.localStorage.removeItem(nativeTokenKey);
+  }
+};
 
 export const authFetch = async (url, options = {}) => {
   const { redirectOnUnauthorized = true, ...fetchOptions } = options;
+  const nativeToken = getNativeToken();
   const res = await fetch(url, {
     credentials: 'include',
     ...fetchOptions,
     headers: {
+      ...(isNativeRuntime ? { 'X-NextReps-Client': 'native' } : {}),
+      ...(nativeToken ? { Authorization: `Bearer ${nativeToken}` } : {}),
       ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
       ...(fetchOptions.headers || {}),
     },
@@ -15,7 +40,12 @@ export const authFetch = async (url, options = {}) => {
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
       credentials: 'include',
+      headers: {
+        ...(isNativeRuntime ? { 'X-NextReps-Client': 'native' } : {}),
+        ...(nativeToken ? { Authorization: `Bearer ${nativeToken}` } : {}),
+      },
     }).catch(() => null);
+    setNativeToken(null);
     window.location.assign('/');
   }
 
@@ -35,16 +65,24 @@ const requestJson = async (url, options = {}) => {
 };
 
 export const api = {
-  register: async (credentials) => requestJson(`${API_URL}/auth/register`, {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-    redirectOnUnauthorized: false,
-  }),
-  login: async (credentials) => requestJson(`${API_URL}/auth/login`, {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-    redirectOnUnauthorized: false,
-  }),
+  register: async (credentials) => {
+    const data = await requestJson(`${API_URL}/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+      redirectOnUnauthorized: false,
+    });
+    setNativeToken(data.token);
+    return data;
+  },
+  login: async (credentials) => {
+    const data = await requestJson(`${API_URL}/auth/login`, {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+      redirectOnUnauthorized: false,
+    });
+    setNativeToken(data.token);
+    return data;
+  },
   getCurrentUser: async () => requestJson(`${API_URL}/auth/me`, {
     redirectOnUnauthorized: false,
   }),
@@ -75,9 +113,16 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(onboardingData),
   }),
-  logout: async () => requestJson(`${API_URL}/auth/logout`, {
-    method: 'POST',
-  }),
+  logout: async () => {
+    const result = await requestJson(`${API_URL}/auth/logout`, {
+      method: 'POST',
+    }).catch((error) => {
+      setNativeToken(null);
+      throw error;
+    });
+    setNativeToken(null);
+    return result;
+  },
 
   // Plans
   getPlans: async () => {
