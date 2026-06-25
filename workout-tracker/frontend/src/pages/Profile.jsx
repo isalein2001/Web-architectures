@@ -19,7 +19,7 @@ import {
 import { LanguageContext } from '../context/LanguageContext';
 import { getUserDisplayName, getUserInitials, getUserStorageKey } from '../userStorage';
 import { api } from '../api';
-import { healthKit } from '../healthKit';
+import { syncAppleHealthActivity } from '../healthKit';
 import './Profile.css';
 
 export default function Profile({ currentUser, onLogout, onUserUpdate }) {
@@ -70,6 +70,16 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
 
   useEffect(() => {
     const nextDisplayName = getUserDisplayName(currentUser);
+    const savedMetrics = window.localStorage.getItem(storageKey('appleHealthMetrics'));
+    let nextWatchMetrics = null;
+    if (savedMetrics) {
+      try {
+        nextWatchMetrics = JSON.parse(savedMetrics);
+      } catch {
+        nextWatchMetrics = null;
+      }
+    }
+
     // Keep the form draft in sync when the active account changes.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAccountFirstName(currentUser?.firstName || nextDisplayName.split(/\s+/)[0] || '');
@@ -82,6 +92,8 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setGender(window.localStorage.getItem(storageKey('profileGender')) || currentUser?.gender || 'Female');
     setHeight(window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
     setWeight(window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
+    setWatchMetrics(nextWatchMetrics);
+    setIsWatchConnected(window.localStorage.getItem(storageKey('appleWatchConnected')) === 'true' || Boolean(nextWatchMetrics));
   }, [currentUser]);
 
   useEffect(() => {
@@ -115,36 +127,15 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setWatchSyncStatus('');
 
     try {
-      const availability = await healthKit.isAvailable();
-      if (!availability.available) {
-        setIsWatchConnected(false);
-        setWatchSyncStatus('APPLE HEALTH IS ONLY AVAILABLE IN THE IOS APP');
-        return;
-      }
-
-      await healthKit.requestAuthorization();
-      const metrics = await healthKit.getTodayActivity();
-      const nextMetrics = {
-        steps: Number(metrics.steps) || 0,
-        activeEnergyKcal: Number(metrics.activeEnergyKcal) || 0,
-        exerciseMinutes: Number(metrics.exerciseMinutes) || 0,
-        workoutCount: Number(metrics.workoutCount) || 0,
-        lastSyncAt: metrics.lastSyncAt || new Date().toISOString(),
-      };
-      setWatchMetrics(nextMetrics);
+      const { metrics, activity } = await syncAppleHealthActivity(currentUser);
+      setWatchMetrics(metrics);
       setIsWatchConnected(true);
-      setWatchSyncStatus('APPLE HEALTH SYNCED');
-
-      const activity = await api.updateTodayActivity({
-        steps: nextMetrics.steps,
-        active_energy_kcal: nextMetrics.activeEnergyKcal,
-        exercise_minutes: nextMetrics.exerciseMinutes,
-      });
-      window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
-      window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: nextMetrics }));
+      setWatchSyncStatus(activity ? 'APPLE HEALTH SYNCED' : 'APPLE HEALTH CONNECTED');
     } catch (error) {
       console.error(error);
-      setIsWatchConnected(false);
+      if (!watchMetrics) {
+        setIsWatchConnected(false);
+      }
       setWatchSyncStatus(error.message || 'APPLE HEALTH SYNC FAILED');
     } finally {
       setIsWatchSyncing(false);

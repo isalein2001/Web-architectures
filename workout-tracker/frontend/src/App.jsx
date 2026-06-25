@@ -329,12 +329,17 @@ function AppLayout() {
       api.getPlans().then(setSearchPlans).catch(() => null);
     };
     const handleOpenQuickLog = (event) => openQuickLog(event.detail?.tab || 'water');
+    const handleDailyActivityChange = (event) => {
+      if (event.detail) setDailyActivity(event.detail);
+    };
 
     window.addEventListener('focus', handleFocus);
     window.addEventListener('open-quick-log', handleOpenQuickLog);
+    window.addEventListener('daily-activity-change', handleDailyActivityChange);
     return () => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('open-quick-log', handleOpenQuickLog);
+      window.removeEventListener('daily-activity-change', handleDailyActivityChange);
     };
   }, [currentUser?.id, currentUser?.emailVerified, currentUser?.onboardingCompleted]);
 

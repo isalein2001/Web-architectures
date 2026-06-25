@@ -1,8 +1,51 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { api } from './api';
+import { getUserStorageKey } from './userStorage';
 
 const NativeHealthKit = registerPlugin('HealthKit');
 
 export const isHealthKitRuntime = () => Capacitor.getPlatform() === 'ios';
+
+const normalizeHealthMetrics = (metrics = {}) => ({
+  steps: Number(metrics.steps) || 0,
+  activeEnergyKcal: Number(metrics.activeEnergyKcal) || 0,
+  exerciseMinutes: Number(metrics.exerciseMinutes) || 0,
+  workoutCount: Number(metrics.workoutCount) || 0,
+  lastSyncAt: metrics.lastSyncAt || new Date().toISOString(),
+});
+
+const persistHealthConnection = (currentUser, metrics) => {
+  window.localStorage.setItem(getUserStorageKey('appleWatchConnected', currentUser), 'true');
+  window.localStorage.setItem(getUserStorageKey('appleHealthMetrics', currentUser), JSON.stringify(metrics));
+  window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: metrics }));
+};
+
+export const syncAppleHealthActivity = async (currentUser) => {
+  const availability = await healthKit.isAvailable();
+  if (!availability.available) {
+    throw new Error('APPLE HEALTH IS ONLY AVAILABLE IN THE IOS APP');
+  }
+
+  await healthKit.requestAuthorization();
+  const metrics = normalizeHealthMetrics(await healthKit.getTodayActivity());
+  persistHealthConnection(currentUser, metrics);
+
+  let activity = null;
+  try {
+    activity = await api.updateTodayActivity({
+      steps: metrics.steps,
+      active_energy_kcal: metrics.activeEnergyKcal,
+      exercise_minutes: metrics.exerciseMinutes,
+    });
+    window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+  } catch (error) {
+    window.dispatchEvent(new CustomEvent('apple-health-server-sync-failed', {
+      detail: { message: error.message || 'APPLE HEALTH SERVER SYNC FAILED', metrics },
+    }));
+  }
+
+  return { metrics, activity };
+};
 
 export const healthKit = {
   isAvailable: async () => {

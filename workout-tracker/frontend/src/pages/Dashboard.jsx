@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserDisplayName, getUserFirstName, getUserStorageKey } from '../userStorage';
-import { healthKit, isHealthKitRuntime } from '../healthKit';
+import { isHealthKitRuntime, syncAppleHealthActivity } from '../healthKit';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
@@ -321,17 +321,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
     const syncConnectedAppleHealth = async () => {
       try {
-        await healthKit.requestAuthorization();
-        const metrics = await healthKit.getTodayActivity();
-        window.localStorage.setItem(getUserStorageKey('appleHealthMetrics', currentUser), JSON.stringify(metrics));
-        const activity = await api.updateTodayActivity({
-          steps: Number(metrics.steps) || 0,
-          active_energy_kcal: Number(metrics.activeEnergyKcal) || 0,
-          exercise_minutes: Number(metrics.exerciseMinutes) || 0,
-        });
-        setTodayActivity(activity);
-        window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
-        window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: metrics }));
+        const { activity } = await syncAppleHealthActivity(currentUser);
+        if (activity) setTodayActivity(activity);
       } catch (error) {
         console.error('[HealthKit] Dashboard sync failed:', error);
       }
