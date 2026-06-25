@@ -28,6 +28,7 @@ jobs:
 
       - name: Copy Frontend Build to Backend Public
         run: |
+          rm -rf workout-tracker/backend/public
           mkdir -p workout-tracker/backend/public
           cp -r workout-tracker/frontend/dist/* workout-tracker/backend/public/
 
@@ -58,7 +59,7 @@ jobs:
       - name: Execute Server Tasks via SSH
         run: |
           sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
-            cd ~/workout-tracker/backend
+            cd ~/workout-tracker
             
             echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
             npm ci --omit=dev

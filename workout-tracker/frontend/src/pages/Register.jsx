@@ -158,7 +158,7 @@ export default function Register({ onLogin }) {
 
           <div className="auth-switch">
             <span>Already have an account?</span>
-            <Link to="/login">Login</Link>
+            <Link to="/login" state={{ loginIntent: true }}>Login</Link>
           </div>
         </section>
       </main>

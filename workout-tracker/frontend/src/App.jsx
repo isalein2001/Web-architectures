@@ -56,6 +56,7 @@ function AppLayout() {
   const isVerificationPage = location.pathname === "/verify-email";
   const isOnboardingPage = location.pathname === "/onboarding";
   const isLanding = location.pathname === "/";
+  const canShowLogin = location.pathname === "/login" && location.state?.loginIntent === true;
   const { t, lang, setLang } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -162,7 +163,7 @@ function AppLayout() {
       // The local auth state should still be cleared if the server is already logged out.
     }
     setCurrentUser(null);
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   const handleUserUpdate = (nextUser) => {
@@ -497,6 +498,14 @@ function AppLayout() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
 
+  if (isLanding) {
+    return (
+      <Routes>
+        <Route path="/" element={<Landing currentUser={currentUser} />} />
+      </Routes>
+    );
+  }
+
   if (isAuthLoading) {
     return (
       <div className="auth-page">
@@ -515,9 +524,12 @@ function AppLayout() {
   if (!currentUser) {
     return (
       <Routes>
-        <Route path="/login" element={<Login onLogin={setCurrentUser} />} />
+        <Route
+          path="/login"
+          element={canShowLogin ? <Login onLogin={setCurrentUser} /> : <Navigate to="/" replace />}
+        />
         <Route path="/register" element={<Register onLogin={setCurrentUser} />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
@@ -809,7 +821,7 @@ function AppLayout() {
 
         <main className={`main-content ${isLanding ? 'main-content--landing' : ''}`}>
           <Routes>
-            <Route path="/" element={<><Landing /><Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} /></>} />
+            <Route path="/" element={<Landing currentUser={currentUser} />} />
             <Route path="/dashboard" element={<Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} />} />
             <Route path="/workouts" element={<Workouts currentUser={currentUser} />} />
             <Route path="/start-workout" element={<WorkoutLogger currentUser={currentUser} />} />

@@ -16,7 +16,7 @@ export const authFetch = async (url, options = {}) => {
       method: 'POST',
       credentials: 'include',
     }).catch(() => null);
-    window.location.assign('/login');
+    window.location.assign('/');
   }
 
   return res;

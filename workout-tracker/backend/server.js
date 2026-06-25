@@ -52,6 +52,7 @@ app.use('/api', (req, res) => {
 // Serve the Vite production build.
 const distPath = path.join(__dirname, 'public');
 app.use(express.static(distPath, {
+  index: false,
   setHeaders: (res, filePath) => {
     if (filePath.includes(`${path.sep}assets${path.sep}`)) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
