@@ -210,6 +210,25 @@ const groupLogsByExercise = (logs = []) => logs.reduce((groups, log) => {
     [exerciseName]: [...(groups[exerciseName] || []), log],
   };
 }, {});
+const buildScheduleEntryFromSession = (session) => {
+  const groupedLogs = groupLogsByExercise(session.logs || []);
+  const exercises = Object.entries(groupedLogs).map(([exerciseName, logs]) => {
+    const reps = logs
+      .map((log) => log.reps)
+      .filter((rep) => rep !== null && rep !== undefined && rep !== '')
+      .join('/');
+    return `${exerciseName}${logs.length ? ` (${logs.length}x${reps || '-'})` : ''}`;
+  });
+
+  return {
+    workoutId: session.plan_id || `session-${session.id}`,
+    title: session.plan_name || 'COMPLETED WORKOUT',
+    image: '/hero-bg.jpg',
+    badge: 'SAVED SESSION',
+    iconKey: 'dumbbell',
+    exercises,
+  };
+};
 const readyMadeCalendarWorkouts = [
   {
     id: 'ready-push-pull-legs',
@@ -1058,6 +1077,23 @@ export default function Analytics({ currentUser }) {
   useEffect(() => {
     window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(workoutSchedule));
   }, [workoutSchedule, workoutScheduleStorageKey]);
+
+  useEffect(() => {
+    if (!sessions.length) return;
+    setWorkoutSchedule((currentSchedule) => {
+      const nextSchedule = { ...currentSchedule };
+      let changed = false;
+
+      sessions.forEach((session) => {
+        const dateKey = getSessionDateKey(session.date);
+        if (!dateKey || nextSchedule[dateKey]) return;
+        nextSchedule[dateKey] = buildScheduleEntryFromSession(session);
+        changed = true;
+      });
+
+      return changed ? nextSchedule : currentSchedule;
+    });
+  }, [sessions]);
 
   useEffect(() => {
     setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));

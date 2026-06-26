@@ -7,6 +7,7 @@ import { getUserStorageKey } from '../userStorage';
 import './WorkoutLogger.css';
 
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
+const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 const SELECTED_WORKOUT_STORAGE_KEY = 'selectedWorkoutToStart';
 
 const readyWorkoutPlans = [
@@ -92,6 +93,15 @@ const loadJson = (key, fallback) => {
   }
 };
 
+const getLocalDateKey = (date) => {
+  const parsedDate = new Date(date);
+  if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(parsedDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const parseExerciseSummary = (summary) => {
   const match = summary.match(/^(.*?)\s*\((\d+)x([^)]*)\)$/);
   if (!match) {
@@ -133,7 +143,9 @@ const normalizePlan = (plan, source = 'custom') => {
 
   return {
     id: plan.id,
-    planId: typeof plan.id === 'number' ? plan.id : null,
+    planId: typeof plan.backendPlanId === 'number'
+      ? plan.backendPlanId
+      : (typeof plan.id === 'number' ? plan.id : null),
     title: plan.title || plan.name || 'WORKOUT',
     badge: plan.badge || (source === 'backend' ? 'SAVED PLAN' : 'WORKOUT PLAN'),
     image: plan.image || '/hero-bg.jpg',
@@ -202,6 +214,7 @@ export default function WorkoutLogger({ currentUser }) {
   const navigate = useNavigate();
   const location = useLocation();
   const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
+  const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const initialSelectedPlan = useMemo(() => {
     const selectedPlan = location.state?.plan || loadJson(SELECTED_WORKOUT_STORAGE_KEY, null);
     return selectedPlan ? normalizePlan(selectedPlan, selectedPlan.source || 'custom') : null;
@@ -371,9 +384,10 @@ export default function WorkoutLogger({ currentUser }) {
 
   const saveWorkoutSession = async () => {
     if (!activePlan) return;
+    const sessionDate = new Date().toISOString();
 
     const sessionData = {
-      date: new Date().toISOString(),
+      date: sessionDate,
       plan_id: activePlan.planId,
       notes,
       calories_burned: caloriesToSave,
@@ -393,6 +407,19 @@ export default function WorkoutLogger({ currentUser }) {
     setSaveState('saving');
     try {
       await api.logSession(sessionData);
+      const dateKey = getLocalDateKey(sessionDate);
+      const currentSchedule = loadJson(workoutScheduleStorageKey, {});
+      window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({
+        ...currentSchedule,
+        [dateKey]: {
+          workoutId: activePlan.id,
+          title: activePlan.title,
+          image: activePlan.image,
+          badge: activePlan.badge,
+          iconKey: activePlan.iconKey,
+          exercises: activePlan.exercises.map((exercise) => `${exercise.name} (${exercise.sets}x${exercise.repsBySet.join('/')})`),
+        },
+      }));
       setSaveState('saved');
       window.setTimeout(() => navigate('/analytics'), 700);
     } catch (error) {
