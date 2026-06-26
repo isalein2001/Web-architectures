@@ -60,6 +60,8 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
 const initialExercises = [];
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
+const MAX_COVER_IMAGE_WIDTH = 1400;
+const COVER_IMAGE_QUALITY = 0.78;
 
 const loadSavedWorkoutPlans = (storageKey) => {
   try {
@@ -132,6 +134,46 @@ const formatExerciseSummary = (exercise) => {
   return `${exercise.name.trim()} (${exercise.sets.trim()}x${repSummary})`;
 };
 
+const isPersistablePlanImage = (image) => (
+  typeof image === 'string'
+  && (image.startsWith('/') || image.startsWith('data:image/'))
+);
+
+const getPersistablePlanImage = (image) => (
+  isPersistablePlanImage(image) ? image : '/hero-bg.jpg'
+);
+
+const readImageFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = () => reject(reader.error);
+  reader.readAsDataURL(file);
+});
+
+const loadImageElement = (src) => new Promise((resolve, reject) => {
+  const image = new Image();
+  image.onload = () => resolve(image);
+  image.onerror = reject;
+  image.src = src;
+});
+
+const compressCoverImage = async (file) => {
+  const originalDataUrl = await readImageFileAsDataUrl(file);
+  const image = await loadImageElement(originalDataUrl);
+  const scale = Math.min(1, MAX_COVER_IMAGE_WIDTH / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+
+  if (!context) return originalDataUrl;
+
+  context.drawImage(image, 0, 0, width, height);
+  return canvas.toDataURL('image/jpeg', COVER_IMAGE_QUALITY);
+};
+
 export default function Workouts({ currentUser }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -144,6 +186,8 @@ export default function Workouts({ currentUser }) {
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [expandedPlans, setExpandedPlans] = useState({});
   const [coverImage, setCoverImage] = useState(null);
+  const [isCoverProcessing, setIsCoverProcessing] = useState(false);
+  const [workoutSaveStatus, setWorkoutSaveStatus] = useState('');
   const [selectedIconKey, setSelectedIconKey] = useState('dumbbell');
   const [savedPlans, setSavedPlans] = useState(() => loadSavedWorkoutPlans(customPlansStorageKey));
   const [editingPlanId, setEditingPlanId] = useState(null);
@@ -280,6 +324,8 @@ export default function Workouts({ currentUser }) {
   const resetBuilder = () => {
     setWorkoutName('');
     setCoverImage(null);
+    setIsCoverProcessing(false);
+    setWorkoutSaveStatus('');
     setSelectedIconKey('dumbbell');
     setExercises([]);
     setEditingPlanId(null);
@@ -303,25 +349,39 @@ export default function Workouts({ currentUser }) {
     navigate('/start-workout', { state: { plan: selectedPlan } });
   };
 
-  const handleCoverUpload = (event) => {
+  const handleCoverUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') setCoverImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    setWorkoutSaveStatus('');
+    setIsCoverProcessing(true);
+
+    try {
+      setCoverImage(await compressCoverImage(file));
+    } catch {
+      setWorkoutSaveStatus(t('Could not read image file.'));
+    } finally {
+      setIsCoverProcessing(false);
+      event.target.value = '';
+    }
   };
 
   const handleWorkoutNameChange = (event) => {
     setWorkoutName(event.target.value);
+    setWorkoutSaveStatus('');
     setValidationErrors((currentErrors) => ({ ...currentErrors, workoutName: false }));
   };
 
   const saveWorkout = async () => {
+    setWorkoutSaveStatus('');
+
+    if (isCoverProcessing) {
+      setWorkoutSaveStatus(t('Please wait until the cover photo is ready.'));
+      return;
+    }
+
     const nextErrors = {
       workoutName: !workoutName.trim(),
       noExercises: false,
@@ -358,7 +418,7 @@ export default function Workouts({ currentUser }) {
     const planPayload = {
       name: workoutName.trim().toUpperCase(),
       description: t('CUSTOM PLAN'),
-      image: coverImage || '/hero-bg.jpg',
+      image: getPersistablePlanImage(coverImage),
       icon_key: selectedIconKey,
       exercises: enteredExercises.map((exercise) => ({
         exercise_name: exercise.name.trim(),
@@ -374,7 +434,7 @@ export default function Workouts({ currentUser }) {
         ? await api.updatePlan(currentBackendId, planPayload)
         : await api.createPlan(planPayload);
     } catch (error) {
-      setValidationErrors((currentErrors) => ({ ...currentErrors, workoutName: true }));
+      setWorkoutSaveStatus(t(error.message || 'Could not save workout. Please try again.'));
       return;
     }
 
@@ -383,7 +443,7 @@ export default function Workouts({ currentUser }) {
       backendPlanId: persistedPlan?.id || savedPlans.find((plan) => plan.id === editingPlanId)?.backendPlanId || null,
       title: workoutName.trim().toUpperCase(),
       badge: t('CUSTOM PLAN'),
-      image: coverImage || '/hero-bg.jpg',
+      image: getPersistablePlanImage(coverImage),
       iconKey: selectedIconKey,
       builderExercises: enteredExercises.map((exercise) => ({
         ...exercise,
@@ -566,15 +626,18 @@ export default function Workouts({ currentUser }) {
           className={`workout-upload-box ${coverImage ? 'has-image' : ''}`}
           style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
         >
-          <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleCoverUpload} />
+          <input type="file" accept="image/*" onChange={handleCoverUpload} />
           <span className="workout-upload-content">
             <span className="workout-upload-icon">
               <Camera size={22} />
             </span>
-            <strong>{coverImage ? t('CHANGE COVER PHOTO') : t('UPLOAD COVER PHOTO')}</strong>
+            <strong>{isCoverProcessing ? t('PREPARING PHOTO') : coverImage ? t('CHANGE COVER PHOTO') : t('UPLOAD COVER PHOTO')}</strong>
             <small>{t('PNG, JPG UP TO 10MB')}</small>
           </span>
         </label>
+        {workoutSaveStatus && (
+          <div className="workout-error-message workout-save-status">{workoutSaveStatus}</div>
+        )}
 
         <div className="workout-exercise-stack">
           {exercises.map((exercise) => (
@@ -706,7 +769,7 @@ export default function Workouts({ currentUser }) {
               </div>
             )}
           </div>
-          <button className="save-workout-button" type="button" onClick={saveWorkout}>
+          <button className="save-workout-button" type="button" onClick={saveWorkout} disabled={isCoverProcessing}>
             {editingPlanId ? t('UPDATE WORKOUT') : t('SAVE WORKOUT')}
           </button>
         </div>

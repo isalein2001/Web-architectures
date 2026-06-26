@@ -109,6 +109,10 @@
   text-align: left;
 }
 
+.workout-error-message.workout-save-status {
+  margin-top: 14px;
+}
+
 .workout-cover-label {
   display: block;
   margin: 42px 0 14px;
@@ -580,6 +584,12 @@
 .save-workout-button:hover {
   box-shadow: 0 0 34px rgba(197, 254, 0, 0.42);
   transform: translateY(-1px);
+}
+
+.save-workout-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+  transform: none;
 }
 
 .ready-plans-heading {
