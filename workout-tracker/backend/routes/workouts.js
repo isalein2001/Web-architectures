@@ -76,7 +76,7 @@ function createWorkoutsRouter() {
   });
 
   router.post('/', async (req, res) => {
-    const { name, description = '', image, icon_key: iconKey, exercises = [] } = req.body;
+    const { name, description = '', image, exercises = [] } = req.body;
 
     if (!name || typeof name !== 'string') {
       return res.status(400).json({ error: 'Workout name is required' });
@@ -100,8 +100,6 @@ function createWorkoutsRouter() {
         data: {
           name: name.trim(),
           description,
-          image: normalizePlanImage(image),
-          iconKey: normalizeIconKey(iconKey),
           userId: req.user.userId,
           exercises: {
             create: exercises.map((exercise) => ({
@@ -259,7 +257,7 @@ function createWorkoutsRouter() {
   });
 
   router.put('/:id', async (req, res) => {
-    const { name, description = '', image, icon_key: iconKey, exercises = [] } = req.body;
+    const { name, description = '', image, exercises = [] } = req.body;
 
     if (!name || typeof name !== 'string') {
       return res.status(400).json({ error: 'Workout name is required' });
@@ -292,8 +290,6 @@ function createWorkoutsRouter() {
           data: {
             name: name.trim(),
             description,
-            image: normalizePlanImage(image),
-            iconKey: normalizeIconKey(iconKey),
             exercises: {
               create: exercises.map((exercise) => ({
                 exerciseName: exercise.exercise_name.trim(),
