@@ -36,7 +36,12 @@ function createSessionsRouter() {
       const sessions = await prisma.workoutSession.findMany({
         where: { userId: req.user.userId },
         include: {
-          plan: true,
+          plan: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           logs: {
             orderBy: { id: 'asc' },
           },

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
-import { getUserStorageKey } from '../userStorage';
+import { getUserStorageKey, upsertStoredWorkoutSession } from '../userStorage';
 import './WorkoutLogger.css';
 
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
@@ -404,9 +404,30 @@ export default function WorkoutLogger({ currentUser }) {
         })),
     };
 
+    const persistedSession = {
+      id: `local-${Date.now()}`,
+      date: sessionDate,
+      plan_id: activePlan.planId ?? activePlan.id,
+      plan_name: activePlan.title,
+      notes,
+      calories_burned: caloriesToSave,
+      duration_seconds: durationSeconds,
+      intensity,
+      logs: logs
+        .filter((log) => log.completed || log.reps || log.weight)
+        .map((log) => ({
+          exercise_name: log.exercise_name,
+          set_number: log.set_number,
+          reps: Number(log.reps) || 0,
+          weight: Number(log.weight) || 0,
+          rest_seconds: Number(log.rest_seconds) || 0,
+        })),
+    };
+
     setSaveState('saving');
     try {
       await api.logSession(sessionData);
+      upsertStoredWorkoutSession(currentUser, persistedSession);
       const dateKey = getLocalDateKey(sessionDate);
       const currentSchedule = loadJson(workoutScheduleStorageKey, {});
       window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({
@@ -425,7 +446,23 @@ export default function WorkoutLogger({ currentUser }) {
       window.setTimeout(() => navigate('/analytics'), 700);
     } catch (error) {
       console.error(error);
-      setSaveState('error');
+      upsertStoredWorkoutSession(currentUser, { ...persistedSession, source: 'local-fallback' });
+      const dateKey = getLocalDateKey(sessionDate);
+      const currentSchedule = loadJson(workoutScheduleStorageKey, {});
+      window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({
+        ...currentSchedule,
+        [dateKey]: {
+          workoutId: activePlan.id,
+          title: activePlan.title,
+          image: activePlan.image,
+          badge: activePlan.badge,
+          iconKey: activePlan.iconKey,
+          exercises: activePlan.exercises.map((exercise) => `${exercise.name} (${exercise.sets}x${exercise.repsBySet.join('/')})`),
+        },
+      }));
+      window.dispatchEvent(new CustomEvent('workout-session-saved', { detail: { date: sessionDate } }));
+      setSaveState('saved');
+      window.setTimeout(() => navigate('/analytics'), 700);
     }
   };
 

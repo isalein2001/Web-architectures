@@ -33,7 +33,7 @@ import {
 import { de } from 'date-fns/locale';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
-import { getUserDisplayName, getUserStorageKey } from '../userStorage';
+import { getUserDisplayName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import './Analytics.css';
 
 const MotionG = motion.g;
@@ -980,7 +980,7 @@ export default function Analytics({ currentUser }) {
   const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
   const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
-  const [sessions, setSessions] = useState([]);
+  const [sessions, setSessions] = useState(() => loadStoredWorkoutSessions(currentUser));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
@@ -1088,13 +1088,38 @@ export default function Analytics({ currentUser }) {
     }
   };
 
+  const mergeSessionsWithStorage = (backendSessions = [], storedSessions = []) => {
+    const mergedSessions = [...storedSessions, ...backendSessions].filter(Boolean);
+    const seenKeys = new Set();
+
+    return mergedSessions.filter((session) => {
+      const sessionKey = session.id ? `id:${session.id}` : `date:${getSessionDateKey(session.date)}:${session.plan_name || ''}`;
+      if (seenKeys.has(sessionKey)) return false;
+      seenKeys.add(sessionKey);
+      return true;
+    }).sort((left, right) => new Date(right.date) - new Date(left.date));
+  };
+
   const refreshSessionData = async () => {
-    const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
-    const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
-    setStats(nextStats);
-    setSessions(normalizedSessions);
-    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, normalizedSessions));
-    return normalizedSessions;
+    const storedSessions = loadStoredWorkoutSessions(currentUser);
+
+    try {
+      const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
+      const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
+      const mergedSessions = mergeSessionsWithStorage(normalizedSessions, storedSessions);
+      saveStoredWorkoutSessions(currentUser, mergedSessions);
+      setStats(nextStats);
+      setSessions(mergedSessions);
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, mergedSessions));
+      return mergedSessions;
+    } catch (error) {
+      const fallbackSessions = mergeSessionsWithStorage([], storedSessions);
+      saveStoredWorkoutSessions(currentUser, fallbackSessions);
+      setStats({ totalSessions: fallbackSessions.length, sessionDates: fallbackSessions.map((session) => session.date) });
+      setSessions(fallbackSessions);
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, fallbackSessions));
+      return fallbackSessions;
+    }
   };
 
   useEffect(() => {

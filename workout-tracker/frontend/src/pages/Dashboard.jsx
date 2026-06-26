@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
-import { getUserDisplayName, getUserFirstName, getUserStorageKey } from '../userStorage';
+import { getUserDisplayName, getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -256,7 +256,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const dailyTrainingMinutesGoalStorageKey = getUserStorageKey(DAILY_TRAINING_MINUTES_GOAL_STORAGE_KEY, currentUser);
   const firstName = getUserFirstName(currentUser);
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
-  const [sessions, setSessions] = useState([]);
+  const [sessions, setSessions] = useState(() => loadStoredWorkoutSessions(currentUser));
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
   const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
@@ -325,13 +325,38 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   const completedWorkoutDates = new Set((displayStats.sessionDates || []).map(getSessionDateKey));
 
+  const mergeSessionsWithStorage = (backendSessions = [], storedSessions = []) => {
+    const mergedSessions = [...storedSessions, ...backendSessions].filter(Boolean);
+    const seenKeys = new Set();
+
+    return mergedSessions.filter((session) => {
+      const sessionKey = session.id ? `id:${session.id}` : `date:${getSessionDateKey(session.date)}:${session.plan_name || ''}`;
+      if (seenKeys.has(sessionKey)) return false;
+      seenKeys.add(sessionKey);
+      return true;
+    }).sort((left, right) => new Date(right.date) - new Date(left.date));
+  };
+
   const refreshSessionData = async () => {
-    const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
-    const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
-    setStats(nextStats);
-    setSessions(normalizedSessions);
-    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, normalizedSessions));
-    return normalizedSessions;
+    const storedSessions = loadStoredWorkoutSessions(currentUser);
+
+    try {
+      const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
+      const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
+      const mergedSessions = mergeSessionsWithStorage(normalizedSessions, storedSessions);
+      saveStoredWorkoutSessions(currentUser, mergedSessions);
+      setStats(nextStats);
+      setSessions(mergedSessions);
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, mergedSessions));
+      return mergedSessions;
+    } catch (error) {
+      const fallbackSessions = mergeSessionsWithStorage([], storedSessions);
+      saveStoredWorkoutSessions(currentUser, fallbackSessions);
+      setStats({ totalSessions: fallbackSessions.length, sessionDates: fallbackSessions.map((session) => session.date) });
+      setSessions(fallbackSessions);
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, fallbackSessions));
+      return fallbackSessions;
+    }
   };
 
   useEffect(() => {
