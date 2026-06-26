@@ -108,7 +108,7 @@ const mapBackendPlanToSavedPlan = (plan, localPlan = null) => {
     backendPlanId: plan.id,
     title: plan.name,
     badge: 'SAVED PLAN',
-    image: plan.image || localPlan?.image || '/hero-bg.jpg',
+    image: localPlan?.image || plan.image || '/hero-bg.jpg',
     iconKey: plan.icon_key || localPlan?.iconKey || 'dumbbell',
     builderExercises: (plan.exercises || []).map((exercise) => ({
       id: exercise.id || Date.now() + Math.random(),
@@ -211,6 +211,10 @@ const preparePlanImageForSave = async (image) => {
   if (image.length <= MAX_COVER_DATA_URL_LENGTH) return image;
   return compressCoverImageDataUrl(image);
 };
+
+const getServerPlanImage = (image) => (
+  typeof image === 'string' && image.startsWith('/') ? image : null
+);
 
 export default function Workouts({ currentUser }) {
   const { t } = useLanguage();
@@ -464,7 +468,7 @@ export default function Workouts({ currentUser }) {
     const planPayload = {
       name: workoutName.trim().toUpperCase(),
       description: t('CUSTOM PLAN'),
-      image: planImage,
+      image: getServerPlanImage(planImage),
       icon_key: selectedIconKey,
       exercises: enteredExercises.map((exercise) => ({
         exercise_name: exercise.name.trim(),
