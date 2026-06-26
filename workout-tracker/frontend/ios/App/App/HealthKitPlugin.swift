@@ -89,11 +89,18 @@ public class HealthKitPlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
 
+            let dateFormatter = DateFormatter()
+            dateFormatter.calendar = Calendar.current
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone.current
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+
             call.resolve([
                 "steps": Int(steps.rounded()),
                 "activeEnergyKcal": Int(activeEnergyKcal.rounded()),
                 "exerciseMinutes": Int(exerciseMinutes.rounded()),
                 "workoutCount": workoutCount,
+                "dateKey": dateFormatter.string(from: Date()),
                 "lastSyncAt": ISO8601DateFormatter().string(from: Date())
             ])
         }

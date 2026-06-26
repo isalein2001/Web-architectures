@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserDisplayName, getUserFirstName, getUserStorageKey } from '../userStorage';
-import { isHealthKitRuntime, syncAppleHealthActivity } from '../healthKit';
+import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
@@ -107,6 +107,11 @@ const loadJsonFromStorage = (key, fallback) => {
   } catch {
     return fallback;
   }
+};
+
+const loadTodayHealthMetricsFromStorage = (key) => {
+  const savedMetrics = loadJsonFromStorage(key, null);
+  return isHealthMetricsFromToday(savedMetrics) ? savedMetrics : null;
 };
 
 function AnimatedNumber({ value, useComma }) {
@@ -226,7 +231,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [todayActivity, setTodayActivity] = useState(dailyActivity || null);
-  const [appleHealthMetrics, setAppleHealthMetrics] = useState(() => loadJsonFromStorage(appleHealthMetricsStorageKey, null));
+  const [appleHealthMetrics, setAppleHealthMetrics] = useState(() => loadTodayHealthMetricsFromStorage(appleHealthMetricsStorageKey));
   const [hydrationGoal, setHydrationGoal] = useState(() => {
     const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
     return savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5);
@@ -311,7 +316,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   }, [dailyActivity]);
 
   useEffect(() => {
-    const savedMetrics = loadJsonFromStorage(appleHealthMetricsStorageKey, null);
+    const savedMetrics = loadTodayHealthMetricsFromStorage(appleHealthMetricsStorageKey);
     setAppleHealthMetrics(savedMetrics);
     if (savedMetrics) {
       window.localStorage.setItem(appleWatchConnectedStorageKey, 'true');
@@ -324,6 +329,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     };
     const handleAppleHealthSync = (event) => {
       if (!event.detail) return;
+      if (!isHealthMetricsFromToday(event.detail)) return;
       setAppleHealthMetrics(event.detail);
       window.localStorage.setItem(appleWatchConnectedStorageKey, 'true');
     };
@@ -354,7 +360,17 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
     syncConnectedAppleHealth();
     window.addEventListener('focus', syncConnectedAppleHealth);
-    return () => window.removeEventListener('focus', syncConnectedAppleHealth);
+    const midnightGuard = window.setInterval(() => {
+      if (!isHealthMetricsFromToday(loadJsonFromStorage(appleHealthMetricsStorageKey, null))) {
+        setAppleHealthMetrics(null);
+        api.getTodayActivity(getTodayHealthDateKey()).then(setTodayActivity).catch(console.error);
+        syncConnectedAppleHealth();
+      }
+    }, 60000);
+    return () => {
+      window.removeEventListener('focus', syncConnectedAppleHealth);
+      window.clearInterval(midnightGuard);
+    };
   }, [appleHealthMetricsStorageKey, appleWatchConnectedStorageKey, currentUser?.id]);
 
   useEffect(() => {

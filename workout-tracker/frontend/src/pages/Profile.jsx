@@ -19,7 +19,7 @@ import {
 import { LanguageContext } from '../context/LanguageContext';
 import { getUserDisplayName, getUserInitials, getUserStorageKey } from '../userStorage';
 import { api } from '../api';
-import { syncAppleHealthActivity } from '../healthKit';
+import { isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
 import './Profile.css';
 
 export default function Profile({ currentUser, onLogout, onUserUpdate }) {
@@ -53,7 +53,8 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     const savedMetrics = window.localStorage.getItem(storageKey('appleHealthMetrics'));
     if (!savedMetrics) return null;
     try {
-      return JSON.parse(savedMetrics);
+      const parsedMetrics = JSON.parse(savedMetrics);
+      return isHealthMetricsFromToday(parsedMetrics) ? parsedMetrics : null;
     } catch {
       return null;
     }
@@ -72,9 +73,12 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     const nextDisplayName = getUserDisplayName(currentUser);
     const savedMetrics = window.localStorage.getItem(storageKey('appleHealthMetrics'));
     let nextWatchMetrics = null;
+    let hasStoredWatchConnection = window.localStorage.getItem(storageKey('appleWatchConnected')) === 'true';
     if (savedMetrics) {
       try {
-        nextWatchMetrics = JSON.parse(savedMetrics);
+        const parsedMetrics = JSON.parse(savedMetrics);
+        nextWatchMetrics = isHealthMetricsFromToday(parsedMetrics) ? parsedMetrics : null;
+        hasStoredWatchConnection = hasStoredWatchConnection || Boolean(parsedMetrics);
       } catch {
         nextWatchMetrics = null;
       }
@@ -93,7 +97,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setHeight(window.localStorage.getItem(storageKey('profileHeightCm')) || currentUser?.heightCm || '185');
     setWeight(window.localStorage.getItem(storageKey('profileWeightKg')) || currentUser?.weightKg || '85');
     setWatchMetrics(nextWatchMetrics);
-    setIsWatchConnected(window.localStorage.getItem(storageKey('appleWatchConnected')) === 'true' || Boolean(nextWatchMetrics));
+    setIsWatchConnected(hasStoredWatchConnection || Boolean(nextWatchMetrics));
   }, [currentUser]);
 
   useEffect(() => {

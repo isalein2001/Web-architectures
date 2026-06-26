@@ -93,7 +93,7 @@ const normalizeSetReps = (exercise) => {
   return Array.from({ length: setCount }, (_, index) => currentSetReps[index] ?? fallbackReps);
 };
 
-const mapBackendPlanToSavedPlan = (plan) => {
+const mapBackendPlanToSavedPlan = (plan, localPlan = null) => {
   const formattedExercises = (plan.exercises || []).map((exercise) =>
     `${exercise.exercise_name} (${exercise.target_sets || 1}x${exercise.target_reps || ''})`
   );
@@ -103,8 +103,8 @@ const mapBackendPlanToSavedPlan = (plan) => {
     backendPlanId: plan.id,
     title: plan.name,
     badge: 'SAVED PLAN',
-    image: '/hero-bg.jpg',
-    iconKey: 'dumbbell',
+    image: plan.image || localPlan?.image || '/hero-bg.jpg',
+    iconKey: plan.icon_key || localPlan?.iconKey || 'dumbbell',
     builderExercises: (plan.exercises || []).map((exercise) => ({
       id: exercise.id || Date.now() + Math.random(),
       name: exercise.exercise_name,
@@ -158,8 +158,11 @@ export default function Workouts({ currentUser }) {
   const refreshBackendPlans = () => {
     return api.getPlans()
       .then((plans) => {
-        const backendPlans = plans.map(mapBackendPlanToSavedPlan);
         setSavedPlans((currentPlans) => {
+          const backendPlans = plans.map((plan) => {
+            const localPlan = currentPlans.find((currentPlan) => currentPlan.backendPlanId === plan.id);
+            return mapBackendPlanToSavedPlan(plan, localPlan);
+          });
           const localOnlyPlans = currentPlans.filter((plan) =>
             !plan.backendPlanId || !backendPlans.some((backendPlan) => backendPlan.backendPlanId === plan.backendPlanId)
           );
@@ -304,7 +307,13 @@ export default function Workouts({ currentUser }) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setCoverImage(URL.createObjectURL(file));
+    if (!file.type.startsWith('image/')) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') setCoverImage(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleWorkoutNameChange = (event) => {
@@ -349,6 +358,8 @@ export default function Workouts({ currentUser }) {
     const planPayload = {
       name: workoutName.trim().toUpperCase(),
       description: t('CUSTOM PLAN'),
+      image: coverImage || '/hero-bg.jpg',
+      icon_key: selectedIconKey,
       exercises: enteredExercises.map((exercise) => ({
         exercise_name: exercise.name.trim(),
         target_sets: Number.parseInt(exercise.sets, 10) || 1,

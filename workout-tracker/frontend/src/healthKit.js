@@ -6,11 +6,24 @@ const NativeHealthKit = registerPlugin('HealthKit');
 
 export const isHealthKitRuntime = () => Capacitor.getPlatform() === 'ios';
 
+export const getTodayHealthDateKey = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const isHealthMetricsFromToday = (metrics) => (
+  Boolean(metrics) && metrics.dateKey === getTodayHealthDateKey()
+);
+
 const normalizeHealthMetrics = (metrics = {}) => ({
   steps: Number(metrics.steps) || 0,
   activeEnergyKcal: Number(metrics.activeEnergyKcal) || 0,
   exerciseMinutes: Number(metrics.exerciseMinutes) || 0,
   workoutCount: Number(metrics.workoutCount) || 0,
+  dateKey: metrics.dateKey || getTodayHealthDateKey(),
   lastSyncAt: metrics.lastSyncAt || new Date().toISOString(),
 });
 
@@ -33,6 +46,7 @@ export const syncAppleHealthActivity = async (currentUser) => {
   let activity = null;
   try {
     activity = await api.updateTodayActivity({
+      date: metrics.dateKey,
       steps: metrics.steps,
       active_energy_kcal: metrics.activeEnergyKcal,
       exercise_minutes: metrics.exerciseMinutes,
