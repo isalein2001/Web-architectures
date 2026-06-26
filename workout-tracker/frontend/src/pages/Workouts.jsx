@@ -101,7 +101,7 @@ const mapBackendPlanToSavedPlan = (plan, localPlan = null) => {
   );
 
   return {
-    id: plan.id,
+    id: localPlan?.id ?? plan.id,
     backendPlanId: plan.id,
     title: plan.name,
     badge: 'SAVED PLAN',
@@ -141,6 +141,10 @@ const isPersistablePlanImage = (image) => (
 
 const getPersistablePlanImage = (image) => (
   isPersistablePlanImage(image) ? image : '/hero-bg.jpg'
+);
+
+const isWorkoutNotFoundError = (error) => (
+  error?.message === 'Workout not found'
 );
 
 const readImageFileAsDataUrl = (file) => new Promise((resolve, reject) => {
@@ -428,19 +432,30 @@ export default function Workouts({ currentUser }) {
     };
 
     let persistedPlan = null;
+    const editingPlan = savedPlans.find((plan) => plan.id === editingPlanId);
+    const currentBackendId = editingPlan?.backendPlanId;
+
     try {
-      const currentBackendId = savedPlans.find((plan) => plan.id === editingPlanId)?.backendPlanId;
       persistedPlan = currentBackendId
         ? await api.updatePlan(currentBackendId, planPayload)
         : await api.createPlan(planPayload);
     } catch (error) {
-      setWorkoutSaveStatus(t(error.message || 'Could not save workout. Please try again.'));
-      return;
+      if (currentBackendId && isWorkoutNotFoundError(error)) {
+        try {
+          persistedPlan = await api.createPlan(planPayload);
+        } catch (createError) {
+          setWorkoutSaveStatus(t(createError.message || 'Could not save workout. Please try again.'));
+          return;
+        }
+      } else {
+        setWorkoutSaveStatus(t(error.message || 'Could not save workout. Please try again.'));
+        return;
+      }
     }
 
     const savedPlan = {
       id: editingPlanId || persistedPlan?.id || `custom-${Date.now()}`,
-      backendPlanId: persistedPlan?.id || savedPlans.find((plan) => plan.id === editingPlanId)?.backendPlanId || null,
+      backendPlanId: persistedPlan?.id || editingPlan?.backendPlanId || null,
       title: workoutName.trim().toUpperCase(),
       badge: t('CUSTOM PLAN'),
       image: getPersistablePlanImage(coverImage),
