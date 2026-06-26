@@ -283,6 +283,26 @@ const loadJsonFromStorage = (key, fallback) => {
   }
 };
 
+const loadWorkoutScheduleFromStorage = (userScheduleKey) => {
+  const legacySchedule = loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {});
+  const userSchedule = userScheduleKey === WORKOUT_SCHEDULE_STORAGE_KEY
+    ? {}
+    : loadJsonFromStorage(userScheduleKey, {});
+  return { ...legacySchedule, ...userSchedule };
+};
+
+const mergeScheduleWithSessions = (schedule = {}, sessionList = []) => {
+  const nextSchedule = { ...schedule };
+
+  sessionList.forEach((session) => {
+    const dateKey = getSessionDateKey(session.date);
+    if (!dateKey || nextSchedule[dateKey]) return;
+    nextSchedule[dateKey] = buildScheduleEntryFromSession(session);
+  });
+
+  return nextSchedule;
+};
+
 const getEstimatedOneRepMax = (log) => {
   const weight = Number(log.weight);
   const reps = Number(log.reps);
@@ -958,7 +978,7 @@ export default function Analytics({ currentUser }) {
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [activeRange, setActiveRange] = useState('1M');
   const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
-  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(workoutScheduleStorageKey, {}));
+  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [sessions, setSessions] = useState([]);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
@@ -1070,8 +1090,11 @@ export default function Analytics({ currentUser }) {
 
   const refreshSessionData = async () => {
     const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
+    const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
     setStats(nextStats);
-    setSessions(Array.isArray(nextSessions) ? nextSessions : []);
+    setSessions(normalizedSessions);
+    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, normalizedSessions));
+    return normalizedSessions;
   };
 
   useEffect(() => {
@@ -1080,30 +1103,24 @@ export default function Analytics({ currentUser }) {
 
   useEffect(() => {
     if (!sessions.length) return;
-    setWorkoutSchedule((currentSchedule) => {
-      const nextSchedule = { ...currentSchedule };
-      let changed = false;
-
-      sessions.forEach((session) => {
-        const dateKey = getSessionDateKey(session.date);
-        if (!dateKey || nextSchedule[dateKey]) return;
-        nextSchedule[dateKey] = buildScheduleEntryFromSession(session);
-        changed = true;
-      });
-
-      return changed ? nextSchedule : currentSchedule;
-    });
+    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, sessions));
   }, [sessions]);
 
   useEffect(() => {
     setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
-    setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
-  }, [customPlansStorageKey, workoutScheduleStorageKey]);
+    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
+      ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
+      ...currentSchedule,
+    }, sessions));
+  }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
 
   useEffect(() => {
     const refreshWorkoutPlannerData = () => {
       setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
-      setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
+        ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
+        ...currentSchedule,
+      }, sessions));
       refreshSessionData().catch(console.error);
     };
 
@@ -1115,7 +1132,7 @@ export default function Analytics({ currentUser }) {
       window.removeEventListener('focus', refreshWorkoutPlannerData);
       window.removeEventListener('storage', refreshWorkoutPlannerData);
     };
-  }, [customPlansStorageKey, workoutScheduleStorageKey]);
+  }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
 
   const openWorkoutPlanner = (date) => {
     const dateKey = format(date, 'yyyy-MM-dd');

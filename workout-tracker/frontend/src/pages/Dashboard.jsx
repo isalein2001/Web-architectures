@@ -127,6 +127,26 @@ const loadJsonFromStorage = (key, fallback) => {
   }
 };
 
+const loadWorkoutScheduleFromStorage = (userScheduleKey) => {
+  const legacySchedule = loadJsonFromStorage(WORKOUT_SCHEDULE_STORAGE_KEY, {});
+  const userSchedule = userScheduleKey === WORKOUT_SCHEDULE_STORAGE_KEY
+    ? {}
+    : loadJsonFromStorage(userScheduleKey, {});
+  return { ...legacySchedule, ...userSchedule };
+};
+
+const mergeScheduleWithSessions = (schedule = {}, sessionList = []) => {
+  const nextSchedule = { ...schedule };
+
+  sessionList.forEach((session) => {
+    const dateKey = getSessionDateKey(session.date);
+    if (!dateKey || nextSchedule[dateKey]) return;
+    nextSchedule[dateKey] = buildScheduleEntryFromSession(session);
+  });
+
+  return nextSchedule;
+};
+
 const loadTodayHealthMetricsFromStorage = (key) => {
   const savedMetrics = loadJsonFromStorage(key, null);
   return isHealthMetricsFromToday(savedMetrics) ? savedMetrics : null;
@@ -240,7 +260,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
   const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
-  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadJsonFromStorage(workoutScheduleStorageKey, {}));
+  const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
@@ -307,8 +327,11 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   const refreshSessionData = async () => {
     const [nextStats, nextSessions] = await Promise.all([api.getStats(), api.getSessions()]);
+    const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
     setStats(nextStats);
-    setSessions(Array.isArray(nextSessions) ? nextSessions : []);
+    setSessions(normalizedSessions);
+    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, normalizedSessions));
+    return normalizedSessions;
   };
 
   useEffect(() => {
@@ -412,24 +435,15 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   useEffect(() => {
     if (!sessions.length) return;
-    setWorkoutSchedule((currentSchedule) => {
-      const nextSchedule = { ...currentSchedule };
-      let changed = false;
-
-      sessions.forEach((session) => {
-        const dateKey = getSessionDateKey(session.date);
-        if (!dateKey || nextSchedule[dateKey]) return;
-        nextSchedule[dateKey] = buildScheduleEntryFromSession(session);
-        changed = true;
-      });
-
-      return changed ? nextSchedule : currentSchedule;
-    });
+    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, sessions));
   }, [sessions]);
 
   useEffect(() => {
     setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
-    setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
+    setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
+      ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
+      ...currentSchedule,
+    }, sessions));
     const savedGoal = window.localStorage.getItem(hydrationGoalStorageKey);
     setHydrationGoal(savedGoal ? Number(savedGoal) : (currentUser?.hydrationGoalLiters || 3.5));
     const nextDailyGoals = {
@@ -447,12 +461,16 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     dailyCalorieGoalStorageKey,
     dailyTrainingMinutesGoalStorageKey,
     currentUser?.hydrationGoalLiters,
+    sessions,
   ]);
 
   useEffect(() => {
     const refreshWorkoutPlannerData = () => {
       setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
-      setWorkoutSchedule(loadJsonFromStorage(workoutScheduleStorageKey, {}));
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
+        ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
+        ...currentSchedule,
+      }, sessions));
     };
 
     window.addEventListener('focus', refreshWorkoutPlannerData);
@@ -462,7 +480,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       window.removeEventListener('focus', refreshWorkoutPlannerData);
       window.removeEventListener('storage', refreshWorkoutPlannerData);
     };
-  }, [customPlansStorageKey, workoutScheduleStorageKey]);
+  }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
 
   useEffect(() => {
     if (!isHydrationModalOpen) return undefined;
