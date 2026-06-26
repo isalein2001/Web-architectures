@@ -60,8 +60,11 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
 const initialExercises = [];
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
-const MAX_COVER_IMAGE_WIDTH = 1400;
-const COVER_IMAGE_QUALITY = 0.78;
+const MAX_COVER_IMAGE_WIDTH = 640;
+const MIN_COVER_IMAGE_WIDTH = 260;
+const COVER_IMAGE_QUALITY = 0.68;
+const MIN_COVER_IMAGE_QUALITY = 0.38;
+const MAX_COVER_DATA_URL_LENGTH = 52000;
 
 const loadSavedWorkoutPlans = (storageKey) => {
   try {
@@ -161,10 +164,8 @@ const loadImageElement = (src) => new Promise((resolve, reject) => {
   image.src = src;
 });
 
-const compressCoverImage = async (file) => {
-  const originalDataUrl = await readImageFileAsDataUrl(file);
-  const image = await loadImageElement(originalDataUrl);
-  const scale = Math.min(1, MAX_COVER_IMAGE_WIDTH / Math.max(image.width, image.height));
+const createCoverDataUrl = (image, maxSize, quality) => {
+  const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
   const width = Math.max(1, Math.round(image.width * scale));
   const height = Math.max(1, Math.round(image.height * scale));
   const canvas = document.createElement('canvas');
@@ -172,10 +173,43 @@ const compressCoverImage = async (file) => {
   canvas.height = height;
   const context = canvas.getContext('2d');
 
-  if (!context) return originalDataUrl;
+  if (!context) return null;
 
   context.drawImage(image, 0, 0, width, height);
-  return canvas.toDataURL('image/jpeg', COVER_IMAGE_QUALITY);
+  const webpDataUrl = canvas.toDataURL('image/webp', quality);
+  return webpDataUrl.startsWith('data:image/webp')
+    ? webpDataUrl
+    : canvas.toDataURL('image/jpeg', quality);
+};
+
+const compressCoverImageDataUrl = async (sourceDataUrl) => {
+  const image = await loadImageElement(sourceDataUrl);
+  let maxSize = MAX_COVER_IMAGE_WIDTH;
+  let quality = COVER_IMAGE_QUALITY;
+  let compressedDataUrl = createCoverDataUrl(image, maxSize, quality) || sourceDataUrl;
+
+  while (
+    compressedDataUrl.length > MAX_COVER_DATA_URL_LENGTH
+    && (maxSize > MIN_COVER_IMAGE_WIDTH || quality > MIN_COVER_IMAGE_QUALITY)
+  ) {
+    maxSize = Math.max(MIN_COVER_IMAGE_WIDTH, Math.round(maxSize * 0.82));
+    quality = Math.max(MIN_COVER_IMAGE_QUALITY, Number((quality - 0.08).toFixed(2)));
+    compressedDataUrl = createCoverDataUrl(image, maxSize, quality) || compressedDataUrl;
+  }
+
+  return compressedDataUrl;
+};
+
+const compressCoverImage = async (file) => {
+  const originalDataUrl = await readImageFileAsDataUrl(file);
+  return compressCoverImageDataUrl(originalDataUrl);
+};
+
+const preparePlanImageForSave = async (image) => {
+  if (!isPersistablePlanImage(image)) return '/hero-bg.jpg';
+  if (!image.startsWith('data:image/')) return image;
+  if (image.length <= MAX_COVER_DATA_URL_LENGTH) return image;
+  return compressCoverImageDataUrl(image);
 };
 
 export default function Workouts({ currentUser }) {
@@ -418,11 +452,19 @@ export default function Workouts({ currentUser }) {
       return;
     }
 
+    let planImage = '/hero-bg.jpg';
+    try {
+      planImage = await preparePlanImageForSave(coverImage);
+    } catch {
+      setWorkoutSaveStatus(t('Could not prepare image file.'));
+      return;
+    }
+
     const formattedExercises = enteredExercises.map(formatExerciseSummary);
     const planPayload = {
       name: workoutName.trim().toUpperCase(),
       description: t('CUSTOM PLAN'),
-      image: getPersistablePlanImage(coverImage),
+      image: planImage,
       icon_key: selectedIconKey,
       exercises: enteredExercises.map((exercise) => ({
         exercise_name: exercise.name.trim(),
@@ -458,7 +500,7 @@ export default function Workouts({ currentUser }) {
       backendPlanId: persistedPlan?.id || editingPlan?.backendPlanId || null,
       title: workoutName.trim().toUpperCase(),
       badge: t('CUSTOM PLAN'),
-      image: getPersistablePlanImage(coverImage),
+      image: planImage,
       iconKey: selectedIconKey,
       builderExercises: enteredExercises.map((exercise) => ({
         ...exercise,
