@@ -20,6 +20,7 @@ import "./index.css";
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "./context/LanguageContext";
+import { initSyncManager } from "./workoutSync";
 
 const HYDRATION_REMINDER_TIMES = [
   { hour: 8, minute: 30 },
@@ -310,6 +311,9 @@ function AppLayout() {
       .then((data) => setCurrentUser(data.user))
       .catch(() => setCurrentUser(null))
       .finally(() => setIsAuthLoading(false));
+    
+    // Initialize sync manager on app load
+    initSyncManager();
   }, []);
 
   useEffect(() => {

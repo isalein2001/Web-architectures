@@ -4,6 +4,7 @@ import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'l
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey, upsertStoredWorkoutSession } from '../userStorage';
+import { queueWorkoutSession, initSyncManager } from '../workoutSync';
 import './WorkoutLogger.css';
 
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
@@ -383,7 +384,7 @@ export default function WorkoutLogger({ currentUser }) {
   };
 
   const saveWorkoutSession = async () => {
-    if (!activePlan) return;
+    if (!activePlan || !currentUser?.id) return;
     const sessionDate = new Date().toISOString();
 
     const sessionData = {
@@ -425,8 +426,12 @@ export default function WorkoutLogger({ currentUser }) {
     };
 
     setSaveState('saving');
+    
     try {
+      // Try to sync immediately
       await api.logSession(sessionData);
+      
+      // If successful, save locally and mark as synced
       upsertStoredWorkoutSession(currentUser, persistedSession);
       const dateKey = getLocalDateKey(sessionDate);
       const currentSchedule = loadJson(workoutScheduleStorageKey, {});
@@ -441,12 +446,24 @@ export default function WorkoutLogger({ currentUser }) {
           exercises: activePlan.exercises.map((exercise) => `${exercise.name} (${exercise.sets}x${exercise.repsBySet.join('/')})`),
         },
       }));
-      window.dispatchEvent(new CustomEvent('workout-session-saved', { detail: { date: sessionDate } }));
+      
+      window.dispatchEvent(new CustomEvent('workout-session-saved', { detail: { date: sessionDate, synced: true } }));
       setSaveState('saved');
       window.setTimeout(() => navigate('/analytics'), 700);
     } catch (error) {
-      console.error(error);
-      upsertStoredWorkoutSession(currentUser, { ...persistedSession, source: 'local-fallback' });
+      // Backend save failed - queue it for retry with exponential backoff
+      console.warn('Backend save failed, queueing for retry:', error);
+      
+      const queueItem = queueWorkoutSession(sessionData, currentUser.id);
+      
+      // Save locally immediately
+      upsertStoredWorkoutSession(currentUser, { 
+        ...persistedSession, 
+        source: 'queued',
+        queueId: queueItem.id,
+        syncStatus: 'pending'
+      });
+      
       const dateKey = getLocalDateKey(sessionDate);
       const currentSchedule = loadJson(workoutScheduleStorageKey, {});
       window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({
@@ -460,7 +477,15 @@ export default function WorkoutLogger({ currentUser }) {
           exercises: activePlan.exercises.map((exercise) => `${exercise.name} (${exercise.sets}x${exercise.repsBySet.join('/')})`),
         },
       }));
-      window.dispatchEvent(new CustomEvent('workout-session-saved', { detail: { date: sessionDate } }));
+      
+      window.dispatchEvent(new CustomEvent('workout-session-saved', { 
+        detail: { 
+          date: sessionDate, 
+          synced: false, 
+          queued: true,
+          message: 'Workout saved locally. Will sync to server when online.'
+        } 
+      }));
       setSaveState('saved');
       window.setTimeout(() => navigate('/analytics'), 700);
     }
