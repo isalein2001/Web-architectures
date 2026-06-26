@@ -420,6 +420,7 @@ export default function WorkoutLogger({ currentUser }) {
           exercises: activePlan.exercises.map((exercise) => `${exercise.name} (${exercise.sets}x${exercise.repsBySet.join('/')})`),
         },
       }));
+      window.dispatchEvent(new CustomEvent('workout-session-saved', { detail: { date: sessionDate } }));
       setSaveState('saved');
       window.setTimeout(() => navigate('/analytics'), 700);
     } catch (error) {

@@ -140,7 +140,7 @@ const mergeScheduleWithSessions = (schedule = {}, sessionList = []) => {
 
   sessionList.forEach((session) => {
     const dateKey = getSessionDateKey(session.date);
-    if (!dateKey || nextSchedule[dateKey]) return;
+    if (!dateKey) return;
     nextSchedule[dateKey] = buildScheduleEntryFromSession(session);
   });
 
@@ -465,20 +465,23 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   ]);
 
   useEffect(() => {
-    const refreshWorkoutPlannerData = () => {
+    const refreshWorkoutPlannerData = async () => {
+      const nextSessions = await refreshSessionData().catch(() => sessions);
       setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
       setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
         ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
         ...currentSchedule,
-      }, sessions));
+      }, nextSessions || sessions));
     };
 
     window.addEventListener('focus', refreshWorkoutPlannerData);
     window.addEventListener('storage', refreshWorkoutPlannerData);
+    window.addEventListener('workout-session-saved', refreshWorkoutPlannerData);
 
     return () => {
       window.removeEventListener('focus', refreshWorkoutPlannerData);
       window.removeEventListener('storage', refreshWorkoutPlannerData);
+      window.removeEventListener('workout-session-saved', refreshWorkoutPlannerData);
     };
   }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
 

@@ -1127,10 +1127,12 @@ export default function Analytics({ currentUser }) {
     refreshWorkoutPlannerData();
     window.addEventListener('focus', refreshWorkoutPlannerData);
     window.addEventListener('storage', refreshWorkoutPlannerData);
+    window.addEventListener('workout-session-saved', refreshWorkoutPlannerData);
 
     return () => {
       window.removeEventListener('focus', refreshWorkoutPlannerData);
       window.removeEventListener('storage', refreshWorkoutPlannerData);
+      window.removeEventListener('workout-session-saved', refreshWorkoutPlannerData);
     };
   }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
 
