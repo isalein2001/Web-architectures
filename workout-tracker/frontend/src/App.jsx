@@ -23,11 +23,7 @@ import { useLanguage } from "./context/LanguageContext";
 import { initSyncManager } from "./workoutSync";
 import { autoSyncAppleHealthActivity, getTodayHealthDateKey, hasAppleHealthConnection } from "./healthKit";
 
-const HYDRATION_REMINDER_TIMES = [
-  { hour: 8, minute: 30 },
-  { hour: 13, minute: 0 },
-  { hour: 19, minute: 0 },
-];
+const HYDRATION_REMINDER_INTERVAL_MS = 2 * 60 * 60 * 1000;
 const WORKOUT_REMINDER_TIME = { hour: 18, minute: 0 };
 const waterQuickAdds = [250, 500, 750, 1000];
 const stepQuickAdds = [500, 1000, 2500, 5000];
@@ -497,19 +493,24 @@ function AppLayout() {
   useEffect(() => {
     if (!hydrationAlertsEnabled) return undefined;
 
-    const reminderTimeouts = HYDRATION_REMINDER_TIMES.map((reminderTime) =>
-      window.setTimeout(() => {
+    let hydrationReminderTimeout;
+
+    const scheduleHydrationReminder = () => {
+      hydrationReminderTimeout = window.setTimeout(() => {
         setActiveReminder({
           id: `hydration-${Date.now()}`,
           type: 'hydration',
           title: t('HYDRATION REMINDER'),
           message: t('Time to drink water. Keep your daily target on track.'),
-          meta: t('Morning, midday and evening reminder'),
+          meta: t('Every 2 hours'),
         });
-      }, getNextReminderDelay(reminderTime))
-    );
+        scheduleHydrationReminder();
+      }, HYDRATION_REMINDER_INTERVAL_MS);
+    };
 
-    return () => reminderTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    scheduleHydrationReminder();
+
+    return () => window.clearTimeout(hydrationReminderTimeout);
   }, [hydrationAlertsEnabled, t]);
 
   useEffect(() => {
