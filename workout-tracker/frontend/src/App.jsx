@@ -21,6 +21,7 @@ import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "./context/LanguageContext";
 import { initSyncManager } from "./workoutSync";
+import { autoSyncAppleHealthActivity, getTodayHealthDateKey, hasAppleHealthConnection } from "./healthKit";
 
 const HYDRATION_REMINDER_TIMES = [
   { hour: 8, minute: 30 },
@@ -30,6 +31,7 @@ const HYDRATION_REMINDER_TIMES = [
 const WORKOUT_REMINDER_TIME = { hour: 18, minute: 0 };
 const waterQuickAdds = [250, 500, 750, 1000];
 const stepQuickAdds = [500, 1000, 2500, 5000];
+const APPLE_HEALTH_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 const urlBase64ToUint8Array = (base64String) => {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -48,6 +50,14 @@ const getNextReminderDelay = ({ hour, minute }) => {
   }
 
   return nextReminder.getTime() - now.getTime();
+};
+
+const getNextLocalMidnightDelay = () => {
+  const now = new Date();
+  const nextMidnight = new Date(now);
+  nextMidnight.setDate(nextMidnight.getDate() + 1);
+  nextMidnight.setHours(0, 0, 2, 0);
+  return nextMidnight.getTime() - now.getTime();
 };
 
 function AppLayout() {
@@ -83,6 +93,7 @@ function AppLayout() {
   const [searchPlans, setSearchPlans] = useState([]);
   const langRef = useRef(null);
   const alertsRef = useRef(null);
+  const activeHealthDateKeyRef = useRef(getTodayHealthDateKey());
   const pageTitleKey = location.pathname === '/dashboard'
     ? 'Dashboard'
     : location.pathname === '/workouts'
@@ -326,23 +337,66 @@ function AppLayout() {
   useEffect(() => {
     if (!currentUser?.id || !currentUser.emailVerified || !currentUser.onboardingCompleted) return undefined;
 
-    refreshDailyActivity().catch(console.error);
+    const syncAppleHealthIfConnected = async (reason) => {
+      if (!hasAppleHealthConnection(currentUser)) return;
+
+      try {
+        const result = await autoSyncAppleHealthActivity(currentUser, reason);
+        if (result?.activity) {
+          setDailyActivity(result.activity);
+        }
+      } catch (error) {
+        console.error('[APPLE HEALTH] Auto sync failed:', error);
+      }
+    };
+
+    const refreshToday = async (reason) => {
+      const currentDateKey = getTodayHealthDateKey();
+      if (activeHealthDateKeyRef.current !== currentDateKey) {
+        activeHealthDateKeyRef.current = currentDateKey;
+        setDailyActivity(null);
+      }
+
+      await refreshDailyActivity();
+      await syncAppleHealthIfConnected(reason);
+    };
+
+    refreshToday('app-start').catch(console.error);
     api.getPlans().then(setSearchPlans).catch(() => setSearchPlans([]));
 
     const handleFocus = () => {
-      refreshDailyActivity().catch(console.error);
+      refreshToday('app-focus').catch(console.error);
       api.getPlans().then(setSearchPlans).catch(() => null);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleFocus();
+      }
     };
     const handleOpenQuickLog = (event) => openQuickLog(event.detail?.tab || 'water');
     const handleDailyActivityChange = (event) => {
       if (event.detail) setDailyActivity(event.detail);
     };
+    const refreshInterval = window.setInterval(() => {
+      refreshToday('active-interval').catch(console.error);
+    }, APPLE_HEALTH_REFRESH_INTERVAL_MS);
+    let midnightTimer = null;
+    const scheduleMidnightRefresh = () => {
+      midnightTimer = window.setTimeout(() => {
+        refreshToday('midnight-rollover').catch(console.error).finally(scheduleMidnightRefresh);
+      }, getNextLocalMidnightDelay());
+    };
+    scheduleMidnightRefresh();
 
     window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('open-quick-log', handleOpenQuickLog);
     window.addEventListener('daily-activity-change', handleDailyActivityChange);
     return () => {
+      window.clearInterval(refreshInterval);
+      window.clearTimeout(midnightTimer);
       window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('open-quick-log', handleOpenQuickLog);
       window.removeEventListener('daily-activity-change', handleDailyActivityChange);
     };

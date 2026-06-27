@@ -27,6 +27,30 @@ const normalizeHealthMetrics = (metrics = {}) => ({
   lastSyncAt: metrics.lastSyncAt || new Date().toISOString(),
 });
 
+export const hasAppleHealthConnection = (currentUser) => {
+  if (!currentUser?.id) return false;
+
+  if (window.localStorage.getItem(getUserStorageKey('appleWatchConnected', currentUser)) === 'true') {
+    return true;
+  }
+
+  const savedMetrics = window.localStorage.getItem(getUserStorageKey('appleHealthMetrics', currentUser));
+  return Boolean(savedMetrics);
+};
+
+export const getStoredAppleHealthMetrics = (currentUser) => {
+  if (!currentUser?.id) return null;
+
+  const savedMetrics = window.localStorage.getItem(getUserStorageKey('appleHealthMetrics', currentUser));
+  if (!savedMetrics) return null;
+
+  try {
+    return normalizeHealthMetrics(JSON.parse(savedMetrics));
+  } catch {
+    return null;
+  }
+};
+
 const persistHealthConnection = (currentUser, metrics) => {
   window.localStorage.setItem(getUserStorageKey('appleWatchConnected', currentUser), 'true');
   window.localStorage.setItem(getUserStorageKey('appleHealthMetrics', currentUser), JSON.stringify(metrics));
@@ -59,6 +83,35 @@ export const syncAppleHealthActivity = async (currentUser) => {
   }
 
   return { metrics, activity };
+};
+
+let autoSyncPromise = null;
+
+export const autoSyncAppleHealthActivity = async (currentUser, reason = 'auto') => {
+  if (!isHealthKitRuntime() || !hasAppleHealthConnection(currentUser)) {
+    return null;
+  }
+
+  if (autoSyncPromise) return autoSyncPromise;
+
+  autoSyncPromise = syncAppleHealthActivity(currentUser)
+    .then((result) => {
+      window.dispatchEvent(new CustomEvent('apple-health-auto-sync', {
+        detail: { reason, ...result },
+      }));
+      return result;
+    })
+    .catch((error) => {
+      window.dispatchEvent(new CustomEvent('apple-health-auto-sync-failed', {
+        detail: { reason, message: error.message || 'APPLE HEALTH AUTO SYNC FAILED' },
+      }));
+      throw error;
+    })
+    .finally(() => {
+      autoSyncPromise = null;
+    });
+
+  return autoSyncPromise;
 };
 
 export const healthKit = {
