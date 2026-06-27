@@ -1030,10 +1030,12 @@
   .app-container {
     position: relative;
     width: 100%;
+    min-height: 100dvh;
     overflow-x: hidden;
     background:
       linear-gradient(180deg, rgba(197, 254, 0, 0.035), transparent 210px),
       var(--color-background);
+    overscroll-behavior-y: none;
   }
 
   .app-container::before {
@@ -1164,14 +1166,28 @@
 
   .topbar {
     left: 0;
+    top: 0;
     height: calc(62px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) 14px 0;
     border-bottom-color: rgba(255,255,255,0.07);
-    background:
-      linear-gradient(180deg, #0E0E0E 0%, #0E0E0E env(safe-area-inset-top), rgba(14, 14, 14, 0.98) 32%, rgba(14, 14, 14, 0.9) 100%);
+    background: #0E0E0E;
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
     backdrop-filter: blur(18px);
     z-index: 70;
+    transform: translateZ(0);
+    will-change: transform;
+    overscroll-behavior-y: none;
+  }
+
+  .topbar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(-1 * max(env(safe-area-inset-top), 24px));
+    height: max(env(safe-area-inset-top), 24px);
+    background: #0E0E0E;
+    pointer-events: none;
   }
 
   .mobile-topbar-brand {

@@ -1806,7 +1806,8 @@
     grid-template-columns: repeat(7, minmax(0, 1fr));
     justify-items: center;
     gap: 8px 0;
-    padding: 0 2px;
+    padding: 0 8px 0 2px;
+    transform: translateX(-2px);
   }
 
   .cal-day-name {
@@ -1815,8 +1816,8 @@
   }
 
   .cal-day {
-    width: clamp(32px, 10vw, 38px);
-    height: clamp(32px, 10vw, 38px);
+    width: clamp(30px, 9.2vw, 36px);
+    height: clamp(30px, 9.2vw, 36px);
     font-size: 0.78rem;
     border-radius: 10px;
     margin: 0 auto;
@@ -1951,11 +1952,12 @@
 
 @media (max-width: 380px) {
   .calendar-grid {
-    gap: 6px 2px;
+    gap: 6px 0;
+    padding-right: 6px;
   }
 
   .cal-day {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
 }

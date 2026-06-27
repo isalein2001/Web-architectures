@@ -2783,6 +2783,26 @@
     letter-spacing: 0.08em;
   }
 
+  .calendar-grid {
+    width: 100%;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    justify-items: center;
+    gap: 8px 0;
+    padding: 0 8px 0 2px;
+    transform: translateX(-2px);
+  }
+
+  .cal-day-name {
+    font-size: 0.58rem;
+    margin-bottom: 8px;
+  }
+
+  .cal-day {
+    width: clamp(30px, 9.2vw, 36px);
+    height: clamp(30px, 9.2vw, 36px);
+    font-size: 0.78rem;
+  }
+
   .metrics-row {
     display: grid;
     grid-template-columns: 1fr;
@@ -3094,5 +3114,17 @@
 
   .analytics-planner-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .calendar-grid {
+    gap: 6px 0;
+    padding-right: 6px;
+  }
+
+  .cal-day {
+    width: 30px;
+    height: 30px;
   }
 }
