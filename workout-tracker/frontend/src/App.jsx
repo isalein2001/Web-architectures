@@ -22,6 +22,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "./context/LanguageContext";
 import { initSyncManager } from "./workoutSync";
 import { autoSyncAppleHealthActivity, getTodayHealthDateKey, hasAppleHealthConnection } from "./healthKit";
+import { cancelNativeHydrationReminders, scheduleNativeHydrationReminders } from "./hydrationReminders";
 
 const HYDRATION_REMINDER_INTERVAL_MS = 2 * 60 * 60 * 1000;
 const WORKOUT_REMINDER_TIME = { hour: 18, minute: 0 };
@@ -511,6 +512,23 @@ function AppLayout() {
     scheduleHydrationReminder();
 
     return () => window.clearTimeout(hydrationReminderTimeout);
+  }, [hydrationAlertsEnabled, t]);
+
+  useEffect(() => {
+    if (hydrationAlertsEnabled) {
+      scheduleNativeHydrationReminders({
+        title: t('HYDRATION REMINDER'),
+        message: t('Time to drink water. Keep your daily target on track.'),
+      }).catch((error) => {
+        console.error('[NOTIFICATIONS] Could not schedule hydration reminders:', error);
+      });
+      return undefined;
+    }
+
+    cancelNativeHydrationReminders().catch((error) => {
+      console.error('[NOTIFICATIONS] Could not cancel hydration reminders:', error);
+    });
+    return undefined;
   }, [hydrationAlertsEnabled, t]);
 
   useEffect(() => {
