@@ -114,6 +114,7 @@ function createWorkoutsRouter() {
             })),
           },
         },
+        include: { exercises: true },
       });
 
       broadcastToUser(req.user.userId, 'plans:changed', {

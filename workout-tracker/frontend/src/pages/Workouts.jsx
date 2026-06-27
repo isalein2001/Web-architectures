@@ -104,11 +104,11 @@ const mapBackendPlanToSavedPlan = (plan, localPlan = null) => {
   );
 
   return {
-    id: localPlan?.id ?? plan.id,
+    id: plan.id,
     backendPlanId: plan.id,
     title: plan.name,
     badge: 'SAVED PLAN',
-    image: localPlan?.image || plan.image || '/hero-bg.jpg',
+    image: plan.image || localPlan?.image || '/hero-bg.jpg',
     iconKey: plan.icon_key || localPlan?.iconKey || 'dumbbell',
     builderExercises: (plan.exercises || []).map((exercise) => ({
       id: exercise.id || Date.now() + Math.random(),
@@ -215,6 +215,16 @@ const preparePlanImageForSave = async (image) => {
 const getServerPlanImage = (image) => (
   isPersistablePlanImage(image) ? image : null
 );
+
+const buildScheduleEntryFromSavedPlan = (plan) => ({
+  workoutId: plan.id,
+  backendPlanId: plan.backendPlanId,
+  title: plan.title,
+  image: plan.image,
+  badge: plan.badge,
+  iconKey: plan.iconKey,
+  exercises: [...(plan.exercises || []), ...(plan.extraExercises || [])],
+});
 
 export default function Workouts({ currentUser }) {
   const { t } = useLanguage();
@@ -529,6 +539,27 @@ export default function Workouts({ currentUser }) {
 
       return [savedPlan, ...currentPlans];
     });
+
+    if (editingPlanId) {
+      try {
+        const storedSchedule = window.localStorage.getItem(workoutScheduleStorageKey);
+        const currentSchedule = storedSchedule ? JSON.parse(storedSchedule) : {};
+        const nextSchedule = Object.fromEntries(Object.entries(currentSchedule).map(([dateKey, scheduledWorkout]) => {
+          const referencesEditedPlan = scheduledWorkout?.workoutId === editingPlanId
+            || scheduledWorkout?.workoutId === currentBackendId
+            || scheduledWorkout?.backendPlanId === currentBackendId;
+          return [
+            dateKey,
+            referencesEditedPlan ? buildScheduleEntryFromSavedPlan(savedPlan) : scheduledWorkout,
+          ];
+        }));
+        window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(nextSchedule));
+      } catch {
+        // The saved plan itself is still valid; the dashboard can rebuild planner data from the backend.
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent('workout-plans-changed'));
     resetBuilder();
   };
 
@@ -565,12 +596,17 @@ export default function Workouts({ currentUser }) {
       const storedSchedule = window.localStorage.getItem(workoutScheduleStorageKey);
       const currentSchedule = storedSchedule ? JSON.parse(storedSchedule) : {};
       const nextSchedule = Object.fromEntries(
-        Object.entries(currentSchedule).filter(([, scheduledWorkout]) => scheduledWorkout.workoutId !== editingPlanId)
+        Object.entries(currentSchedule).filter(([, scheduledWorkout]) =>
+          scheduledWorkout.workoutId !== editingPlanId
+          && scheduledWorkout.workoutId !== planToDelete?.backendPlanId
+          && scheduledWorkout.backendPlanId !== planToDelete?.backendPlanId
+        )
       );
       window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify(nextSchedule));
     } catch {
       window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({}));
     }
+    window.dispatchEvent(new CustomEvent('workout-plans-changed'));
     resetBuilder();
   };
 

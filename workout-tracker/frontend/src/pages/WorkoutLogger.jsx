@@ -156,6 +156,12 @@ const normalizePlan = (plan, source = 'custom') => {
   };
 };
 
+const mergeAvailablePlans = (localPlans = [], backendPlans = [], readyPlans = []) => {
+  const backendPlanIds = new Set(backendPlans.map((plan) => plan.planId).filter(Boolean));
+  const localOnlyPlans = localPlans.filter((plan) => !plan.planId || !backendPlanIds.has(plan.planId));
+  return [...backendPlans, ...localOnlyPlans, ...readyPlans].filter(Boolean);
+};
+
 const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
   Array.from({ length: exercise.sets || 1 }, (_, index) => ({
     id: `${exercise.name}-${index}-${Date.now()}-${Math.random()}`,
@@ -265,15 +271,19 @@ export default function WorkoutLogger({ currentUser }) {
       .then((backendPlans) => {
         const normalizedBackendPlans = backendPlans.map((plan) => normalizePlan({
           ...plan,
+          id: plan.id,
+          backendPlanId: plan.id,
           title: plan.name,
+          iconKey: plan.icon_key || 'dumbbell',
+          image: plan.image || '/hero-bg.jpg',
           exercises: plan.exercises?.map((exercise) => `${exercise.exercise_name} (${exercise.target_sets || 1}x${exercise.target_reps || ''})`) || [],
         }, 'backend'));
 
-        setAvailablePlans([
-          ...customPlans,
-          ...normalizedBackendPlans,
-          ...readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready')),
-        ].filter(Boolean));
+        setAvailablePlans(mergeAvailablePlans(
+          customPlans,
+          normalizedBackendPlans,
+          readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready'))
+        ));
       })
       .catch(() => {
         setAvailablePlans([

@@ -135,6 +135,34 @@ const loadWorkoutScheduleFromStorage = (userScheduleKey) => {
   return { ...legacySchedule, ...userSchedule };
 };
 
+const mapBackendPlanToCalendarWorkout = (plan) => {
+  const formattedExercises = (plan.exercises || []).map((exercise) =>
+    `${exercise.exercise_name} (${exercise.target_sets || 1}x${exercise.target_reps || ''})`
+  );
+
+  return {
+    id: plan.id,
+    backendPlanId: plan.id,
+    title: plan.name,
+    badge: 'SAVED PLAN',
+    image: plan.image || '/hero-bg.jpg',
+    iconKey: plan.icon_key || 'dumbbell',
+    exercises: formattedExercises.slice(0, 3),
+    extraExercises: formattedExercises.slice(3),
+    editable: true,
+  };
+};
+
+const mergeCalendarWorkouts = (localWorkouts = [], backendWorkouts = []) => {
+  const backendIds = new Set(backendWorkouts.map((workout) => workout.backendPlanId));
+  const localOnlyWorkouts = localWorkouts.filter((workout) =>
+    !workout.backendPlanId || !backendIds.has(workout.backendPlanId)
+  );
+  return [...backendWorkouts, ...localOnlyWorkouts];
+};
+
+const idsMatch = (left, right) => String(left ?? '') === String(right ?? '');
+
 const mergeScheduleWithSessions = (schedule = {}, sessionList = []) => {
   const nextSchedule = { ...schedule };
 
@@ -344,6 +372,22 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     sessionDates: sessionList.map((session) => session.date),
   });
 
+  const refreshCalendarWorkouts = async () => {
+    const localWorkouts = loadJsonFromStorage(customPlansStorageKey, []);
+
+    try {
+      const backendPlans = await api.getPlans();
+      const backendWorkouts = (Array.isArray(backendPlans) ? backendPlans : []).map(mapBackendPlanToCalendarWorkout);
+      const mergedWorkouts = mergeCalendarWorkouts(localWorkouts, backendWorkouts);
+      setCustomWorkouts(mergedWorkouts);
+      window.localStorage.setItem(customPlansStorageKey, JSON.stringify(mergedWorkouts));
+      return mergedWorkouts;
+    } catch {
+      setCustomWorkouts(localWorkouts);
+      return localWorkouts;
+    }
+  };
+
   const refreshSessionData = async () => {
     const storedSessions = loadStoredWorkoutSessions(currentUser);
 
@@ -372,6 +416,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   useEffect(() => {
     const refreshStats = () => {
       refreshSessionData().catch(console.error);
+      refreshCalendarWorkouts().catch(console.error);
       api.getTodayActivity().then(setTodayActivity).catch(console.error);
     };
 
@@ -474,7 +519,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   }, [sessions]);
 
   useEffect(() => {
-    setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
+    refreshCalendarWorkouts().catch(console.error);
     setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
       ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
       ...currentSchedule,
@@ -502,7 +547,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   useEffect(() => {
     const refreshWorkoutPlannerData = async () => {
       const nextSessions = await refreshSessionData().catch(() => sessions);
-      setCustomWorkouts(loadJsonFromStorage(customPlansStorageKey, []));
+      await refreshCalendarWorkouts().catch(() => null);
       setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions({
         ...loadWorkoutScheduleFromStorage(workoutScheduleStorageKey),
         ...currentSchedule,
@@ -512,11 +557,13 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     window.addEventListener('focus', refreshWorkoutPlannerData);
     window.addEventListener('storage', refreshWorkoutPlannerData);
     window.addEventListener('workout-session-saved', refreshWorkoutPlannerData);
+    window.addEventListener('workout-plans-changed', refreshWorkoutPlannerData);
 
     return () => {
       window.removeEventListener('focus', refreshWorkoutPlannerData);
       window.removeEventListener('storage', refreshWorkoutPlannerData);
       window.removeEventListener('workout-session-saved', refreshWorkoutPlannerData);
+      window.removeEventListener('workout-plans-changed', refreshWorkoutPlannerData);
     };
   }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
 
@@ -592,7 +639,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const saveScheduledWorkout = () => {
     if (!selectedCalendarDate || !selectedWorkoutId) return;
 
-    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts].find((workout) => workout.id === selectedWorkoutId);
+    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts].find((workout) => idsMatch(workout.id, selectedWorkoutId));
     if (!selectedWorkout) return;
 
     const dateKey = format(selectedCalendarDate, 'yyyy-MM-dd');
@@ -1259,7 +1306,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
                   return (
                     <button
-                      className={`workout-select-card ${selectedWorkoutId === workout.id ? 'active' : ''}`}
+                      className={`workout-select-card ${idsMatch(selectedWorkoutId, workout.id) ? 'active' : ''}`}
                       type="button"
                       key={workout.id}
                       onClick={() => setSelectedWorkoutId(workout.id)}
