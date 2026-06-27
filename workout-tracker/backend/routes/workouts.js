@@ -31,6 +31,7 @@ const isValidPlanImage = (image) => (
   || image === ''
   || (
     typeof image === 'string'
+    && image.length <= 15_000_000
     && (
       image.startsWith('/')
       || /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(image)

@@ -213,7 +213,7 @@ const preparePlanImageForSave = async (image) => {
 };
 
 const getServerPlanImage = (image) => (
-  typeof image === 'string' && image.startsWith('/') ? image : null
+  isPersistablePlanImage(image) ? image : null
 );
 
 export default function Workouts({ currentUser }) {
@@ -461,6 +461,11 @@ export default function Workouts({ currentUser }) {
       planImage = await preparePlanImageForSave(coverImage);
     } catch {
       setWorkoutSaveStatus(t('Could not prepare image file.'));
+      return;
+    }
+
+    if (planImage.startsWith('data:image/') && planImage.length > MAX_COVER_DATA_URL_LENGTH) {
+      setWorkoutSaveStatus(t('Please choose a smaller cover photo.'));
       return;
     }
 
