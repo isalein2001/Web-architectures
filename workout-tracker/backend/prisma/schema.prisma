@@ -94,7 +94,9 @@ model PlanExercise {
 model WorkoutSession {
   id     Int          @id @default(autoincrement())
   date   String
+  clientSessionId String? @map("client_session_id")
   planId Int?         @map("plan_id")
+  planName String?     @map("plan_name")
   userId Int?         @map("user_id")
   notes  String?
   caloriesBurned Int? @map("calories_burned")
@@ -105,6 +107,7 @@ model WorkoutSession {
   logs   WorkoutLog[]
 
   @@index([userId])
+  @@unique([userId, clientSessionId])
   @@map("workout_sessions")
 }
 

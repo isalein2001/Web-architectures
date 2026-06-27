@@ -100,6 +100,8 @@ function createWorkoutsRouter() {
         data: {
           name: name.trim(),
           description,
+          image: normalizePlanImage(image),
+          iconKey: normalizeIconKey(req.body.icon_key),
           userId: req.user.userId,
           exercises: {
             create: exercises.map((exercise) => ({
@@ -290,6 +292,8 @@ function createWorkoutsRouter() {
           data: {
             name: name.trim(),
             description,
+            image: normalizePlanImage(image),
+            iconKey: normalizeIconKey(req.body.icon_key),
             exercises: {
               create: exercises.map((exercise) => ({
                 exerciseName: exercise.exercise_name.trim(),

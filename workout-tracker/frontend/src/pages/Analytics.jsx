@@ -1089,16 +1089,23 @@ export default function Analytics({ currentUser }) {
   };
 
   const mergeSessionsWithStorage = (backendSessions = [], storedSessions = []) => {
-    const mergedSessions = [...storedSessions, ...backendSessions].filter(Boolean);
+    const mergedSessions = [...backendSessions, ...storedSessions].filter(Boolean);
     const seenKeys = new Set();
 
     return mergedSessions.filter((session) => {
-      const sessionKey = session.id ? `id:${session.id}` : `date:${getSessionDateKey(session.date)}:${session.plan_name || ''}`;
+      const sessionKey = session.client_session_id
+        ? `client:${session.client_session_id}`
+        : (session.id ? `id:${session.id}` : `date:${getSessionDateKey(session.date)}:${session.plan_name || ''}`);
       if (seenKeys.has(sessionKey)) return false;
       seenKeys.add(sessionKey);
       return true;
     }).sort((left, right) => new Date(right.date) - new Date(left.date));
   };
+
+  const buildStatsFromSessions = (sessionList) => ({
+    totalSessions: sessionList.length,
+    sessionDates: sessionList.map((session) => session.date),
+  });
 
   const refreshSessionData = async () => {
     const storedSessions = loadStoredWorkoutSessions(currentUser);
@@ -1108,14 +1115,17 @@ export default function Analytics({ currentUser }) {
       const normalizedSessions = Array.isArray(nextSessions) ? nextSessions : [];
       const mergedSessions = mergeSessionsWithStorage(normalizedSessions, storedSessions);
       saveStoredWorkoutSessions(currentUser, mergedSessions);
-      setStats(nextStats);
+      setStats({
+        ...nextStats,
+        ...buildStatsFromSessions(mergedSessions),
+      });
       setSessions(mergedSessions);
       setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, mergedSessions));
       return mergedSessions;
     } catch (error) {
       const fallbackSessions = mergeSessionsWithStorage([], storedSessions);
       saveStoredWorkoutSessions(currentUser, fallbackSessions);
-      setStats({ totalSessions: fallbackSessions.length, sessionDates: fallbackSessions.map((session) => session.date) });
+      setStats(buildStatsFromSessions(fallbackSessions));
       setSessions(fallbackSessions);
       setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, fallbackSessions));
       return fallbackSessions;

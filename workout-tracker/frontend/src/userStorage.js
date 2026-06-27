@@ -57,7 +57,11 @@ export const upsertStoredWorkoutSession = (user, session) => {
   const nextSessions = loadStoredWorkoutSessions(user);
   const sessionId = session?.id || `local-${Date.now()}`;
   const normalizedSession = { ...session, id: sessionId };
-  const existingIndex = nextSessions.findIndex((entry) => entry.id === sessionId || (entry.date === normalizedSession.date && entry.plan_name === normalizedSession.plan_name));
+  const existingIndex = nextSessions.findIndex((entry) => (
+    (normalizedSession.client_session_id && entry.client_session_id === normalizedSession.client_session_id)
+    || entry.id === sessionId
+    || (entry.date === normalizedSession.date && entry.plan_name === normalizedSession.plan_name)
+  ));
   const normalizedList = existingIndex >= 0
     ? nextSessions.map((entry, index) => (index === existingIndex ? normalizedSession : entry))
     : [normalizedSession, ...nextSessions];

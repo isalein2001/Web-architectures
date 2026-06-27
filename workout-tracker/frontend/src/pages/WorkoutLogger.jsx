@@ -4,7 +4,7 @@ import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'l
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey, upsertStoredWorkoutSession } from '../userStorage';
-import { queueWorkoutSession, initSyncManager } from '../workoutSync';
+import { queueWorkoutSession } from '../workoutSync';
 import './WorkoutLogger.css';
 
 const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
@@ -386,10 +386,13 @@ export default function WorkoutLogger({ currentUser }) {
   const saveWorkoutSession = async () => {
     if (!activePlan || !currentUser?.id) return;
     const sessionDate = new Date().toISOString();
+    const clientSessionId = `client-${currentUser.id}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
     const sessionData = {
       date: sessionDate,
+      client_session_id: clientSessionId,
       plan_id: activePlan.planId,
+      plan_name: activePlan.title,
       notes,
       calories_burned: caloriesToSave,
       duration_seconds: durationSeconds,
@@ -408,6 +411,7 @@ export default function WorkoutLogger({ currentUser }) {
     const persistedSession = {
       id: `local-${Date.now()}`,
       date: sessionDate,
+      client_session_id: clientSessionId,
       plan_id: activePlan.planId ?? activePlan.id,
       plan_name: activePlan.title,
       notes,
@@ -429,10 +433,16 @@ export default function WorkoutLogger({ currentUser }) {
     
     try {
       // Try to sync immediately
-      await api.logSession(sessionData);
+      const savedSession = await api.logSession(sessionData);
       
       // If successful, save locally and mark as synced
-      upsertStoredWorkoutSession(currentUser, persistedSession);
+      upsertStoredWorkoutSession(currentUser, {
+        ...persistedSession,
+        ...savedSession,
+        id: savedSession?.id || persistedSession.id,
+        client_session_id: savedSession?.client_session_id || clientSessionId,
+        syncStatus: 'synced',
+      });
       const dateKey = getLocalDateKey(sessionDate);
       const currentSchedule = loadJson(workoutScheduleStorageKey, {});
       window.localStorage.setItem(workoutScheduleStorageKey, JSON.stringify({
@@ -454,7 +464,7 @@ export default function WorkoutLogger({ currentUser }) {
       // Backend save failed - queue it for retry with exponential backoff
       console.warn('Backend save failed, queueing for retry:', error);
       
-      const queueItem = queueWorkoutSession(sessionData, currentUser.id);
+      const queueItem = queueWorkoutSession(sessionData, currentUser);
       
       // Save locally immediately
       upsertStoredWorkoutSession(currentUser, { 

@@ -4,13 +4,14 @@
  */
 
 import { api } from './api';
+import { loadStoredWorkoutSessions, saveStoredWorkoutSessions } from './userStorage';
 
 const SYNC_QUEUE_KEY = 'workoutSyncQueue';
-const SYNC_MAX_RETRIES = 5;
 const SYNC_RETRY_DELAY_MS = 2000; // Start with 2 seconds
 const SYNC_CHECK_INTERVAL_MS = 30000; // Check every 30 seconds
 
 let syncCheckInterval = null;
+let activeSyncUser = null;
 
 /**
  * Get the pending sync queue from localStorage
@@ -38,7 +39,41 @@ const saveSyncQueue = (queue) => {
 /**
  * Add a workout session to the sync queue
  */
-export const queueWorkoutSession = (sessionData, userId) => {
+const getUserId = (userOrId) => (typeof userOrId === 'object' ? userOrId?.id : userOrId);
+
+const replaceLocalQueuedSession = (user, savedSession, queueItem) => {
+  if (!user?.id || !savedSession) return;
+
+  const currentSessions = loadStoredWorkoutSessions(user);
+  const clientSessionId = savedSession.client_session_id || queueItem.sessionData?.client_session_id;
+  const nextSessions = currentSessions.map((session) => {
+    const isSameClientSession = clientSessionId && session.client_session_id === clientSessionId;
+    const isSameQueueItem = queueItem.id && session.queueId === queueItem.id;
+    if (!isSameClientSession && !isSameQueueItem) return session;
+
+    return {
+      ...session,
+      ...savedSession,
+      id: savedSession.id || session.id,
+      client_session_id: clientSessionId,
+      syncStatus: 'synced',
+      source: 'backend',
+      queueId: undefined,
+    };
+  });
+
+  saveStoredWorkoutSessions(user, nextSessions);
+  window.dispatchEvent(new CustomEvent('workout-session-saved', {
+    detail: {
+      date: savedSession.date,
+      synced: true,
+      recovered: true,
+    },
+  }));
+};
+
+export const queueWorkoutSession = (sessionData, userOrId) => {
+  const userId = getUserId(userOrId);
   const queue = getSyncQueue();
   const queueItem = {
     id: `queue-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -54,7 +89,7 @@ export const queueWorkoutSession = (sessionData, userId) => {
   saveSyncQueue(queue);
   
   // Immediately try to sync in case we're online
-  syncWorkoutQueue();
+  syncWorkoutQueue(typeof userOrId === 'object' ? userOrId : activeSyncUser);
   
   return queueItem;
 };
@@ -69,7 +104,7 @@ const getBackoffDelay = (retryCount) => {
 /**
  * Try to sync a single queue item
  */
-const syncQueueItem = async (item) => {
+const syncQueueItem = async (item, user) => {
   const now = Date.now();
   const lastRetryTime = item.lastRetryAt ? new Date(item.lastRetryAt).getTime() : 0;
   const backoffDelay = getBackoffDelay(item.retries);
@@ -81,7 +116,8 @@ const syncQueueItem = async (item) => {
   
   try {
     // Attempt to upload the session
-    await api.logSession(item.sessionData);
+    const savedSession = await api.logSession(item.sessionData);
+    replaceLocalQueuedSession(user, savedSession, item);
     
     // Success - remove from queue
     return 'success';
@@ -91,12 +127,6 @@ const syncQueueItem = async (item) => {
     item.lastError = error.message;
     item.lastRetryAt = new Date().toISOString();
     
-    // If we've exceeded max retries, mark as failed
-    if (item.retries >= SYNC_MAX_RETRIES) {
-      console.error(`Workout session failed after ${SYNC_MAX_RETRIES} retries:`, item);
-      return 'failed';
-    }
-    
     return 'retry-later';
   }
 };
@@ -104,7 +134,12 @@ const syncQueueItem = async (item) => {
 /**
  * Sync all pending workout sessions from the queue
  */
-export const syncWorkoutQueue = async () => {
+export const syncWorkoutQueue = async (user = activeSyncUser) => {
+  const activeUserId = getUserId(user);
+  if (!activeUserId) {
+    return { synced: 0, failed: 0, remaining: getSyncQueue().length };
+  }
+
   const queue = getSyncQueue();
   
   if (queue.length === 0) {
@@ -116,7 +151,12 @@ export const syncWorkoutQueue = async () => {
   const updatedQueue = [];
   
   for (const item of queue) {
-    const result = await syncQueueItem(item);
+    if (item.userId !== activeUserId) {
+      updatedQueue.push(item);
+      continue;
+    }
+
+    const result = await syncQueueItem(item, user);
     
     if (result === 'success') {
       synced++;
@@ -142,8 +182,8 @@ export const syncWorkoutQueue = async () => {
 export const getSyncStatus = () => {
   const queue = getSyncQueue();
   return {
-    pending: queue.filter(item => item.retries < SYNC_MAX_RETRIES).length,
-    failed: queue.filter(item => item.retries >= SYNC_MAX_RETRIES).length,
+    pending: queue.length,
+    failed: 0,
     queue,
   };
 };
@@ -174,7 +214,7 @@ export const retryFailedWorkout = async (queueItemId) => {
   saveSyncQueue(queue);
   
   // Try to sync immediately
-  const result = await syncQueueItem(item);
+  const result = await syncQueueItem(item, activeSyncUser);
   
   if (result === 'success') {
     removeFromSyncQueue(queueItemId);
@@ -195,7 +235,7 @@ export const startSyncChecks = () => {
   if (syncCheckInterval) return;
   
   syncCheckInterval = window.setInterval(() => {
-    syncWorkoutQueue();
+    syncWorkoutQueue(activeSyncUser);
   }, SYNC_CHECK_INTERVAL_MS);
 };
 
@@ -212,8 +252,9 @@ export const stopSyncChecks = () => {
 /**
  * Initialize sync manager on app start
  */
-export const initSyncManager = () => {
+export const initSyncManager = (user) => {
+  activeSyncUser = user || null;
   startSyncChecks();
   // Try to sync immediately on init
-  syncWorkoutQueue();
+  syncWorkoutQueue(activeSyncUser);
 };

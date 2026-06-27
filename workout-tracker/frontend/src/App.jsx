@@ -311,10 +311,11 @@ function AppLayout() {
       .then((data) => setCurrentUser(data.user))
       .catch(() => setCurrentUser(null))
       .finally(() => setIsAuthLoading(false));
-    
-    // Initialize sync manager on app load
-    initSyncManager();
   }, []);
+
+  useEffect(() => {
+    initSyncManager(currentUser?.id ? currentUser : null);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!currentUser?.id) return;

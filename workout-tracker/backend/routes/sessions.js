@@ -19,12 +19,13 @@ const serializeLog = (log) => ({
 const serializeSession = (session) => ({
   id: session.id,
   date: session.date,
+  client_session_id: session.clientSessionId,
   plan_id: session.planId,
   notes: session.notes,
   calories_burned: session.caloriesBurned,
   duration_seconds: session.durationSeconds,
   intensity: session.intensity,
-  plan_name: session.plan?.name || null,
+  plan_name: session.planName || session.plan?.name || null,
   logs: (session.logs || []).map(serializeLog),
 });
 
@@ -59,7 +60,9 @@ function createSessionsRouter() {
   router.post('/', async (req, res) => {
     const {
       date,
+      client_session_id,
       plan_id,
+      plan_name,
       notes = '',
       logs = [],
       calories_burned,
@@ -86,6 +89,10 @@ function createSessionsRouter() {
       return res.status(400).json({ error: 'Logs must be an array' });
     }
 
+    if (client_session_id !== undefined && client_session_id !== null && typeof client_session_id !== 'string') {
+      return res.status(400).json({ error: 'Client session id is invalid' });
+    }
+
     if (caloriesBurned !== null && (!Number.isInteger(caloriesBurned) || caloriesBurned < 0 || caloriesBurned > 3000)) {
       return res.status(400).json({ error: 'Calories burned must be a number between 0 and 3000' });
     }
@@ -104,17 +111,48 @@ function createSessionsRouter() {
     }
 
     try {
+      const clientSessionId = typeof client_session_id === 'string' && client_session_id.trim()
+        ? client_session_id.trim()
+        : null;
+
+      if (clientSessionId) {
+        const existingSession = await prisma.workoutSession.findFirst({
+          where: {
+            userId: req.user.userId,
+            clientSessionId,
+          },
+          include: {
+            plan: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            logs: {
+              orderBy: { id: 'asc' },
+            },
+          },
+        });
+
+        if (existingSession) {
+          return res.status(200).json(serializeSession(existingSession));
+        }
+      }
+
+      let safePlanId = planId;
       if (planId) {
         const plan = await prisma.plan.findFirst({
           where: { id: planId, userId: req.user.userId },
         });
-        if (!plan) return res.status(404).json({ error: 'Workout not found' });
+        if (!plan) safePlanId = null;
       }
 
       const session = await prisma.workoutSession.create({
         data: {
           date,
-          planId,
+          clientSessionId,
+          planId: safePlanId,
+          planName: typeof plan_name === 'string' && plan_name.trim() ? plan_name.trim() : null,
           userId: req.user.userId,
           notes,
           caloriesBurned,
@@ -130,17 +168,20 @@ function createSessionsRouter() {
             })),
           },
         },
+        include: {
+          plan: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          logs: {
+            orderBy: { id: 'asc' },
+          },
+        },
       });
 
-      res.status(201).json({
-        id: session.id,
-        date: session.date,
-        plan_id: session.planId,
-        notes: session.notes,
-        calories_burned: session.caloriesBurned,
-        duration_seconds: session.durationSeconds,
-        intensity: session.intensity,
-      });
+      res.status(201).json(serializeSession(session));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
