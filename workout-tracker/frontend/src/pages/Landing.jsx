@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { Activity, ArrowRight, BarChart3, Dumbbell, Flame, LineChart, PlayCircle, ShieldCheck, Target } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, CalendarDays, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
 import './Landing.css';
 
 const reveal = {
@@ -11,43 +11,43 @@ const reveal = {
 
 const featureCards = [
   {
-    title: 'Personalized Workout Plans',
-    text: 'Create training plans based on your goals, fitness level and available time.',
+    title: 'Build your own plan',
+    text: 'Create workouts with exercises, sets, reps, cover images and plan icons that fit your training style.',
     Icon: Dumbbell,
   },
   {
-    title: 'Progress Tracking',
-    text: 'Log your workouts, track your sets and watch your performance improve over time.',
+    title: 'Log every session',
+    text: 'Start a workout or add it later. Reps, weight, rest time and notes stay saved to your account.',
     Icon: LineChart,
   },
   {
-    title: 'Designed for Consistency',
-    text: 'Next Reps helps you stay on track, even when motivation gets low.',
-    Icon: Flame,
+    title: 'See what changed',
+    text: 'Your dashboard, calendar and analytics turn training into visible progress, not guesswork.',
+    Icon: Trophy,
   },
 ];
 
 const scrollFrames = [
   {
-    kicker: 'Plan',
-    title: 'No more guessing what to train next.',
-    text: 'Create workouts that fit your goals, your level and your schedule.',
+    kicker: 'Create',
+    title: 'Build the workout you actually want to follow.',
+    text: 'Name your plan, add exercises, set planned reps and keep your own cover photo attached to it.',
     image: '/slideshow-3.png',
-    stat: 'Custom plans',
+    stat: 'Custom plans saved',
   },
   {
-    kicker: 'Track',
-    title: 'Every set becomes useful data.',
-    text: 'Log your reps, weights and sessions without overcomplicating your routine.',
+    kicker: 'Train',
+    title: 'Start live or log it later.',
+    text: 'Use the live logger during your workout, or backfill a completed session from the calendar when you forgot.',
     image: '/slideshow-7.png',
-    stat: 'Clear logs',
+    stat: 'Set-by-set logs',
   },
   {
-    kicker: 'Progress',
-    title: 'One more rep. One step closer.',
-    text: 'See your progress grow step by step, rep by rep.',
+    kicker: 'Improve',
+    title: 'Your progress becomes easy to read.',
+    text: 'Next Reps connects your workouts, calendar, Health data and analytics so you can see what is moving.',
     image: '/achievements-bg.jpg',
-    stat: 'Visible results',
+    stat: 'Personal insights',
   },
 ];
 
@@ -93,7 +93,7 @@ export default function Landing({ currentUser }) {
             variants={reveal}
             transition={{ duration: 0.55 }}
           >
-            Smart workout planning
+            Workout planner + training tracker
           </motion.span>
           <motion.h1
             initial="hidden"
@@ -101,7 +101,7 @@ export default function Landing({ currentUser }) {
             variants={reveal}
             transition={{ duration: 0.65, delay: 0.08 }}
           >
-            Train smarter. Track better. Progress faster.
+            Build your plan. Log your sets. See your progress.
           </motion.h1>
           <motion.p
             initial="hidden"
@@ -109,7 +109,7 @@ export default function Landing({ currentUser }) {
             variants={reveal}
             transition={{ duration: 0.65, delay: 0.16 }}
           >
-            Next Reps is your smart training companion for personalized workout planning, progress tracking and long-term motivation.
+            Next Reps helps you create workout plans, track reps and weights, connect daily activity and understand your training progress in one place.
           </motion.p>
           <motion.div
             className="landing-hero-actions"
@@ -119,27 +119,53 @@ export default function Landing({ currentUser }) {
             transition={{ duration: 0.65, delay: 0.24 }}
           >
             <NavLink className="landing-primary-button" to={primaryCta}>
-              {currentUser ? 'Open Dashboard' : 'Start Your Plan'}
+              {currentUser ? 'Open Dashboard' : 'Create Your Workout'}
               <ArrowRight size={18} />
             </NavLink>
-            <a className="landing-secondary-button" href="#features">Explore the App</a>
+            {currentUser ? (
+              <a className="landing-secondary-button" href="#features">Explore the App</a>
+            ) : (
+              <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>Login</NavLink>
+            )}
+          </motion.div>
+          <motion.div
+            className="landing-hero-points"
+            initial="hidden"
+            animate="visible"
+            variants={reveal}
+            transition={{ duration: 0.65, delay: 0.3 }}
+          >
+            <span><Dumbbell size={15} /> Custom workout plans</span>
+            <span><CalendarDays size={15} /> Calendar + backfill logging</span>
+            <span><BarChart3 size={15} /> Analytics and achievements</span>
           </motion.div>
         </motion.div>
 
         <motion.div
-          className="landing-hero-panel"
+          className="landing-app-preview"
           initial={{ opacity: 0, y: 36 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, delay: 0.38 }}
         >
-          <div>
-            <span>Today's focus</span>
+          <div className="landing-phone-bar" />
+          <div className="landing-preview-head">
+            <span>Today</span>
             <strong>Push Strength</strong>
           </div>
-          <div className="landing-mini-progress">
-            <span style={{ width: '72%' }} />
+          <div className="landing-preview-workout">
+            <span>Bench Press</span>
+            <strong>4 sets · 8/8/6/6 reps</strong>
           </div>
-          <small>4 exercises planned · 72% weekly consistency</small>
+          <div className="landing-preview-workout">
+            <span>Shoulder Press</span>
+            <strong>3 sets · +2.5 kg PR</strong>
+          </div>
+          <div className="landing-preview-metrics">
+            <span><b>7</b> day streak</span>
+            <span><b>12</b> workouts</span>
+            <span><b>+8%</b> volume</span>
+          </div>
+          <small>Plan, log and review without leaving the app.</small>
         </motion.div>
 
         <div className="landing-scroll-cue">
@@ -157,11 +183,11 @@ export default function Landing({ currentUser }) {
           variants={reveal}
           transition={{ duration: 0.6 }}
         >
-          <span>Why Next Reps?</span>
-          <h2>Progress starts with structure.</h2>
+          <span>What Next Reps does</span>
+          <h2>Your gym notebook, calendar and analytics in one app.</h2>
           <p>
-            Training without structure makes progress harder. Next Reps gives you a clear plan,
-            tracks your development and helps you stay consistent.
+            Stop guessing what you trained, which weight you used or whether you are actually improving.
+            Next Reps keeps plans, sessions and progress tied to your account.
           </p>
         </motion.div>
 
@@ -235,16 +261,16 @@ export default function Landing({ currentUser }) {
           variants={reveal}
           transition={{ duration: 0.65 }}
         >
-          <span>Built for momentum</span>
-          <h2>Plan. Train. Progress. Repeat.</h2>
+          <span>Built for real training</span>
+          <h2>Useful in the gym, useful after the gym.</h2>
           <p>
-            Whether you want to build muscle, get stronger or stay consistent, Next Reps gives you
-            the structure you need to keep moving forward.
+            Use Next Reps live during your session, connect Apple Health for daily activity, or add a
+            workout afterward when life gets messy. Your data stays organized per user.
           </p>
           <div className="landing-proof-list">
-            <span><Target size={17} /> Goal-based planning</span>
-            <span><ShieldCheck size={17} /> Balanced recovery rhythm</span>
-            <span><PlayCircle size={17} /> Simple workout logging</span>
+            <span><Target size={17} /> Goal-based workout planning</span>
+            <span><Activity size={17} /> Apple Health activity sync</span>
+            <span><PlayCircle size={17} /> Live and past workout logging</span>
           </div>
         </motion.div>
       </section>
@@ -258,7 +284,7 @@ export default function Landing({ currentUser }) {
           transition={{ duration: 0.65 }}
         >
           <span>Your next rep starts here.</span>
-          <h2>Build your perfect workout plan, powered by your goals.</h2>
+          <h2>Create your first plan and start tracking with purpose.</h2>
           <NavLink className="landing-primary-button" to={primaryCta}>
             {currentUser ? 'Go to App' : 'Try Next Reps'}
             <ArrowRight size={18} />
