@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { Activity, ArrowRight, BarChart3, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
@@ -51,8 +51,32 @@ const scrollFrames = [
   },
 ];
 
+const heroSlides = [
+  {
+    image: '/hero-bg.jpg',
+    kicker: '01 / 03',
+    caption: 'Build your plan',
+    label: 'Workout structure',
+  },
+  {
+    image: '/slideshow-7.png',
+    kicker: '02 / 03',
+    caption: 'Log every set',
+    label: 'Live training',
+  },
+  {
+    image: '/achievements-bg.jpg',
+    kicker: '03 / 03',
+    caption: 'See what changed',
+    label: 'Progress insights',
+  },
+];
+
+const HERO_SLIDE_DURATION_MS = 4200;
+
 export default function Landing({ currentUser }) {
   const statementRef = useRef(null);
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const { scrollYProgress } = useScroll();
   const { scrollYProgress: statementScrollProgress } = useScroll({
     target: statementRef,
@@ -65,6 +89,14 @@ export default function Landing({ currentUser }) {
   const faviconRotate = useTransform(statementScrollProgress, [0, 1], [0, 42]);
   const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveHeroSlide((current) => (current + 1) % heroSlides.length);
+    }, HERO_SLIDE_DURATION_MS);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <main className="landing-page">
@@ -154,29 +186,32 @@ export default function Landing({ currentUser }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.75, delay: 0.25 }}
           >
-            <div className="landing-app-preview">
-              <div className="landing-preview-label">In the app</div>
-              <div className="landing-preview-head">
-                <span>Live workout preview</span>
-                <strong>Push Strength</strong>
+            <div className="landing-hero-reel" aria-label="Next Reps preview reel">
+              <div className="landing-hero-reel-media">
+                {heroSlides.map((slide, index) => (
+                  <img
+                    alt=""
+                    className={index === activeHeroSlide ? 'is-active' : ''}
+                    key={slide.image}
+                    src={slide.image}
+                  />
+                ))}
+                <div className="landing-hero-reel-overlay" />
+                <div className="landing-hero-reel-badge">{heroSlides[activeHeroSlide].label}</div>
               </div>
-              <p className="landing-preview-copy">
-                Pick a saved plan, enter your real reps and weights, then see the session in your calendar and analytics.
-              </p>
-              <div className="landing-preview-workout">
-                <span>Planned exercise</span>
-                <strong>Bench Press · 4 sets</strong>
+              <div className="landing-hero-reel-footer">
+                <span>{heroSlides[activeHeroSlide].kicker}</span>
+                <strong>{heroSlides[activeHeroSlide].caption}</strong>
               </div>
-              <div className="landing-preview-workout">
-                <span>Progress captured</span>
-                <strong>Shoulder Press · +2.5 kg PR</strong>
+              <div className="landing-hero-reel-progress" key={activeHeroSlide}>
+                {heroSlides.map((slide, index) => (
+                  <span
+                    aria-label={`Slide ${index + 1}`}
+                    className={index === activeHeroSlide ? 'is-active' : ''}
+                    key={slide.caption}
+                  />
+                ))}
               </div>
-              <div className="landing-preview-metrics">
-                <span><b>7</b> day streak</span>
-                <span><b>12</b> workouts</span>
-                <span><b>+8%</b> volume</span>
-              </div>
-              <small>Plan, log and review without leaving the app.</small>
             </div>
           </motion.aside>
         </div>
