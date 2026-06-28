@@ -53,19 +53,19 @@ const scrollFrames = [
 
 const heroSlides = [
   {
-    image: '/hero-bg.jpg',
+    video: '/hero-reel-1.mp4',
     kicker: '01 / 03',
     caption: 'Build your plan',
     label: 'Workout structure',
   },
   {
-    image: '/slideshow-7.png',
+    video: '/hero-reel-2.mp4',
     kicker: '02 / 03',
     caption: 'Log every set',
     label: 'Live training',
   },
   {
-    image: '/achievements-bg.jpg',
+    video: '/hero-reel-3.mp4',
     kicker: '03 / 03',
     caption: 'See what changed',
     label: 'Progress insights',
@@ -189,11 +189,16 @@ export default function Landing({ currentUser }) {
             <div className="landing-hero-reel" aria-label="Next Reps preview reel">
               <div className="landing-hero-reel-media">
                 {heroSlides.map((slide, index) => (
-                  <img
-                    alt=""
+                  <video
+                    aria-hidden="true"
+                    autoPlay
                     className={index === activeHeroSlide ? 'is-active' : ''}
-                    key={slide.image}
-                    src={slide.image}
+                    key={slide.video}
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    src={slide.video}
                   />
                 ))}
                 <div className="landing-hero-reel-overlay" />
