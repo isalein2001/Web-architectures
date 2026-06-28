@@ -156,12 +156,13 @@ const createBackfillExerciseFromLabel = (label) => {
   const match = String(label || '').match(/^(.*?)\s*\((\d+)x([^)]*)\)$/);
   const setCount = Number.parseInt(match?.[2] || '3', 10) || 3;
   const parsedReps = String(match?.[3] || '10').split('/').map((rep) => rep.trim()).filter(Boolean);
-  const repsBySet = Array.from({ length: setCount }, (_, index) => parsedReps[index] || parsedReps[0] || '10');
+  const targetRepsBySet = Array.from({ length: setCount }, (_, index) => parsedReps[index] || parsedReps[0] || '10');
 
   return {
     exercise_name: (match?.[1] || label || 'Exercise').trim(),
     sets: String(setCount),
-    repsBySet,
+    targetRepsBySet,
+    repsBySet: Array.from({ length: setCount }, () => ''),
     weightsBySet: Array.from({ length: setCount }, () => ''),
     restBySet: Array.from({ length: setCount }, () => ''),
   };
@@ -505,6 +506,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [backfillNotes, setBackfillNotes] = useState('');
   const [backfillError, setBackfillError] = useState('');
   const [isSavingBackfill, setIsSavingBackfill] = useState(false);
+  const [focusedBackfillRep, setFocusedBackfillRep] = useState(null);
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
   const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
   const [isDailyGoalsModalOpen, setIsDailyGoalsModalOpen] = useState(false);
@@ -856,6 +858,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     setBackfillNotes('');
     setBackfillError('');
     setIsSavingBackfill(false);
+    setFocusedBackfillRep(null);
     setShowReadyMadeOptions(false);
     setShowWorkoutDetails(false);
     setConfirmingSessionId(null);
@@ -873,6 +876,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     setBackfillNotes('');
     setBackfillError('');
     setIsSavingBackfill(false);
+    setFocusedBackfillRep(null);
     setShowReadyMadeOptions(false);
     setShowWorkoutDetails(false);
     setConfirmingSessionId(null);
@@ -932,7 +936,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         return {
           ...exercise,
           sets: String(nextSetCount),
-          repsBySet: resizeSetValues(exercise.repsBySet, exercise.repsBySet?.[0] || '10'),
+          targetRepsBySet: resizeSetValues(exercise.targetRepsBySet, exercise.targetRepsBySet?.[0] || '10'),
+          repsBySet: resizeSetValues(exercise.repsBySet, ''),
           weightsBySet: resizeSetValues(exercise.weightsBySet, ''),
           restBySet: resizeSetValues(exercise.restBySet, ''),
         };
@@ -962,7 +967,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       {
         exercise_name: '',
         sets: '3',
-        repsBySet: ['10', '10', '10'],
+        targetRepsBySet: ['10', '10', '10'],
+        repsBySet: ['', '', ''],
         weightsBySet: ['', '', ''],
         restBySet: ['', '', ''],
       },
@@ -999,7 +1005,10 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     sessionDate.setHours(12, 0, 0, 0);
 
     const logs = validExercises.flatMap((exercise) => Array.from({ length: exercise.sets }, (_, setIndex) => {
-      const repsValue = exercise.repsBySet?.[setIndex] ?? exercise.repsBySet?.[0] ?? '1';
+      const repsValue = exercise.repsBySet?.[setIndex]
+        || exercise.targetRepsBySet?.[setIndex]
+        || exercise.targetRepsBySet?.[0]
+        || '1';
       const weightValue = exercise.weightsBySet?.[setIndex];
       const restValue = exercise.restBySet?.[setIndex];
 
@@ -1880,6 +1889,13 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                                     min="1"
                                     max="200"
                                     value={exercise.repsBySet?.[setIndex] ?? ''}
+                                    placeholder={
+                                      focusedBackfillRep === `${index}-${setIndex}`
+                                        ? ''
+                                        : `(${exercise.targetRepsBySet?.[setIndex] || exercise.targetRepsBySet?.[0] || 10})`
+                                    }
+                                    onFocus={() => setFocusedBackfillRep(`${index}-${setIndex}`)}
+                                    onBlur={() => setFocusedBackfillRep(null)}
                                     onChange={(event) => updateBackfillSet(index, setIndex, 'reps', event.target.value)}
                                   />
                                 </label>

@@ -1354,6 +1354,11 @@
   outline: none;
 }
 
+.backfill-set-log-row input::placeholder {
+  color: rgba(197, 254, 0, 0.48);
+  font-weight: 700;
+}
+
 .backfill-row-remove {
   display: grid;
   place-items: center;
