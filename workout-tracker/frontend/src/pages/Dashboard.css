@@ -1512,11 +1512,14 @@
 }
 
 .achievements-text-area h2 {
-  font-size: 3.5rem;
+  max-width: 720px;
+  font-size: clamp(2.1rem, 4.7vw, 3.5rem);
   font-weight: 900;
   color: #FFF;
   margin: 0 0 16px 0;
-  letter-spacing: -1px;
+  letter-spacing: 0;
+  line-height: 0.98;
+  overflow-wrap: anywhere;
 }
 
 .achievements-desc {
@@ -1529,12 +1532,15 @@
 .lifts-grid {
   display: flex;
   gap: 48px;
+  flex-wrap: wrap;
 }
 
 .lift-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 108px;
+  max-width: 190px;
 }
 
 .lift-name {
@@ -1548,6 +1554,8 @@
   font-size: 1.75rem;
   color: var(--color-primary);
   font-weight: 900;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
 .achievements-medal-area {
@@ -1855,7 +1863,7 @@
 
   .achievements-content {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 88px;
+    grid-template-columns: minmax(0, 1fr) 78px;
     gap: 12px;
     align-items: center;
   }
@@ -1866,21 +1874,54 @@
   }
 
   .achievements-text-area h2 {
-    font-size: clamp(1.75rem, 10vw, 2.25rem);
+    font-size: clamp(1.65rem, 8.2vw, 2.15rem);
   }
 
   .achievements-medal-area {
-    width: 88px;
-    height: 116px;
+    width: 78px;
+    height: 104px;
     margin-right: 0;
     justify-self: end;
     align-self: start;
-    margin-top: 72px;
+    margin-top: 60px;
   }
 
   .medal-icon {
-    width: 64px;
-    height: 64px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .medal-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .lifts-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .lift-item {
+    min-width: 0;
+    max-width: none;
+    gap: 7px;
+  }
+
+  .lift-name {
+    font-size: 0.58rem;
+  }
+
+  .lift-weight {
+    font-size: clamp(1rem, 5vw, 1.35rem);
+  }
+
+  .lift-item .badge {
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.1;
   }
 
   .lifts-grid {

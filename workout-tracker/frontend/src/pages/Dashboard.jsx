@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
@@ -239,7 +239,202 @@ function CircularProgress({ percentage }) {
   );
 }
 
-function AnimatedMedal() {
+const getSessionTimestamp = (session) => {
+  const timestamp = new Date(session?.date).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const getSessionVolume = (session) => (session.logs || []).reduce((sum, log) => {
+  const weight = Number(log.weight) || 0;
+  const reps = Number(log.reps) || 0;
+  return sum + (weight * reps);
+}, 0);
+
+const getBestWeightMilestone = (sessions = []) => {
+  const bestByExercise = new Map();
+  const milestones = [];
+
+  [...sessions]
+    .sort((left, right) => getSessionTimestamp(left) - getSessionTimestamp(right))
+    .forEach((session) => {
+      (session.logs || []).forEach((log) => {
+        const exerciseName = log.exercise_name || log.exerciseName;
+        const weight = Number(log.weight);
+        if (!exerciseName || !Number.isFinite(weight) || weight <= 0) return;
+
+        const previousBest = bestByExercise.get(exerciseName) || 0;
+        if (weight > previousBest) {
+          if (previousBest > 0) {
+            milestones.push({
+              exerciseName,
+              weight,
+              improvement: weight - previousBest,
+              date: session.date,
+            });
+          }
+          bestByExercise.set(exerciseName, weight);
+        }
+      });
+    });
+
+  return milestones.sort((left, right) => (
+    getSessionTimestamp(right) - getSessionTimestamp(left)
+    || right.improvement - left.improvement
+  ))[0] || null;
+};
+
+const getCurrentWorkoutStreak = (sessionDates = []) => {
+  const sortedDays = [...new Set(sessionDates.map(getSessionDateKey).filter(Boolean))]
+    .sort((left, right) => new Date(right) - new Date(left));
+  if (!sortedDays.length) return 0;
+
+  let streak = 1;
+  for (let index = 1; index < sortedDays.length; index += 1) {
+    const previous = new Date(sortedDays[index - 1]);
+    const current = new Date(sortedDays[index]);
+    const diffDays = Math.round((previous - current) / (24 * 60 * 60 * 1000));
+    if (diffDays <= 7) {
+      streak += 1;
+    } else {
+      break;
+    }
+  }
+  return streak;
+};
+
+const buildPersonalInsight = ({
+  sessions,
+  stats,
+  stepsValue,
+  caloriesValue,
+  minutesValue,
+  dailyGoalCompletion,
+  currentUser,
+}) => {
+  const totalSessions = stats.totalSessions || sessions.length || 0;
+  const totalVolume = sessions.reduce((sum, session) => sum + getSessionVolume(session), 0);
+  const latestSession = [...sessions].sort((left, right) => getSessionTimestamp(right) - getSessionTimestamp(left))[0];
+  const latestVolume = latestSession ? getSessionVolume(latestSession) : 0;
+  const bestWeightMilestone = getBestWeightMilestone(sessions);
+  const workoutStreak = getCurrentWorkoutStreak(stats.sessionDates || sessions.map((session) => session.date));
+  const firstName = getUserFirstName(currentUser);
+  const candidates = [];
+
+  if (bestWeightMilestone) {
+    candidates.push({
+      type: 'PERSONAL RECORD',
+      title: `${bestWeightMilestone.exerciseName} ${Math.round(bestWeightMilestone.weight)}kg`,
+      description: `New best: +${Math.round(bestWeightMilestone.improvement)}kg compared to your previous logged top set.`,
+      badge: 'NEW PR',
+      Icon: Award,
+      metrics: [
+        { label: 'EXERCISE', value: bestWeightMilestone.exerciseName },
+        { label: 'BEST SET', value: `${Math.round(bestWeightMilestone.weight)}kg` },
+        { label: 'GAIN', value: `+${Math.round(bestWeightMilestone.improvement)}kg` },
+      ],
+    });
+  }
+
+  if (workoutStreak >= 2) {
+    candidates.push({
+      type: 'CONSISTENCY',
+      title: `${workoutStreak} training weeks connected`,
+      description: 'You are building a real rhythm. Keep one session in the calendar this week to protect the streak.',
+      badge: 'STREAK',
+      Icon: Flame,
+      metrics: [
+        { label: 'STREAK', value: `${workoutStreak}x` },
+        { label: 'WORKOUTS', value: totalSessions.toLocaleString('en-US') },
+        { label: 'NEXT', value: '+1' },
+      ],
+    });
+  }
+
+  if (latestSession && latestVolume > 0) {
+    candidates.push({
+      type: 'WEEKLY HIGHLIGHT',
+      title: `${Math.round(latestVolume).toLocaleString('en-US')}kg moved last session`,
+      description: `${latestSession.plan_name || 'Your last workout'} is now part of your training history and dashboard analytics.`,
+      badge: 'LOGGED',
+      Icon: Dumbbell,
+      metrics: [
+        { label: 'VOLUME', value: `${Math.round(latestVolume / 100) / 10}t` },
+        { label: 'SETS', value: `${latestSession.logs?.length || 0}` },
+        { label: 'TIME', value: `${Math.round((latestSession.duration_seconds || 0) / 60) || '-'}m` },
+      ],
+    });
+  }
+
+  if (totalVolume >= 1000) {
+    candidates.push({
+      type: 'FUN FACT',
+      title: `${Math.round(totalVolume).toLocaleString('en-US')}kg lifetime volume`,
+      description: `That is roughly ${Math.max(1, Math.round(totalVolume / 20000))} fully loaded 20-ton training block${Math.max(1, Math.round(totalVolume / 20000)) === 1 ? '' : 's'} worth of effort in your logbook.`,
+      badge: 'DID YOU KNOW?',
+      Icon: Zap,
+      metrics: [
+        { label: 'TOTAL', value: `${Math.round(totalVolume / 100) / 10}t` },
+        { label: 'SESSIONS', value: totalSessions.toLocaleString('en-US') },
+        { label: 'AVG', value: `${Math.round(totalVolume / Math.max(totalSessions, 1)).toLocaleString('en-US')}kg` },
+      ],
+    });
+  }
+
+  if (stepsValue > 0 || caloriesValue > 0 || minutesValue > 0) {
+    candidates.push({
+      type: 'DAILY MOMENTUM',
+      title: `${dailyGoalCompletion}% of today's movement target`,
+      description: `${stepsValue.toLocaleString('en-US')} steps, ${caloriesValue.toLocaleString('en-US')} kcal and ${minutesValue} active minutes are already synced into Next Reps.`,
+      badge: dailyGoalCompletion >= 100 ? 'GOAL COMPLETE' : 'IN PROGRESS',
+      Icon: Activity,
+      metrics: [
+        { label: 'STEPS', value: stepsValue.toLocaleString('en-US') },
+        { label: 'KCAL', value: caloriesValue.toLocaleString('en-US') },
+        { label: 'MIN', value: `${minutesValue}` },
+      ],
+    });
+  }
+
+  if (totalSessions > 0) {
+    const nextMilestone = Math.ceil((totalSessions + 1) / 5) * 5;
+    candidates.push({
+      type: 'NEXT GOAL',
+      title: `${nextMilestone - totalSessions} workout${nextMilestone - totalSessions === 1 ? '' : 's'} to ${nextMilestone}`,
+      description: `One clean entry at a time. Your next milestone is ${nextMilestone} completed workouts.`,
+      badge: 'MILESTONE',
+      Icon: Target,
+      metrics: [
+        { label: 'DONE', value: `${totalSessions}` },
+        { label: 'GOAL', value: `${nextMilestone}` },
+        { label: 'LEFT', value: `${nextMilestone - totalSessions}` },
+      ],
+    });
+  }
+
+  if (!candidates.length) {
+    return {
+      type: 'FIRST MILESTONE',
+      title: firstName ? `${firstName}, log your first session` : 'Log your first session',
+      description: 'Create a workout, finish it once, and this card will turn into personalized highlights from your own training.',
+      badge: 'READY',
+      Icon: CalendarDays,
+      metrics: [
+        { label: 'WORKOUTS', value: '0' },
+        { label: 'GOAL', value: '1' },
+        { label: 'STATUS', value: 'START' },
+      ],
+    };
+  }
+
+  const dayKey = format(new Date(), 'yyyy-MM-dd');
+  const userSeed = String(currentUser?.id || currentUser?.email || 'next-reps')
+    .split('')
+    .reduce((sum, character) => sum + character.charCodeAt(0), 0);
+  const dateSeed = dayKey.split('').reduce((sum, character) => sum + character.charCodeAt(0), 0);
+  return candidates[(userSeed + dateSeed) % candidates.length];
+};
+
+function AnimatedMedal({ Icon = Award }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.5 });
 
@@ -256,7 +451,7 @@ function AnimatedMedal() {
           ease: "easeInOut" 
         }}
       >
-        <Award size={40} color="#000" />
+        <Icon size={40} color="#000" />
       </MotionDiv>
     </div>
   );
@@ -340,6 +535,23 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       : dailyGoalCompletion >= 25
         ? 'BUILDING MOMENTUM'
         : 'GETTING STARTED';
+  const personalInsight = useMemo(() => buildPersonalInsight({
+    sessions: displaySessions,
+    stats: displayStats,
+    stepsValue,
+    caloriesValue,
+    minutesValue,
+    dailyGoalCompletion,
+    currentUser,
+  }), [
+    displaySessions,
+    displayStats,
+    stepsValue,
+    caloriesValue,
+    minutesValue,
+    dailyGoalCompletion,
+    currentUser,
+  ]);
 
   const completedWorkoutDates = new Set((displayStats.sessionDates || []).map(getSessionDateKey));
 
@@ -930,36 +1142,30 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         </div>
       </div>
 
-      {/* Achievements Card */}
+      {/* Personal Insight Card */}
       <div className="card achievements-card">
         <div className="achievements-content">
           <div className="achievements-text-area">
-            <div className="achievements-label">{t('LATEST ACHIEVEMENT')}</div>
-            <h2>{t('ACHIEVEMENTS')}</h2>
+            <div className="achievements-label">{t(personalInsight.type)}</div>
+            <h2>{t(personalInsight.title)}</h2>
             <p className="achievements-desc">
-              {t("You've maintained a top 5% strength-to-weight ratio worldwide for 12 consecutive weeks.")}
+              {t(personalInsight.description)}
             </p>
             
             <div className="lifts-grid">
-              <div className="lift-item">
-                <span className="lift-name">{t('DEADLIFT')}</span>
-                <span className="lift-weight">180kg</span>
-                <span className="badge badge-solid">{t('NEW PR')}</span>
-              </div>
-              <div className="lift-item">
-                <span className="lift-name">{t('SQUAT')}</span>
-                <span className="lift-weight">140kg</span>
-                <span className="badge badge-outline">{t('TOP 5%')}</span>
-              </div>
-              <div className="lift-item">
-                <span className="lift-name">{t('BENCH')}</span>
-                <span className="lift-weight">100kg</span>
-                <span className="badge badge-outline">{t('TOP 10%')}</span>
-              </div>
+              {personalInsight.metrics.map((metric, index) => (
+                <div className="lift-item" key={`${metric.label}-${metric.value}`}>
+                  <span className="lift-name">{t(metric.label)}</span>
+                  <span className="lift-weight">{metric.value}</span>
+                  <span className={`badge ${index === 0 ? 'badge-solid' : 'badge-outline'}`}>
+                    {index === 0 ? t(personalInsight.badge) : t('LIVE')}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
           
-          <AnimatedMedal />
+          <AnimatedMedal Icon={personalInsight.Icon} />
         </div>
       </div>
 
