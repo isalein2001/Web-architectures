@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { ArrowRight, BarChart3, CalendarDays, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, CalendarDays, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
 import './Landing.css';
 
 const reveal = {
