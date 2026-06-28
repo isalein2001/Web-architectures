@@ -836,12 +836,6 @@ export default function Workouts({ currentUser }) {
       </section>
 
       <aside className="ready-plans-panel">
-        <div className="ready-plans-intro">
-          <span>{t('NEED A STARTING POINT?')}</span>
-          <h2>{t('Pick a proven plan and make it yours.')}</h2>
-          <p>{t('Use these templates when you want structure fast, then adjust exercises, sets and reps to match your own training style.')}</p>
-        </div>
-
         {savedPlans.length > 0 && (
           <div className="ready-plan-group">
             <div className="ready-plans-heading">
@@ -909,6 +903,12 @@ export default function Workouts({ currentUser }) {
             </div>
           </div>
         )}
+
+        <div className="ready-plans-intro ready-plans-separator">
+          <span>{t('NEED A STARTING POINT?')}</span>
+          <h2>{t('Pick a proven plan and make it yours.')}</h2>
+          <p>{t('Use these templates when you want structure fast, then adjust exercises, sets and reps to match your own training style.')}</p>
+        </div>
 
         <div className="ready-plan-group">
           <div className="ready-plans-heading">

@@ -1849,16 +1849,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                                 placeholder={t('Exercise name')}
                               />
                             </label>
-                            <label className="backfill-set-count">
-                              <span>{t('SETS')}</span>
-                              <input
-                                type="number"
-                                min="1"
-                                max="20"
-                                value={exercise.sets}
-                                onChange={(event) => updateBackfillExercise(index, 'sets', event.target.value)}
-                              />
-                            </label>
                             <button
                               className="backfill-row-remove"
                               type="button"

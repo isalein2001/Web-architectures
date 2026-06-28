@@ -1248,7 +1248,7 @@
 
 .backfill-active-heading {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 58px 34px;
+  grid-template-columns: 22px minmax(0, 1fr) 34px;
   gap: 9px;
   align-items: center;
   color: var(--color-primary);
@@ -1291,12 +1291,6 @@
   font-size: 1rem;
   font-weight: 950;
   text-transform: uppercase;
-}
-
-.backfill-set-count input {
-  color: var(--color-primary);
-  text-align: center;
-  background: rgba(197, 254, 0, 0.07);
 }
 
 .backfill-set-log-table {
@@ -2354,12 +2348,11 @@
   }
 
   .backfill-active-heading {
-    grid-template-columns: 22px minmax(0, 1fr) 54px 34px;
+    grid-template-columns: 22px minmax(0, 1fr) 34px;
     align-items: center;
   }
 
-  .backfill-exercise-title span,
-  .backfill-set-count span {
+  .backfill-exercise-title span {
     display: none;
   }
 
