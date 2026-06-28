@@ -26,10 +26,10 @@ const ensureWritableSqliteDatabase = (databaseUrl) => {
   if (!databasePath) return;
 
   const databaseDir = path.dirname(databasePath);
-  fs.mkdirSync(databaseDir, { recursive: true, mode: 0o775 });
+  fs.mkdirSync(databaseDir, { recursive: true, mode: 0o777 });
 
   try {
-    fs.chmodSync(databaseDir, 0o775);
+    fs.chmodSync(databaseDir, 0o777);
   } catch (error) {
     console.warn(`Could not update database directory permissions: ${error.message}`);
   }
@@ -37,7 +37,7 @@ const ensureWritableSqliteDatabase = (databaseUrl) => {
   if (!fs.existsSync(databasePath)) return;
 
   try {
-    fs.chmodSync(databasePath, 0o664);
+    fs.chmodSync(databasePath, 0o666);
   } catch (error) {
     console.warn(`Could not update database file permissions: ${error.message}`);
   }
