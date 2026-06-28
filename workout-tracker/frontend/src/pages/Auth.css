@@ -43,11 +43,9 @@
   top: 22px;
   left: 22px;
   z-index: 2;
-  color: var(--color-primary);
-  font-size: 0.9rem;
-  font-weight: 950;
-  line-height: 1;
-  text-transform: uppercase;
+  display: block;
+  width: 150px;
+  height: auto;
 }
 
 .auth-shell {
@@ -180,10 +178,13 @@
 .auth-brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: var(--color-primary);
-  font-weight: 950;
-  text-transform: uppercase;
+}
+
+.auth-brand img {
+  display: block;
+  width: 150px;
+  max-width: 100%;
+  height: auto;
 }
 
 .auth-form {

@@ -31,19 +31,21 @@
 .sidebar-logo {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--color-primary);
-  font-weight: 800;
-  font-size: 1.5rem;
-  letter-spacing: 2px;
   margin-bottom: var(--spacing-xs);
+}
+
+.sidebar-logo img {
+  display: block;
+  width: 168px;
+  max-width: 100%;
+  height: auto;
 }
 
 .sidebar-subtitle {
   color: var(--color-text-muted);
   font-size: 0.875rem;
   margin-bottom: 0;
-  margin-left: calc(28px + var(--spacing-sm));
+  margin-left: 2px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -196,6 +198,13 @@
 
 .mobile-topbar-brand {
   display: none;
+}
+
+.mobile-topbar-brand img {
+  display: block;
+  width: 132px;
+  max-width: 38vw;
+  height: auto;
 }
 
 .search-bar {
@@ -1193,7 +1202,7 @@
   .mobile-topbar-brand {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     min-width: 0;
     color: #fff;
     text-decoration: none;
@@ -1206,21 +1215,14 @@
     line-height: 1;
   }
 
-  .mobile-topbar-brand strong {
-    color: var(--color-primary);
-    font-size: 0.84rem;
-    font-weight: 950;
-    letter-spacing: 0.02em;
-  }
-
   .mobile-topbar-brand small {
-    max-width: 118px;
-    margin-top: 4px;
+    max-width: 72px;
+    margin-top: 0;
     color: var(--color-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.58rem;
+    font-size: 0.5rem;
     font-weight: 850;
     letter-spacing: 0.1em;
     text-transform: uppercase;

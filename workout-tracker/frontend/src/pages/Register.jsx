@@ -52,7 +52,7 @@ export default function Register({ onLogin }) {
 
   return (
     <div className="auth-page auth-register-page">
-      <div className="auth-logo">NEXT REPS</div>
+      <img className="auth-logo" src="/nextreps-logo.svg" alt="NEXT REPS" />
 
       <main className="auth-shell register-shell">
         <aside className="auth-copy">

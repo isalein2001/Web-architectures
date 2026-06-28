@@ -634,8 +634,7 @@ function AppLayout() {
       <div className="auth-page">
         <section className="auth-card">
           <div className="auth-brand">
-            <Activity size={24} />
-            <span>NEXT REPS</span>
+            <img src="/nextreps-logo.svg" alt="NEXT REPS" />
           </div>
           <h1>Loading</h1>
           <p>Checking your session.</p>
@@ -694,8 +693,7 @@ function AppLayout() {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
             <div className="sidebar-logo">
-              <Activity color="#C5FE00" size={28} />
-              <span>NEXT REPS</span>
+              <img src="/nextreps-logo.svg" alt="NEXT REPS" />
             </div>
           </NavLink>
           <div className="sidebar-subtitle">{t('Member').toUpperCase()}</div>
@@ -743,9 +741,8 @@ function AppLayout() {
         {!isLanding && (
           <header className="topbar">
             <NavLink to="/dashboard" className="mobile-topbar-brand" aria-label="NEXT REPS Dashboard">
-              <Activity color="#C5FE00" size={22} />
+              <img src="/nextreps-logo.svg" alt="NEXT REPS" />
               <span>
-                <strong>NEXT REPS</strong>
                 <small>{t(pageTitleKey)}</small>
               </span>
             </NavLink>

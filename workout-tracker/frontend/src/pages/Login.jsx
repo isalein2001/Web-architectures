@@ -29,7 +29,7 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="auth-page auth-login-page">
-      <div className="auth-logo">NEXT REPS</div>
+      <img className="auth-logo" src="/nextreps-logo.svg" alt="NEXT REPS" />
 
       <main className="auth-shell login-shell">
         <section className="auth-card login-card">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { Activity, ArrowRight, BarChart3, CalendarDays, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
 import './Landing.css';
 
 const reveal = {
@@ -65,8 +65,7 @@ export default function Landing({ currentUser }) {
 
       <header className="landing-nav" aria-label="Next Reps">
         <NavLink className="landing-brand" to="/">
-          <Activity size={23} />
-          <span>NEXT REPS</span>
+          <img src="/nextreps-logo.svg" alt="NEXT REPS" />
         </NavLink>
         <nav className="landing-nav-actions" aria-label="Landing navigation">
           <a href="#features">Features</a>
