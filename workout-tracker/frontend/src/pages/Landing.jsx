@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { Activity, ArrowRight, BarChart3, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
@@ -52,12 +52,18 @@ const scrollFrames = [
 ];
 
 export default function Landing({ currentUser }) {
+  const statementRef = useRef(null);
   const { scrollYProgress } = useScroll();
+  const { scrollYProgress: statementScrollProgress } = useScroll({
+    target: statementRef,
+    offset: ['start 68%', 'end 30%'],
+  });
   const heroImageY = useTransform(scrollYProgress, [0, 0.35], [0, 120]);
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
   const progressScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const faviconRotate = useTransform(scrollYProgress, [0, 1], [0, 1440]);
+  const faviconRotate = useTransform(statementScrollProgress, [0, 1], [0, 35]);
+  const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   return (
@@ -205,9 +211,10 @@ export default function Landing({ currentUser }) {
         </div>
       </section>
 
-      <section className="landing-brand-statement" aria-label="Why Next Reps">
+      <section className="landing-brand-statement" aria-label="Why Next Reps" ref={statementRef}>
         <motion.div
           className="landing-brand-statement-inner"
+          style={{ opacity: statementOpacity }}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.45 }}

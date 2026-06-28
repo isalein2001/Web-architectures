@@ -389,13 +389,14 @@
 
 .landing-brand-statement-inner {
   display: grid;
-  grid-template-columns: minmax(170px, 0.28fr) minmax(0, 1fr);
+  grid-template-columns: minmax(210px, 0.3fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(28px, 5vw, 68px);
+  gap: clamp(54px, 8vw, 112px);
   min-height: clamp(230px, 25vw, 340px);
-  padding: clamp(30px, 4vw, 48px) clamp(24px, 4.5vw, 58px);
+  padding: clamp(34px, 4vw, 52px) clamp(30px, 5vw, 70px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #020302;
+  overflow: hidden;
 }
 
 .landing-brand-emblem {
@@ -413,12 +414,12 @@
 }
 
 .landing-brand-statement p {
-  max-width: 860px;
+  max-width: 780px;
   margin: 0;
-  color: #ffffff;
-  font-size: clamp(1.05rem, 1.55vw, 1.46rem);
-  font-weight: 650;
-  line-height: 1.62;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: clamp(0.98rem, 1.28vw, 1.22rem);
+  font-weight: 430;
+  line-height: 1.78;
   letter-spacing: 0;
 }
 
@@ -761,22 +762,23 @@
 
   .landing-brand-statement-inner {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 26px;
     min-height: auto;
-    padding: 28px 20px;
+    padding: 34px 22px;
   }
 
   .landing-brand-emblem {
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .landing-brand-emblem img {
-    width: 132px;
+    width: min(220px, 62vw);
   }
 
   .landing-brand-statement p {
-    font-size: 1rem;
-    line-height: 1.62;
+    max-width: 100%;
+    font-size: 0.96rem;
+    line-height: 1.72;
   }
 
   .landing-feature {
