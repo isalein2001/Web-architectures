@@ -380,8 +380,8 @@
 }
 
 .landing-brand-statement {
-  padding-top: clamp(56px, 8vw, 110px);
-  padding-bottom: clamp(64px, 9vw, 124px);
+  padding-top: clamp(40px, 6vw, 82px);
+  padding-bottom: clamp(48px, 7vw, 92px);
   background:
     radial-gradient(circle at 12% 48%, rgba(197, 254, 0, 0.12), transparent 26%),
     #070807;
@@ -389,11 +389,11 @@
 
 .landing-brand-statement-inner {
   display: grid;
-  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+  grid-template-columns: minmax(170px, 0.28fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(42px, 7vw, 96px);
-  min-height: clamp(360px, 42vw, 520px);
-  padding: clamp(42px, 6vw, 76px) clamp(24px, 5vw, 72px);
+  gap: clamp(28px, 5vw, 68px);
+  min-height: clamp(230px, 25vw, 340px);
+  padding: clamp(30px, 4vw, 48px) clamp(24px, 4.5vw, 58px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #020302;
 }
@@ -408,16 +408,18 @@
   width: clamp(170px, 22vw, 320px);
   height: auto;
   filter: drop-shadow(0 24px 54px rgba(197, 254, 0, 0.18));
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 .landing-brand-statement p {
-  max-width: 980px;
+  max-width: 860px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(1.75rem, 3.2vw, 3.05rem);
-  font-weight: 520;
-  line-height: 1.36;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.05rem, 1.55vw, 1.46rem);
+  font-weight: 650;
+  line-height: 1.62;
+  letter-spacing: 0;
 }
 
 .landing-intro {
@@ -753,15 +755,15 @@
   }
 
   .landing-brand-statement {
-    padding-top: 58px;
-    padding-bottom: 74px;
+    padding-top: 42px;
+    padding-bottom: 58px;
   }
 
   .landing-brand-statement-inner {
     grid-template-columns: 1fr;
-    gap: 28px;
+    gap: 24px;
     min-height: auto;
-    padding: 34px 22px;
+    padding: 28px 20px;
   }
 
   .landing-brand-emblem {
@@ -773,8 +775,8 @@
   }
 
   .landing-brand-statement p {
-    font-size: clamp(1.34rem, 7vw, 2rem);
-    line-height: 1.35;
+    font-size: 1rem;
+    line-height: 1.62;
   }
 
   .landing-feature {

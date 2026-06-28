@@ -57,6 +57,7 @@ export default function Landing({ currentUser }) {
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
   const progressScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const faviconRotate = useTransform(scrollYProgress, [0, 1], [0, 1440]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   return (
@@ -214,7 +215,7 @@ export default function Landing({ currentUser }) {
           transition={{ duration: 0.65 }}
         >
           <div className="landing-brand-emblem">
-            <img src="/favicon.png?v=4" alt="" />
+            <motion.img src="/favicon.png?v=4" alt="" style={{ rotate: faviconRotate }} />
           </div>
           <p>
             Next Reps is built for people who want structure without slowing down their training.
