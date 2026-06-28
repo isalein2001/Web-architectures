@@ -147,10 +147,6 @@ export default function Landing({ currentUser }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.75, delay: 0.25 }}
           >
-            <div className="landing-hero-logo-mark" aria-hidden="true">
-              <img src="/nextreps-logo.svg" alt="" />
-            </div>
-
             <div className="landing-app-preview">
               <div className="landing-preview-label">In the app</div>
               <div className="landing-preview-head">
@@ -206,6 +202,27 @@ export default function Landing({ currentUser }) {
           <span>Scroll</span>
           <i />
         </div>
+      </section>
+
+      <section className="landing-brand-statement" aria-label="Why Next Reps">
+        <motion.div
+          className="landing-brand-statement-inner"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.45 }}
+          variants={reveal}
+          transition={{ duration: 0.65 }}
+        >
+          <div className="landing-brand-emblem">
+            <img src="/favicon.png?v=4" alt="" />
+          </div>
+          <p>
+            Next Reps is built for people who want structure without slowing down their training.
+            Create your plan, train from it, log the real numbers and come back to a dashboard that
+            actually remembers what changed. No scattered notes, no lost workouts, no guessing your
+            next move. Just every set, every session and every next rep in one clear system.
+          </p>
+        </motion.div>
       </section>
 
       <section className="landing-intro" id="features">

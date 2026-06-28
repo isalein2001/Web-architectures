@@ -115,23 +115,7 @@
 .landing-hero-side {
   display: grid;
   justify-items: end;
-  gap: 22px;
   padding-bottom: clamp(34px, 6vh, 78px);
-}
-
-.landing-hero-logo-mark {
-  display: flex;
-  justify-content: flex-end;
-  width: min(440px, 100%);
-  padding-right: 4px;
-}
-
-.landing-hero-logo-mark img {
-  display: block;
-  width: min(420px, 100%);
-  height: auto;
-  opacity: 0.92;
-  filter: drop-shadow(0 26px 46px rgba(0, 0, 0, 0.42));
 }
 
 .landing-eyebrow,
@@ -388,14 +372,56 @@
 }
 
 .landing-intro,
+.landing-brand-statement,
 .landing-scroll-story,
 .landing-proof,
 .landing-final {
   padding-inline: clamp(18px, 5vw, 72px);
 }
 
+.landing-brand-statement {
+  padding-top: clamp(56px, 8vw, 110px);
+  padding-bottom: clamp(64px, 9vw, 124px);
+  background:
+    radial-gradient(circle at 12% 48%, rgba(197, 254, 0, 0.12), transparent 26%),
+    #070807;
+}
+
+.landing-brand-statement-inner {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(42px, 7vw, 96px);
+  min-height: clamp(360px, 42vw, 520px);
+  padding: clamp(42px, 6vw, 76px) clamp(24px, 5vw, 72px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #020302;
+}
+
+.landing-brand-emblem {
+  display: grid;
+  place-items: center;
+}
+
+.landing-brand-emblem img {
+  display: block;
+  width: clamp(170px, 22vw, 320px);
+  height: auto;
+  filter: drop-shadow(0 24px 54px rgba(197, 254, 0, 0.18));
+}
+
+.landing-brand-statement p {
+  max-width: 980px;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(1.75rem, 3.2vw, 3.05rem);
+  font-weight: 520;
+  line-height: 1.36;
+  letter-spacing: -0.02em;
+}
+
 .landing-intro {
-  padding-top: clamp(110px, 14vw, 190px);
+  padding-top: clamp(86px, 11vw, 150px);
   padding-bottom: clamp(86px, 12vw, 156px);
 }
 
@@ -607,17 +633,7 @@
 
   .landing-hero-side {
     justify-items: stretch;
-    gap: 18px;
     padding-bottom: 0;
-  }
-
-  .landing-hero-logo-mark {
-    justify-content: flex-start;
-    width: 100%;
-  }
-
-  .landing-hero-logo-mark img {
-    width: min(280px, 72vw);
   }
 
   .landing-app-preview {
@@ -729,10 +745,36 @@
   }
 
   .landing-intro,
+  .landing-brand-statement,
   .landing-scroll-story,
   .landing-proof,
   .landing-final {
     padding-inline: 16px;
+  }
+
+  .landing-brand-statement {
+    padding-top: 58px;
+    padding-bottom: 74px;
+  }
+
+  .landing-brand-statement-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    min-height: auto;
+    padding: 34px 22px;
+  }
+
+  .landing-brand-emblem {
+    justify-content: flex-start;
+  }
+
+  .landing-brand-emblem img {
+    width: 132px;
+  }
+
+  .landing-brand-statement p {
+    font-size: clamp(1.34rem, 7vw, 2rem);
+    line-height: 1.35;
   }
 
   .landing-feature {
