@@ -3,8 +3,8 @@ self.addEventListener('push', (event) => {
   const title = payload.title || 'NEXT REPS';
   const options = {
     body: payload.body || 'There is a new NEXT REPS update.',
-    icon: '/favicon.svg?v=3',
-    badge: '/favicon.svg?v=3',
+    icon: '/favicon.png?v=4',
+    badge: '/favicon.png?v=4',
     data: {
       url: payload.url || '/dashboard',
     },

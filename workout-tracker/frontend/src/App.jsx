@@ -74,8 +74,8 @@ const triggerLocalTestNotification = async () => {
 
   new Notification('NEXT REPS Test', {
     body: 'Dies ist eine Test-Benachrichtigung für iOS.',
-    icon: '/favicon.svg?v=3',
-    badge: '/favicon.svg?v=3',
+    icon: '/favicon.png?v=4',
+    badge: '/favicon.png?v=4',
     tag: 'nextreps-test',
   });
 
