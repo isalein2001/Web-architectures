@@ -4,7 +4,7 @@ import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserDisplayName, getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
-import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle, Check } from 'lucide-react';
+import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   format, 
@@ -164,7 +164,6 @@ const createBackfillExerciseFromLabel = (label) => {
     repsBySet,
     weightsBySet: Array.from({ length: setCount }, () => ''),
     restBySet: Array.from({ length: setCount }, () => ''),
-    completedBySet: Array.from({ length: setCount }, () => false),
   };
 };
 
@@ -936,7 +935,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
           repsBySet: resizeSetValues(exercise.repsBySet, exercise.repsBySet?.[0] || '10'),
           weightsBySet: resizeSetValues(exercise.weightsBySet, ''),
           restBySet: resizeSetValues(exercise.restBySet, ''),
-          completedBySet: resizeSetValues(exercise.completedBySet, false),
         };
       })() : exercise
     )));
@@ -958,15 +956,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     }));
   };
 
-  const toggleBackfillSetComplete = (exerciseIndex, setIndex) => {
-    setBackfillExercises((currentExercises) => currentExercises.map((exercise, currentExerciseIndex) => {
-      if (currentExerciseIndex !== exerciseIndex) return exercise;
-      const nextCompleted = [...(exercise.completedBySet || [])];
-      nextCompleted[setIndex] = !nextCompleted[setIndex];
-      return { ...exercise, completedBySet: nextCompleted };
-    }));
-  };
-
   const addBackfillExercise = () => {
     setBackfillExercises((currentExercises) => [
       ...currentExercises,
@@ -976,7 +965,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         repsBySet: ['10', '10', '10'],
         weightsBySet: ['', '', ''],
         restBySet: ['', '', ''],
-        completedBySet: [false, false, false],
       },
     ]);
   };
@@ -1888,11 +1876,10 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                               <span>{t('REPS')}</span>
                               <span>{t('WEIGHT')}</span>
                               <span>{t('REST')}</span>
-                              <span>{t('DONE')}</span>
                             </div>
                             {Array.from({ length: Math.max(1, Math.min(20, Math.round(Number(exercise.sets) || 1))) }, (_, setIndex) => (
                               <div
-                                className={`backfill-set-log-row ${exercise.completedBySet?.[setIndex] ? 'completed' : ''}`}
+                                className="backfill-set-log-row"
                                 key={`${exercise.exercise_name}-${setIndex}`}
                               >
                                 <strong>{setIndex + 1}</strong>
@@ -1927,14 +1914,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                                     onChange={(event) => updateBackfillSet(index, setIndex, 'rest', event.target.value)}
                                   />
                                 </label>
-                                <button
-                                  type="button"
-                                  className={exercise.completedBySet?.[setIndex] ? 'done' : ''}
-                                  onClick={() => toggleBackfillSetComplete(index, setIndex)}
-                                  aria-label={t('DONE')}
-                                >
-                                  <Check size={16} />
-                                </button>
                               </div>
                             ))}
                           </div>

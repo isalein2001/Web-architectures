@@ -1288,7 +1288,7 @@
 .backfill-set-log-head,
 .backfill-set-log-row {
   display: grid;
-  grid-template-columns: 44px minmax(72px, 1fr) minmax(72px, 1fr) minmax(72px, 1fr) 44px;
+  grid-template-columns: 44px minmax(72px, 1fr) minmax(72px, 1fr) minmax(72px, 1fr);
   gap: 8px;
   align-items: center;
 }
@@ -1305,10 +1305,6 @@
   padding: 8px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.028);
-}
-
-.backfill-set-log-row.completed {
-  background: rgba(197, 254, 0, 0.06);
 }
 
 .backfill-set-log-row > strong {
@@ -1347,23 +1343,6 @@
   font-size: 0.95rem;
   font-weight: 850;
   outline: none;
-}
-
-.backfill-set-log-row button {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 50%;
-  color: #aaa;
-  background: rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-}
-
-.backfill-set-log-row button.done {
-  color: #050505;
-  background: var(--color-primary);
 }
 
 .backfill-row-remove {
@@ -2377,11 +2356,6 @@
 
   .backfill-set-log-row label:nth-of-type(3) {
     grid-column: 2 / 4;
-  }
-
-  .backfill-set-log-row button {
-    grid-column: 3 / 4;
-    justify-self: end;
   }
 
   .backfill-row-remove {
