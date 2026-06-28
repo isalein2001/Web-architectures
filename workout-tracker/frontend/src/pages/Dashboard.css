@@ -1362,7 +1362,9 @@
 .backfill-row-remove {
   display: grid;
   place-items: center;
+  justify-self: end;
   width: 34px;
+  min-width: 34px;
   height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
@@ -2347,8 +2349,7 @@
     text-align: left;
   }
 
-  .backfill-plan-row,
-  .backfill-active-heading {
+  .backfill-plan-row {
     grid-template-columns: 1fr;
   }
 
