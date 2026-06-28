@@ -4587,6 +4587,624 @@
   }
 }
 
+/* Final profile app cleanup override */
+.profile-main-column .account-panel,
+.profile-main-column .biometrics-panel,
+.profile-main-column .encryption-panel,
+.profile-panel.compact-panel {
+  padding: 20px;
+  border-radius: 14px;
+}
+
+.account-panel .profile-panel-heading,
+.biometrics-panel .profile-panel-heading,
+.profile-panel-heading {
+  margin-bottom: 16px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 20px;
+  min-height: 0;
+}
+
+.account-panel .profile-avatar-edit {
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.account-panel .profile-avatar-edit::before {
+  width: 106px;
+  height: 106px;
+  top: 6px;
+  opacity: 0.85;
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 92px;
+  height: 92px;
+}
+
+.account-panel .profile-avatar-face {
+  font-size: 1rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 28px);
+  top: 70px;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+}
+
+.account-panel .account-form-grid {
+  gap: 12px;
+}
+
+.account-panel .profile-form-field input,
+.profile-form-field input,
+.profile-form-field select,
+.account-email-row button {
+  height: 40px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row,
+.account-email-row {
+  gap: 10px;
+}
+
+.account-avatar-actions {
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.account-avatar-actions .account-footer-button {
+  min-height: 28px;
+  padding: 4px 2px;
+  font-size: 0.58rem;
+}
+
+.biometrics-panel .biometrics-grid {
+  grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(150px, 0.7fr));
+  gap: 12px;
+}
+
+.biometrics-panel .profile-form-field,
+.biometrics-panel .biometric-metric {
+  min-height: 94px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.biometrics-panel .biometric-number-pill {
+  min-height: 44px;
+}
+
+.biometrics-panel .biometric-number-pill input {
+  font-size: 1.2rem;
+}
+
+.biometrics-panel .bmi-control-row {
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.biometrics-panel .bmi-control-row p {
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel,
+  .profile-main-column .biometrics-panel,
+  .profile-main-column .encryption-panel,
+  .profile-panel.compact-panel {
+    padding: 16px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 76px;
+    height: 76px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 22px);
+    top: 54px;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .biometrics-panel .biometrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    max-width: none;
+    width: 100%;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    left: 38px;
+    transform: none;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 54px;
+  }
+
+  .account-avatar-actions {
+    align-items: flex-start;
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+/* Profile app polish pass: calmer hierarchy and denser mobile layout */
+.profile-page {
+  padding-top: clamp(18px, 3vw, 34px);
+}
+
+.profile-hero {
+  margin-bottom: 18px;
+}
+
+.profile-hero h1 {
+  font-size: clamp(2.25rem, 5vw, 4.4rem);
+  line-height: 0.95;
+}
+
+.profile-hero p {
+  max-width: 520px;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.profile-settings-grid {
+  gap: 18px;
+}
+
+.profile-panel,
+.compact-panel,
+.profile-main-column .profile-panel,
+.profile-main-column .account-panel,
+.profile-main-column .biometrics-panel {
+  padding: 20px;
+  border-radius: 14px;
+}
+
+.profile-panel-heading,
+.account-panel .profile-panel-heading,
+.biometrics-panel .profile-panel-heading {
+  min-height: 34px;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.profile-heading-icon,
+.account-panel .profile-heading-icon,
+.biometrics-panel .profile-heading-icon,
+.watch-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.profile-panel-heading h2,
+.account-panel .profile-panel-heading h2,
+.biometrics-panel .profile-panel-heading h2,
+.watch-panel h2 {
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-content: flex-start;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.account-panel .profile-avatar-edit::before {
+  width: 106px;
+  height: 106px;
+  top: 6px;
+  filter: blur(8px);
+  opacity: 0.85;
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 92px;
+  height: 92px;
+}
+
+.account-panel .profile-avatar-face {
+  font-size: 1rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 28px);
+  top: 70px;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+}
+
+.account-avatar-actions {
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.account-avatar-actions .account-footer-button {
+  min-height: 28px;
+  padding: 4px 2px;
+  font-size: 0.58rem;
+}
+
+.account-panel .account-form-grid {
+  gap: 12px;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 10px;
+}
+
+.account-panel .profile-form-field,
+.biometrics-panel .profile-form-field,
+.biometric-metric {
+  gap: 6px;
+}
+
+.account-panel .profile-form-field span,
+.biometrics-panel .profile-form-field span,
+.biometric-metric > span {
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+}
+
+.account-panel .profile-form-field input,
+.profile-form-field input,
+.profile-form-field select,
+.account-email-row button {
+  height: 40px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.account-email-row {
+  gap: 8px;
+}
+
+.account-email-row button {
+  min-width: 118px;
+  padding-inline: 12px;
+  font-size: 0.58rem;
+}
+
+.account-save-actions {
+  padding-top: 4px;
+}
+
+.account-panel .account-save-button,
+.biometrics-save-button,
+.profile-danger-action,
+.profile-watch-sync-action {
+  min-height: 34px;
+  padding: 0 13px;
+  font-size: 0.58rem;
+}
+
+.biometrics-panel .biometrics-grid {
+  grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(150px, 0.7fr));
+  gap: 12px;
+}
+
+.biometrics-panel .profile-form-field,
+.biometrics-panel .biometric-metric {
+  min-height: 94px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.biometrics-panel .biometric-segment-control {
+  min-height: 42px;
+}
+
+.biometrics-panel .biometric-segment-control button {
+  font-size: 0.58rem;
+}
+
+.biometrics-panel .biometric-number-pill {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+}
+
+.biometrics-panel .biometric-number-pill input {
+  font-size: 1.2rem;
+}
+
+.biometrics-panel .bmi-control-row {
+  grid-template-columns: 48px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.biometrics-panel .bmi-info-button {
+  width: 44px;
+  height: 44px;
+}
+
+.biometrics-panel .bmi-control-row h3 {
+  margin-bottom: 4px;
+  font-size: 0.58rem;
+}
+
+.biometrics-panel .bmi-control-row p {
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+}
+
+.biometrics-panel .bmi-result-pill {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.54rem;
+}
+
+.alerts-panel,
+.watch-panel {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.alerts-panel .profile-toggle-row {
+  min-height: 54px;
+  padding: 8px 0;
+}
+
+.profile-toggle-row h3 {
+  font-size: 0.72rem;
+}
+
+.profile-toggle-row p,
+.watch-panel p {
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.watch-card-topline {
+  margin-bottom: 2px;
+}
+
+.watch-panel h2 {
+  font-size: 1.02rem;
+}
+
+.watch-metrics {
+  gap: 8px;
+}
+
+.encryption-panel {
+  min-height: 0;
+}
+
+.encryption-copy h2 {
+  font-size: clamp(1.25rem, 2.6vw, 2.15rem);
+}
+
+@media (max-width: 760px) {
+  .profile-page {
+    padding-top: 8px;
+  }
+
+  .profile-hero {
+    margin-bottom: 14px;
+  }
+
+  .profile-hero h1 {
+    font-size: clamp(2rem, 12vw, 3.15rem);
+  }
+
+  .profile-hero p {
+    font-size: 0.76rem;
+  }
+
+  .profile-settings-grid {
+    gap: 12px;
+  }
+
+  .profile-panel,
+  .compact-panel,
+  .profile-main-column .profile-panel,
+  .profile-main-column .account-panel,
+  .profile-main-column .biometrics-panel {
+    padding: 16px;
+  }
+
+  .account-panel .profile-panel-heading,
+  .biometrics-panel .profile-panel-heading,
+  .profile-panel-heading {
+    margin-bottom: 12px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .account-panel .profile-avatar-edit {
+    gap: 8px;
+    padding-top: 0;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    width: 86px;
+    height: 86px;
+    top: 0;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 76px;
+    height: 76px;
+  }
+
+  .account-panel .profile-avatar-face {
+    font-size: 0.82rem;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: calc(50% + 22px);
+    top: 54px;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+  }
+
+  .account-avatar-actions {
+    margin-top: 2px;
+    padding-top: 4px;
+  }
+
+  .account-avatar-actions .account-footer-button {
+    min-height: 22px;
+    font-size: 0.5rem;
+    line-height: 1.1;
+  }
+
+  .account-panel .account-form-grid {
+    gap: 10px;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .account-panel .profile-form-field input,
+  .profile-form-field input,
+  .profile-form-field select,
+  .account-email-row button {
+    height: 38px;
+  }
+
+  .account-email-row button,
+  .account-panel .account-save-button {
+    width: 100%;
+  }
+
+  .biometrics-panel .biometrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .biometrics-panel .profile-form-field,
+  .biometrics-panel .biometric-metric {
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .biometrics-panel .bmi-control-row {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .biometrics-panel .bmi-info-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .biometrics-panel .bmi-result-pill {
+    grid-column: 2 / 4;
+    justify-self: start;
+  }
+
+  .biometrics-panel .profile-mini-toggle {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .alerts-panel .profile-toggle-row {
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 430px) {
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-panel .profile-avatar-edit {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    justify-items: start;
+    align-items: center;
+    max-width: none;
+    width: 100%;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    left: 38px;
+    transform: none;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 54px;
+  }
+
+  .account-avatar-actions {
+    align-items: flex-start;
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
 /* Account profile final alignment pass */
 .account-panel .account-profile-body {
   grid-template-columns: 300px minmax(0, 1fr);
