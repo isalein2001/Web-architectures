@@ -62,7 +62,7 @@ export default function Landing({ currentUser }) {
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
   const progressScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const faviconRotate = useTransform(statementScrollProgress, [0, 1], [0, 35]);
+  const faviconRotate = useTransform(statementScrollProgress, [0, 1], [0, 42]);
   const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
