@@ -20,7 +20,6 @@ import { de } from 'date-fns/locale';
 import './Dashboard.css';
 
 const MotionDiv = motion.div;
-const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 const DAILY_STEP_GOAL_STORAGE_KEY = 'dailyStepGoal';
 const DAILY_CALORIE_GOAL_STORAGE_KEY = 'dailyCalorieGoal';
@@ -153,14 +152,6 @@ const mapBackendPlanToCalendarWorkout = (plan) => {
   };
 };
 
-const mergeCalendarWorkouts = (localWorkouts = [], backendWorkouts = []) => {
-  const backendIds = new Set(backendWorkouts.map((workout) => workout.backendPlanId));
-  const localOnlyWorkouts = localWorkouts.filter((workout) =>
-    !workout.backendPlanId || !backendIds.has(workout.backendPlanId)
-  );
-  return [...backendWorkouts, ...localOnlyWorkouts];
-};
-
 const idsMatch = (left, right) => String(left ?? '') === String(right ?? '');
 
 const mergeScheduleWithSessions = (schedule = {}, sessionList = []) => {
@@ -274,7 +265,6 @@ function AnimatedMedal() {
 export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
-  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const hydrationGoalStorageKey = getUserStorageKey('hydrationGoalLiters', currentUser);
   const appleWatchConnectedStorageKey = getUserStorageKey('appleWatchConnected', currentUser);
@@ -287,7 +277,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [sessions, setSessions] = useState(() => loadStoredWorkoutSessions(currentUser));
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
-  const [customWorkouts, setCustomWorkouts] = useState(() => loadJsonFromStorage(customPlansStorageKey, []));
+  const [customWorkouts, setCustomWorkouts] = useState([]);
   const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
@@ -373,18 +363,15 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   });
 
   const refreshCalendarWorkouts = async () => {
-    const localWorkouts = loadJsonFromStorage(customPlansStorageKey, []);
-
     try {
       const backendPlans = await api.getPlans();
-      const backendWorkouts = (Array.isArray(backendPlans) ? backendPlans : []).map(mapBackendPlanToCalendarWorkout);
-      const mergedWorkouts = mergeCalendarWorkouts(localWorkouts, backendWorkouts);
-      setCustomWorkouts(mergedWorkouts);
-      window.localStorage.setItem(customPlansStorageKey, JSON.stringify(mergedWorkouts));
-      return mergedWorkouts;
+      const backendWorkouts = (Array.isArray(backendPlans) ? backendPlans : [])
+        .map(mapBackendPlanToCalendarWorkout);
+      setCustomWorkouts(backendWorkouts);
+      return backendWorkouts;
     } catch {
-      setCustomWorkouts(localWorkouts);
-      return localWorkouts;
+      setCustomWorkouts([]);
+      return [];
     }
   };
 
@@ -534,7 +521,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     setDailyGoals(nextDailyGoals);
     setDraftDailyGoals(nextDailyGoals);
   }, [
-    customPlansStorageKey,
     workoutScheduleStorageKey,
     hydrationGoalStorageKey,
     dailyStepGoalStorageKey,
@@ -565,7 +551,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       window.removeEventListener('workout-session-saved', refreshWorkoutPlannerData);
       window.removeEventListener('workout-plans-changed', refreshWorkoutPlannerData);
     };
-  }, [customPlansStorageKey, workoutScheduleStorageKey, sessions]);
+  }, [workoutScheduleStorageKey, sessions]);
 
   useEffect(() => {
     if (!isHydrationModalOpen) return undefined;

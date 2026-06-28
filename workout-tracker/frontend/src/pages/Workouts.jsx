@@ -58,22 +58,12 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
 }, {});
 
 const initialExercises = [];
-const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 const MAX_COVER_IMAGE_WIDTH = 640;
 const MIN_COVER_IMAGE_WIDTH = 260;
 const COVER_IMAGE_QUALITY = 0.68;
 const MIN_COVER_IMAGE_QUALITY = 0.38;
 const MAX_COVER_DATA_URL_LENGTH = 52000;
-
-const loadSavedWorkoutPlans = (storageKey) => {
-  try {
-    const savedPlans = window.localStorage.getItem(storageKey);
-    return savedPlans ? JSON.parse(savedPlans) : [];
-  } catch {
-    return [];
-  }
-};
 
 const emptyExercise = () => ({
   id: Date.now() + Math.random(),
@@ -98,7 +88,7 @@ const normalizeSetReps = (exercise) => {
   return Array.from({ length: setCount }, (_, index) => currentSetReps[index] ?? fallbackReps);
 };
 
-const mapBackendPlanToSavedPlan = (plan, localPlan = null) => {
+const mapBackendPlanToSavedPlan = (plan) => {
   const formattedExercises = (plan.exercises || []).map((exercise) =>
     `${exercise.exercise_name} (${exercise.target_sets || 1}x${exercise.target_reps || ''})`
   );
@@ -108,8 +98,8 @@ const mapBackendPlanToSavedPlan = (plan, localPlan = null) => {
     backendPlanId: plan.id,
     title: plan.name,
     badge: 'SAVED PLAN',
-    image: plan.image || localPlan?.image || '/hero-bg.jpg',
-    iconKey: plan.icon_key || localPlan?.iconKey || 'dumbbell',
+    image: plan.image || '/hero-bg.jpg',
+    iconKey: plan.icon_key || 'dumbbell',
     builderExercises: (plan.exercises || []).map((exercise) => ({
       id: exercise.id || Date.now() + Math.random(),
       name: exercise.exercise_name,
@@ -229,7 +219,6 @@ const buildScheduleEntryFromSavedPlan = (plan) => ({
 export default function Workouts({ currentUser }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState(initialExercises);
@@ -241,7 +230,7 @@ export default function Workouts({ currentUser }) {
   const [isCoverProcessing, setIsCoverProcessing] = useState(false);
   const [workoutSaveStatus, setWorkoutSaveStatus] = useState('');
   const [selectedIconKey, setSelectedIconKey] = useState('dumbbell');
-  const [savedPlans, setSavedPlans] = useState(() => loadSavedWorkoutPlans(customPlansStorageKey));
+  const [savedPlans, setSavedPlans] = useState([]);
   const [editingPlanId, setEditingPlanId] = useState(null);
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
@@ -254,31 +243,16 @@ export default function Workouts({ currentUser }) {
   const refreshBackendPlans = () => {
     return api.getPlans()
       .then((plans) => {
-        setSavedPlans((currentPlans) => {
-          const backendPlans = plans.map((plan) => {
-            const localPlan = currentPlans.find((currentPlan) => currentPlan.backendPlanId === plan.id);
-            return mapBackendPlanToSavedPlan(plan, localPlan);
-          });
-          const localOnlyPlans = currentPlans.filter((plan) =>
-            !plan.backendPlanId || !backendPlans.some((backendPlan) => backendPlan.backendPlanId === plan.backendPlanId)
-          );
-          return [...backendPlans, ...localOnlyPlans];
-        });
+        setSavedPlans((Array.isArray(plans) ? plans : []).map(mapBackendPlanToSavedPlan));
       })
-      .catch(() => null);
+      .catch((error) => {
+        setWorkoutSaveStatus(t(error.message || 'Could not load workouts from the backend.'));
+      });
   };
 
   useEffect(() => {
-    window.localStorage.setItem(customPlansStorageKey, JSON.stringify(savedPlans));
-  }, [savedPlans, customPlansStorageKey]);
-
-  useEffect(() => {
-    setSavedPlans(loadSavedWorkoutPlans(customPlansStorageKey));
-  }, [customPlansStorageKey]);
-
-  useEffect(() => {
     refreshBackendPlans();
-  }, [customPlansStorageKey]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !currentUser) return undefined;
@@ -291,7 +265,7 @@ export default function Workouts({ currentUser }) {
     return () => {
       events.close();
     };
-  }, [currentUser, customPlansStorageKey]);
+  }, [currentUser?.id]);
 
   const updateExercise = (id, field, value) => {
     setValidationErrors((currentErrors) => ({
@@ -479,7 +453,6 @@ export default function Workouts({ currentUser }) {
       return;
     }
 
-    const formattedExercises = enteredExercises.map(formatExerciseSummary);
     const planPayload = {
       name: workoutName.trim().toUpperCase(),
       description: t('CUSTOM PLAN'),
@@ -514,23 +487,7 @@ export default function Workouts({ currentUser }) {
       }
     }
 
-    const savedPlan = {
-      id: editingPlanId || persistedPlan?.id || `custom-${Date.now()}`,
-      backendPlanId: persistedPlan?.id || editingPlan?.backendPlanId || null,
-      title: workoutName.trim().toUpperCase(),
-      badge: t('CUSTOM PLAN'),
-      image: planImage,
-      iconKey: selectedIconKey,
-      builderExercises: enteredExercises.map((exercise) => ({
-        ...exercise,
-        setReps: normalizeSetReps(exercise),
-        id: Date.now() + Math.random(),
-      })),
-      exercises: formattedExercises.slice(0, 3),
-      extraExercises: formattedExercises.slice(3),
-      more: formattedExercises.length > 3 ? `+ ${formattedExercises.length - 3} ${t('MORE EXERCISES')}` : '',
-      editable: true,
-    };
+    const savedPlan = mapBackendPlanToSavedPlan(persistedPlan);
 
     setSavedPlans((currentPlans) => {
       if (editingPlanId) {
@@ -560,6 +517,7 @@ export default function Workouts({ currentUser }) {
     }
 
     window.dispatchEvent(new CustomEvent('workout-plans-changed'));
+    refreshBackendPlans();
     resetBuilder();
   };
 

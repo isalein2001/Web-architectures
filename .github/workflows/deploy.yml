@@ -64,11 +64,11 @@ jobs:
             echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
             npm ci --omit=dev
             
-            echo "Generiere Prisma-Client..."
-            npx prisma generate
-            
             echo "Führe Datenbank-Migrationen aus (migrate deploy)..."
-            npx prisma migrate deploy
+            npx prisma migrate deploy --schema=prisma/schema.prisma
+
+            echo "Generiere Prisma-Client passend zum aktuellen Schema..."
+            npx prisma generate --schema=prisma/schema.prisma
             
             echo "Erzeuge Restart-Trigger für die Node.js-App..."
             mkdir -p tmp

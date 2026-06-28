@@ -7,7 +7,6 @@ import { getUserStorageKey, upsertStoredWorkoutSession } from '../userStorage';
 import { queueWorkoutSession } from '../workoutSync';
 import './WorkoutLogger.css';
 
-const CUSTOM_WORKOUT_PLANS_STORAGE_KEY = 'customWorkoutPlans';
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 const SELECTED_WORKOUT_STORAGE_KEY = 'selectedWorkoutToStart';
 
@@ -156,12 +155,6 @@ const normalizePlan = (plan, source = 'custom') => {
   };
 };
 
-const mergeAvailablePlans = (localPlans = [], backendPlans = [], readyPlans = []) => {
-  const backendPlanIds = new Set(backendPlans.map((plan) => plan.planId).filter(Boolean));
-  const localOnlyPlans = localPlans.filter((plan) => !plan.planId || !backendPlanIds.has(plan.planId));
-  return [...backendPlans, ...localOnlyPlans, ...readyPlans].filter(Boolean);
-};
-
 const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
   Array.from({ length: exercise.sets || 1 }, (_, index) => ({
     id: `${exercise.name}-${index}-${Date.now()}-${Math.random()}`,
@@ -220,7 +213,6 @@ export default function WorkoutLogger({ currentUser }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const initialSelectedPlan = useMemo(() => {
     const selectedPlan = location.state?.plan || loadJson(SELECTED_WORKOUT_STORAGE_KEY, null);
@@ -265,8 +257,6 @@ export default function WorkoutLogger({ currentUser }) {
   }, [t]);
 
   useEffect(() => {
-    const customPlans = loadJson(customPlansStorageKey, []).map((plan) => normalizePlan(plan, 'custom'));
-
     api.getPlans()
       .then((backendPlans) => {
         const normalizedBackendPlans = backendPlans.map((plan) => normalizePlan({
@@ -279,19 +269,17 @@ export default function WorkoutLogger({ currentUser }) {
           exercises: plan.exercises?.map((exercise) => `${exercise.exercise_name} (${exercise.target_sets || 1}x${exercise.target_reps || ''})`) || [],
         }, 'backend'));
 
-        setAvailablePlans(mergeAvailablePlans(
-          customPlans,
-          normalizedBackendPlans,
-          readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready'))
-        ));
+        setAvailablePlans([
+          ...normalizedBackendPlans,
+          ...readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready')),
+        ].filter(Boolean));
       })
       .catch(() => {
         setAvailablePlans([
-          ...customPlans,
           ...readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready')),
         ].filter(Boolean));
       });
-  }, [customPlansStorageKey]);
+  }, []);
 
   useEffect(() => {
     window.sessionStorage.removeItem(SELECTED_WORKOUT_STORAGE_KEY);
