@@ -1234,113 +1234,128 @@
 
 .backfill-exercise-list {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .backfill-active-card {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 11px;
+  padding: 13px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.025);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.018));
 }
 
 .backfill-active-heading {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 76px 38px;
-  gap: 10px;
-  align-items: end;
+  grid-template-columns: 22px minmax(0, 1fr) 58px 34px;
+  gap: 9px;
+  align-items: center;
   color: var(--color-primary);
+}
+
+.backfill-active-heading > svg {
+  align-self: center;
 }
 
 .backfill-active-heading label {
   display: grid;
-  gap: 7px;
+  gap: 4px;
 }
 
 .backfill-active-heading span {
   color: #858585;
-  font-size: 0.62rem;
+  font-size: 0.54rem;
   font-weight: 950;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .backfill-active-heading input {
   width: 100%;
-  min-height: 44px;
+  min-height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0 13px;
+  border-radius: 10px;
+  padding: 0 10px;
   color: #fff;
   background: rgba(255, 255, 255, 0.045);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 850;
   outline: none;
+}
+
+.backfill-exercise-title input {
+  border-color: transparent;
+  padding: 0;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.backfill-set-count input {
+  color: var(--color-primary);
+  text-align: center;
+  background: rgba(197, 254, 0, 0.07);
 }
 
 .backfill-set-log-table {
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .backfill-set-log-head,
 .backfill-set-log-row {
   display: grid;
-  grid-template-columns: 44px minmax(72px, 1fr) minmax(72px, 1fr) minmax(72px, 1fr);
-  gap: 8px;
+  grid-template-columns: 34px repeat(3, minmax(0, 1fr));
+  gap: 6px;
   align-items: center;
 }
 
 .backfill-set-log-head {
-  color: #777;
-  font-size: 0.58rem;
-  font-weight: 900;
+  padding: 0 7px;
+  color: #707070;
+  font-size: 0.52rem;
+  font-weight: 950;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .backfill-set-log-row {
-  padding: 8px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.028);
+  padding: 6px;
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.24);
 }
 
 .backfill-set-log-row > strong {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 38px;
-  border-radius: 10px;
+  width: 30px;
+  height: 32px;
+  border-radius: 9px;
   color: var(--color-primary);
-  background: rgba(255, 255, 255, 0.04);
-  font-size: 0.9rem;
+  background: rgba(197, 254, 0, 0.08);
+  font-size: 0.78rem;
   font-weight: 950;
 }
 
 .backfill-set-log-row label {
   display: grid;
-  gap: 5px;
 }
 
 .backfill-set-log-row label span {
-  color: #777;
-  font-size: 0.54rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: none;
 }
 
 .backfill-set-log-row input {
   width: 100%;
-  height: 38px;
+  height: 32px;
   border: 0;
-  border-radius: 10px;
-  padding: 0 10px;
+  border-radius: 9px;
+  padding: 0 8px;
   color: #fff;
-  background: #0e0e0e;
-  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 0.84rem;
   font-weight: 850;
   outline: none;
 }
@@ -1348,10 +1363,10 @@
 .backfill-row-remove {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 44px;
+  width: 34px;
+  height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 10px;
   color: #aaa;
   background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
@@ -2339,27 +2354,29 @@
   }
 
   .backfill-active-heading {
-    align-items: stretch;
+    grid-template-columns: 22px minmax(0, 1fr) 54px 34px;
+    align-items: center;
   }
 
-  .backfill-set-count {
-    max-width: none;
-  }
-
-  .backfill-set-log-head {
+  .backfill-exercise-title span,
+  .backfill-set-count span {
     display: none;
   }
 
+  .backfill-set-log-head {
+    display: grid;
+  }
+
   .backfill-set-log-row {
-    grid-template-columns: 38px 1fr 1fr;
+    grid-template-columns: 32px repeat(3, minmax(0, 1fr));
   }
 
   .backfill-set-log-row label:nth-of-type(3) {
-    grid-column: 2 / 4;
+    grid-column: auto;
   }
 
   .backfill-row-remove {
-    width: 100%;
+    width: 34px;
   }
 
   .backfill-add-exercise {

@@ -1840,7 +1840,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                         <section className="backfill-active-card" key={`${index}-${exercise.exercise_name}`}>
                           <div className="backfill-active-heading">
                             <Dumbbell size={18} />
-                            <label>
+                            <label className="backfill-exercise-title">
                               <span>{t('EXERCISE')}</span>
                               <input
                                 type="text"
