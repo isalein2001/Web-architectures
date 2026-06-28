@@ -88,6 +88,18 @@ jobs:
             echo "server_start_exit=$?"
             echo
 
+            echo "=== persistent manual start ==="
+            pkill -u "$(whoami)" -f "node server.js" 2>/dev/null || true
+            mkdir -p tmp
+            nohup node server.js > ~/log.txt 2>&1 < /dev/null &
+            echo $! > tmp/manual-node.pid
+            sleep 3
+            echo "manual_pid=$(cat tmp/manual-node.pid 2>/dev/null || true)"
+            ps -f -p "$(cat tmp/manual-node.pid 2>/dev/null)" 2>&1 || true
+            echo "localhost_check:"
+            curl -i -s http://127.0.0.1:3000/ | head -40
+            echo
+
             echo "=== restart trigger ==="
             mkdir -p tmp
             touch tmp/restart.txt
