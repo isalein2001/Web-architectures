@@ -1176,8 +1176,8 @@
   .topbar {
     left: 0;
     top: 0;
-    height: calc(62px + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) 14px 0;
+    height: calc(72px + env(safe-area-inset-top));
+    padding: calc(env(safe-area-inset-top) + 8px) 14px 0;
     border-bottom-color: rgba(255,255,255,0.07);
     background: #0E0E0E;
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
@@ -1217,7 +1217,7 @@
 
   .mobile-topbar-brand small {
     max-width: 72px;
-    margin-top: 0;
+    margin-top: 2px;
     color: var(--color-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1451,8 +1451,8 @@
   }
 
   .main-content {
-    margin-top: calc(62px + env(safe-area-inset-top));
-    min-height: calc(100vh - 62px - env(safe-area-inset-top));
+    margin-top: calc(72px + env(safe-area-inset-top));
+    min-height: calc(100vh - 72px - env(safe-area-inset-top));
     padding: 16px 12px calc(104px + env(safe-area-inset-bottom));
   }
 
@@ -1494,7 +1494,7 @@
 
 @media (max-width: 520px) {
   .topbar {
-    padding: env(safe-area-inset-top) 12px 0;
+    padding: calc(env(safe-area-inset-top) + 8px) 12px 0;
   }
 
   .mobile-topbar-brand small {

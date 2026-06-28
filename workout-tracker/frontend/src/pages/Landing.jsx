@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { Activity, ArrowRight, BarChart3, CalendarDays, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
 import './Landing.css';
 
 const reveal = {
@@ -84,87 +84,122 @@ export default function Landing({ currentUser }) {
           <div className="landing-hero-overlay" />
         </motion.div>
 
-        <motion.div className="landing-hero-content" style={{ y: heroCopyY, opacity: heroOpacity }}>
-          <motion.span
-            className="landing-eyebrow"
-            initial="hidden"
-            animate="visible"
-            variants={reveal}
-            transition={{ duration: 0.55 }}
-          >
-            Workout planner + training tracker
-          </motion.span>
-          <motion.h1
-            initial="hidden"
-            animate="visible"
-            variants={reveal}
-            transition={{ duration: 0.65, delay: 0.08 }}
-          >
-            Build your plan. Log your sets. See your progress.
-          </motion.h1>
-          <motion.p
-            initial="hidden"
-            animate="visible"
-            variants={reveal}
-            transition={{ duration: 0.65, delay: 0.16 }}
-          >
-            Next Reps helps you create workout plans, track reps and weights, connect daily activity and understand your training progress in one place.
-          </motion.p>
-          <motion.div
-            className="landing-hero-actions"
-            initial="hidden"
-            animate="visible"
-            variants={reveal}
-            transition={{ duration: 0.65, delay: 0.24 }}
-          >
-            <NavLink className="landing-primary-button" to={primaryCta}>
-              {currentUser ? 'Open Dashboard' : 'Create Your Workout'}
-              <ArrowRight size={18} />
-            </NavLink>
-            {currentUser ? (
-              <a className="landing-secondary-button" href="#features">Explore the App</a>
-            ) : (
-              <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>Login</NavLink>
-            )}
+        <div className="landing-hero-layout">
+          <motion.div className="landing-hero-content" style={{ y: heroCopyY, opacity: heroOpacity }}>
+            <motion.span
+              className="landing-eyebrow"
+              initial="hidden"
+              animate="visible"
+              variants={reveal}
+              transition={{ duration: 0.55 }}
+            >
+              Workout planner + training tracker
+            </motion.span>
+            <motion.h1
+              initial="hidden"
+              animate="visible"
+              variants={reveal}
+              transition={{ duration: 0.65, delay: 0.08 }}
+            >
+              Build your plan. Log your sets. See your progress.
+            </motion.h1>
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={reveal}
+              transition={{ duration: 0.65, delay: 0.16 }}
+            >
+              Next Reps helps you create workout plans, track reps and weights, connect daily activity and understand your training progress in one place.
+            </motion.p>
+            <motion.div
+              className="landing-hero-actions"
+              initial="hidden"
+              animate="visible"
+              variants={reveal}
+              transition={{ duration: 0.65, delay: 0.24 }}
+            >
+              <NavLink className="landing-primary-button" to={primaryCta}>
+                {currentUser ? 'Open Dashboard' : 'Create Your Workout'}
+                <ArrowRight size={18} />
+              </NavLink>
+              {currentUser ? (
+                <a className="landing-secondary-button" href="#features">Explore the App</a>
+              ) : (
+                <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>Login</NavLink>
+              )}
+            </motion.div>
+            <motion.div
+              className="landing-hero-steps"
+              initial="hidden"
+              animate="visible"
+              variants={reveal}
+              transition={{ duration: 0.65, delay: 0.3 }}
+            >
+              <span><Dumbbell size={15} /> Plan workouts</span>
+              <span><PlayCircle size={15} /> Log every set</span>
+              <span><BarChart3 size={15} /> Read progress</span>
+            </motion.div>
           </motion.div>
-          <motion.div
-            className="landing-hero-points"
-            initial="hidden"
-            animate="visible"
-            variants={reveal}
-            transition={{ duration: 0.65, delay: 0.3 }}
+
+          <motion.aside
+            className="landing-hero-side"
+            initial={{ opacity: 0, x: 36 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, delay: 0.25 }}
           >
-            <span><Dumbbell size={15} /> Custom workout plans</span>
-            <span><CalendarDays size={15} /> Calendar + backfill logging</span>
-            <span><BarChart3 size={15} /> Analytics and achievements</span>
-          </motion.div>
-        </motion.div>
+            <div className="landing-hero-logo-mark" aria-hidden="true">
+              <img src="/nextreps-logo.svg" alt="" />
+            </div>
+
+            <div className="landing-app-preview">
+              <div className="landing-preview-label">In the app</div>
+              <div className="landing-preview-head">
+                <span>Live workout preview</span>
+                <strong>Push Strength</strong>
+              </div>
+              <p className="landing-preview-copy">
+                Pick a saved plan, enter your real reps and weights, then see the session in your calendar and analytics.
+              </p>
+              <div className="landing-preview-workout">
+                <span>Planned exercise</span>
+                <strong>Bench Press · 4 sets</strong>
+              </div>
+              <div className="landing-preview-workout">
+                <span>Progress captured</span>
+                <strong>Shoulder Press · +2.5 kg PR</strong>
+              </div>
+              <div className="landing-preview-metrics">
+                <span><b>7</b> day streak</span>
+                <span><b>12</b> workouts</span>
+                <span><b>+8%</b> volume</span>
+              </div>
+              <small>Plan, log and review without leaving the app.</small>
+            </div>
+          </motion.aside>
+        </div>
 
         <motion.div
-          className="landing-app-preview"
-          initial={{ opacity: 0, y: 36 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, delay: 0.38 }}
+          className="landing-hero-foundation"
+          initial="hidden"
+          animate="visible"
+          variants={reveal}
+          transition={{ duration: 0.65, delay: 0.42 }}
         >
-          <div className="landing-phone-bar" />
-          <div className="landing-preview-head">
-            <span>Today</span>
-            <strong>Push Strength</strong>
+          <div>
+            <span>01</span>
+            <strong>Create a workout plan</strong>
+            <p>Choose exercises, planned reps and a cover image.</p>
           </div>
-          <div className="landing-preview-workout">
-            <span>Bench Press</span>
-            <strong>4 sets · 8/8/6/6 reps</strong>
+          <div>
+            <span>02</span>
+            <strong>Train or log later</strong>
+            <p>Use the live logger or add yesterday's session.</p>
           </div>
-          <div className="landing-preview-workout">
-            <span>Shoulder Press</span>
-            <strong>3 sets · +2.5 kg PR</strong>
+          <div>
+            <span>03</span>
+            <strong>Understand progress</strong>
+            <p>Dashboard, calendar and analytics update together.</p>
           </div>
-          <div className="landing-preview-metrics">
-            <span><b>7</b> day streak</span>
-            <span><b>12</b> workouts</span>
-            <span><b>+8%</b> volume</span>
-          </div>
-          <small>Plan, log and review without leaving the app.</small>
         </motion.div>
 
         <div className="landing-scroll-cue">
