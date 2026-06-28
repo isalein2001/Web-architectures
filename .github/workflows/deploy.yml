@@ -60,6 +60,18 @@ jobs:
         run: |
           sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
             cd ~/workout-tracker
+
+            if [ ! -f .env ]; then
+              echo "Erzeuge fehlende .env-Datei auf dem Server..."
+              JWT_SECRET_VALUE="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
+              {
+                echo 'DATABASE_URL="file:./database.sqlite"'
+                echo "JWT_SECRET=\"$JWT_SECRET_VALUE\""
+                echo 'APP_URL="https://next-reps.de"'
+                echo 'NODE_ENV="production"'
+              } > .env
+              chmod 600 .env
+            fi
             
             echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
             npm ci --omit=dev

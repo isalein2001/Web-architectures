@@ -43,6 +43,22 @@ jobs:
             ls -la
             echo
 
+            echo "=== ensure .env ==="
+            if [ ! -f .env ]; then
+              echo "creating missing .env"
+              JWT_SECRET_VALUE="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
+              {
+                echo 'DATABASE_URL="file:./database.sqlite"'
+                echo "JWT_SECRET=\"$JWT_SECRET_VALUE\""
+                echo 'APP_URL="https://next-reps.de"'
+                echo 'NODE_ENV="production"'
+              } > .env
+              chmod 600 .env
+            else
+              echo ".env already exists"
+            fi
+            echo
+
             echo "=== node/npm ==="
             node -v
             npm -v
