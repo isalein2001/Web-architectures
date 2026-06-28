@@ -152,6 +152,22 @@ const mapBackendPlanToCalendarWorkout = (plan) => {
   };
 };
 
+const createBackfillExerciseFromLabel = (label) => {
+  const match = String(label || '').match(/^(.*?)\s*\((\d+)x([^)]*)\)$/);
+  return {
+    exercise_name: (match?.[1] || label || 'Exercise').trim(),
+    sets: match?.[2] || '3',
+    reps: match?.[3]?.split('/')?.[0]?.trim() || '10',
+    weight: '',
+  };
+};
+
+const createBackfillExercisesFromWorkout = (workout) => {
+  const exerciseLabels = [...(workout?.exercises || []), ...(workout?.extraExercises || [])];
+  return (exerciseLabels.length ? exerciseLabels : ['Exercise'])
+    .map(createBackfillExerciseFromLabel);
+};
+
 const idsMatch = (left, right) => String(left ?? '') === String(right ?? '');
 
 const mergeScheduleWithSessions = (schedule = {}, sessionList = []) => {
@@ -476,6 +492,14 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
+  const [plannerMode, setPlannerMode] = useState('schedule');
+  const [backfillWorkoutId, setBackfillWorkoutId] = useState('');
+  const [backfillExercises, setBackfillExercises] = useState(() => createBackfillExercisesFromWorkout(null));
+  const [backfillDurationMinutes, setBackfillDurationMinutes] = useState('45');
+  const [backfillCalories, setBackfillCalories] = useState('');
+  const [backfillNotes, setBackfillNotes] = useState('');
+  const [backfillError, setBackfillError] = useState('');
+  const [isSavingBackfill, setIsSavingBackfill] = useState(false);
   const [showReadyMadeOptions, setShowReadyMadeOptions] = useState(false);
   const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
   const [isDailyGoalsModalOpen, setIsDailyGoalsModalOpen] = useState(false);
@@ -819,6 +843,14 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     const dateKey = format(date, 'yyyy-MM-dd');
     setSelectedCalendarDate(date);
     setSelectedWorkoutId(workoutSchedule[dateKey]?.workoutId || '');
+    setPlannerMode(getSessionDateKey(date) <= getSessionDateKey(new Date()) ? 'backfill' : 'schedule');
+    setBackfillWorkoutId('');
+    setBackfillExercises(createBackfillExercisesFromWorkout(null));
+    setBackfillDurationMinutes('45');
+    setBackfillCalories('');
+    setBackfillNotes('');
+    setBackfillError('');
+    setIsSavingBackfill(false);
     setShowReadyMadeOptions(false);
     setShowWorkoutDetails(false);
     setConfirmingSessionId(null);
@@ -828,6 +860,14 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const closeWorkoutPlanner = () => {
     setSelectedCalendarDate(null);
     setSelectedWorkoutId('');
+    setPlannerMode('schedule');
+    setBackfillWorkoutId('');
+    setBackfillExercises(createBackfillExercisesFromWorkout(null));
+    setBackfillDurationMinutes('45');
+    setBackfillCalories('');
+    setBackfillNotes('');
+    setBackfillError('');
+    setIsSavingBackfill(false);
     setShowReadyMadeOptions(false);
     setShowWorkoutDetails(false);
     setConfirmingSessionId(null);
@@ -864,6 +904,96 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       return nextSchedule;
     });
     closeWorkoutPlanner();
+  };
+
+  const selectBackfillWorkout = (workoutId) => {
+    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts]
+      .find((workout) => idsMatch(workout.id, workoutId));
+    setBackfillWorkoutId(workoutId);
+    setBackfillExercises(createBackfillExercisesFromWorkout(selectedWorkout));
+    setBackfillError('');
+  };
+
+  const updateBackfillExercise = (index, field, value) => {
+    setBackfillExercises((currentExercises) => currentExercises.map((exercise, exerciseIndex) => (
+      exerciseIndex === index ? { ...exercise, [field]: value } : exercise
+    )));
+  };
+
+  const addBackfillExercise = () => {
+    setBackfillExercises((currentExercises) => [
+      ...currentExercises,
+      { exercise_name: '', sets: '3', reps: '10', weight: '' },
+    ]);
+  };
+
+  const removeBackfillExercise = (index) => {
+    setBackfillExercises((currentExercises) => (
+      currentExercises.length <= 1
+        ? currentExercises
+        : currentExercises.filter((_, exerciseIndex) => exerciseIndex !== index)
+    ));
+  };
+
+  const saveBackfilledWorkout = async () => {
+    if (!selectedCalendarDate || isSavingBackfill) return;
+
+    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts]
+      .find((workout) => idsMatch(workout.id, backfillWorkoutId));
+    const validExercises = backfillExercises
+      .map((exercise) => ({
+        ...exercise,
+        exercise_name: String(exercise.exercise_name || '').trim(),
+        sets: Math.max(1, Math.min(20, Math.round(Number(exercise.sets) || 1))),
+        reps: Math.max(1, Math.min(200, Math.round(Number(exercise.reps) || 1))),
+        weight: exercise.weight === '' || exercise.weight === null || exercise.weight === undefined
+          ? null
+          : Math.max(0, Math.min(1000, Number(exercise.weight) || 0)),
+      }))
+      .filter((exercise) => exercise.exercise_name);
+
+    if (!validExercises.length) {
+      setBackfillError(t('Please add at least one exercise.'));
+      return;
+    }
+
+    const sessionDate = new Date(selectedCalendarDate);
+    sessionDate.setHours(12, 0, 0, 0);
+
+    const logs = validExercises.flatMap((exercise) => Array.from({ length: exercise.sets }, (_, setIndex) => ({
+      exercise_name: exercise.exercise_name,
+      set_number: setIndex + 1,
+      reps: exercise.reps,
+      weight: exercise.weight,
+    })));
+
+    setIsSavingBackfill(true);
+    setBackfillError('');
+    try {
+      const savedSession = await api.logSession({
+        date: sessionDate.toISOString(),
+        client_session_id: `backfill-${currentUser?.id || 'user'}-${selectedDateKey}-${Date.now()}`,
+        plan_id: selectedWorkout?.backendPlanId || null,
+        plan_name: selectedWorkout?.title || t('FREESTYLE WORKOUT'),
+        duration_seconds: Math.max(0, Math.min(86400, Math.round(Number(backfillDurationMinutes) || 0) * 60)),
+        calories_burned: backfillCalories === '' ? null : Math.max(0, Math.min(3000, Math.round(Number(backfillCalories) || 0))),
+        intensity: 'moderate',
+        notes: backfillNotes,
+        logs,
+      });
+
+      const mergedSessions = mergeSessionsWithStorage([savedSession], loadStoredWorkoutSessions(currentUser));
+      saveStoredWorkoutSessions(currentUser, mergedSessions);
+      setSessions(mergedSessions);
+      setStats(buildStatsFromSessions(mergedSessions));
+      setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, mergedSessions));
+      window.dispatchEvent(new CustomEvent('workout-session-saved'));
+      closeWorkoutPlanner();
+    } catch (error) {
+      setBackfillError(error.message || t('Could not save workout. Please try again.'));
+    } finally {
+      setIsSavingBackfill(false);
+    }
   };
 
   const deleteCompletedSession = async (sessionToDelete) => {
@@ -955,6 +1085,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   };
 
   const greeting = getGreetingData();
+  const allCalendarWorkouts = [...customWorkouts, ...readyMadeCalendarWorkouts];
   const availableWorkouts = customWorkouts.length > 0
     ? customWorkouts
     : (showReadyMadeOptions ? readyMadeCalendarWorkouts : []);
@@ -1352,8 +1483,31 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
               </div>
               <div>
                 <span>{format(selectedCalendarDate, 'EEEE, dd MMMM yyyy', { locale: lang === 'de' ? de : undefined }).toUpperCase()}</span>
-                <h2 id="workout-planner-title">{t('PLAN WORKOUT')}</h2>
+                <h2 id="workout-planner-title">{t(plannerMode === 'backfill' ? 'LOG PAST WORKOUT' : 'PLAN WORKOUT')}</h2>
               </div>
+            </div>
+
+            <div className="planner-mode-tabs">
+              <button
+                type="button"
+                className={plannerMode === 'schedule' ? 'active' : ''}
+                onClick={() => {
+                  setPlannerMode('schedule');
+                  setBackfillError('');
+                }}
+              >
+                {t('PLAN')}
+              </button>
+              <button
+                type="button"
+                className={plannerMode === 'backfill' ? 'active' : ''}
+                onClick={() => {
+                  setPlannerMode('backfill');
+                  setBackfillError('');
+                }}
+              >
+                {t('LOG PAST')}
+              </button>
             </div>
 
             <div className={`scheduled-workout-current ${isSelectedDateCompleted && !selectedScheduledWorkout ? 'completed' : ''}`}>
@@ -1491,64 +1645,182 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
               </div>
             )}
 
-            <div className="workout-select-list">
-              {availableWorkouts.length > 0 ? (
-                availableWorkouts.map((workout) => {
-                  const WorkoutIcon = workoutIconMap[workout.iconKey] || Dumbbell;
+            {plannerMode === 'schedule' ? (
+              <>
+                <div className="workout-select-list">
+                  {availableWorkouts.length > 0 ? (
+                    availableWorkouts.map((workout) => {
+                      const WorkoutIcon = workoutIconMap[workout.iconKey] || Dumbbell;
 
-                  return (
-                    <button
-                      className={`workout-select-card ${idsMatch(selectedWorkoutId, workout.id) ? 'active' : ''}`}
-                      type="button"
-                      key={workout.id}
-                      onClick={() => setSelectedWorkoutId(workout.id)}
-                    >
-                      <span
-                        className="workout-select-cover"
-                        style={{ backgroundImage: `url(${workout.image || '/hero-bg.jpg'})` }}
+                      return (
+                        <button
+                          className={`workout-select-card ${idsMatch(selectedWorkoutId, workout.id) ? 'active' : ''}`}
+                          type="button"
+                          key={workout.id}
+                          onClick={() => setSelectedWorkoutId(workout.id)}
+                        >
+                          <span
+                            className="workout-select-cover"
+                            style={{ backgroundImage: `url(${workout.image || '/hero-bg.jpg'})` }}
+                          >
+                            <WorkoutIcon size={18} />
+                          </span>
+                          <span className="workout-select-info">
+                            <strong>{workout.title}</strong>
+                            <small>{t(workout.badge)} · {[...workout.exercises, ...(workout.extraExercises || [])].length} {t('exercises')}</small>
+                          </span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="workout-empty-state">
+                      <Dumbbell size={22} />
+                      <p>{t('Create a workout first, then schedule it here.')}</p>
+                      <button
+                        className="empty-workout-add-button"
+                        type="button"
+                        aria-label={t('CREATE WORKOUT')}
+                        onClick={() => navigate('/workouts')}
                       >
-                        <WorkoutIcon size={18} />
-                      </span>
-                      <span className="workout-select-info">
-                        <strong>{workout.title}</strong>
-                        <small>{t(workout.badge)} · {[...workout.exercises, ...(workout.extraExercises || [])].length} {t('exercises')}</small>
-                      </span>
+                        <PlusCircle size={18} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {customWorkouts.length === 0 && !showReadyMadeOptions && (
+                  <button className="ready-made-suggestion" type="button" onClick={() => setShowReadyMadeOptions(true)}>
+                    <span>{t("No custom workout yet?")}</span>
+                    <strong>{t('Pick a ready-made workout instead.')}</strong>
+                  </button>
+                )}
+
+                <div className="workout-planner-actions">
+                  {selectedScheduledWorkout && (
+                    <button className="planner-remove-button" type="button" onClick={removeScheduledWorkout}>
+                      <Trash2 size={16} /> {t('REMOVE')}
                     </button>
-                  );
-                })
-              ) : (
-                <div className="workout-empty-state">
-                  <Dumbbell size={22} />
-                  <p>{t('Create a workout first, then schedule it here.')}</p>
-                  <button
-                    className="empty-workout-add-button"
-                    type="button"
-                    aria-label={t('CREATE WORKOUT')}
-                    onClick={() => navigate('/workouts')}
-                  >
-                    <PlusCircle size={18} />
+                  )}
+                  <button className="planner-save-button" type="button" onClick={saveScheduledWorkout} disabled={!selectedWorkoutId}>
+                    {t('SAVE WORKOUT')}
                   </button>
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="backfill-workout-form">
+                <div className="backfill-plan-row">
+                  <label>
+                    <span>{t('WORKOUT')}</span>
+                    <select value={backfillWorkoutId} onChange={(event) => selectBackfillWorkout(event.target.value)}>
+                      <option value="">{t('FREESTYLE WORKOUT')}</option>
+                      {allCalendarWorkouts.map((workout) => (
+                        <option key={workout.id} value={workout.id}>{workout.title}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>{t('DURATION')}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1440"
+                      value={backfillDurationMinutes}
+                      onChange={(event) => setBackfillDurationMinutes(event.target.value)}
+                      placeholder="45"
+                    />
+                  </label>
+                  <label>
+                    <span>{t('CALORIES')}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="3000"
+                      value={backfillCalories}
+                      onChange={(event) => setBackfillCalories(event.target.value)}
+                      placeholder="320"
+                    />
+                  </label>
+                </div>
 
-            {customWorkouts.length === 0 && !showReadyMadeOptions && (
-              <button className="ready-made-suggestion" type="button" onClick={() => setShowReadyMadeOptions(true)}>
-                <span>{t("No custom workout yet?")}</span>
-                <strong>{t('Pick a ready-made workout instead.')}</strong>
-              </button>
-            )}
+                <div className="backfill-exercise-list">
+                  {backfillExercises.map((exercise, index) => (
+                    <div className="backfill-exercise-row" key={`${index}-${exercise.exercise_name}`}>
+                      <label className="backfill-exercise-name">
+                        <span>{t('EXERCISE')}</span>
+                        <input
+                          type="text"
+                          value={exercise.exercise_name}
+                          onChange={(event) => updateBackfillExercise(index, 'exercise_name', event.target.value)}
+                          placeholder={t('Exercise name')}
+                        />
+                      </label>
+                      <label>
+                        <span>{t('SETS')}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={exercise.sets}
+                          onChange={(event) => updateBackfillExercise(index, 'sets', event.target.value)}
+                        />
+                      </label>
+                      <label>
+                        <span>{t('REPS')}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="200"
+                          value={exercise.reps}
+                          onChange={(event) => updateBackfillExercise(index, 'reps', event.target.value)}
+                        />
+                      </label>
+                      <label>
+                        <span>{t('WEIGHT')}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="1000"
+                          step="0.5"
+                          value={exercise.weight}
+                          onChange={(event) => updateBackfillExercise(index, 'weight', event.target.value)}
+                          placeholder="kg"
+                        />
+                      </label>
+                      <button
+                        className="backfill-row-remove"
+                        type="button"
+                        onClick={() => removeBackfillExercise(index)}
+                        aria-label={t('REMOVE')}
+                        disabled={backfillExercises.length <= 1}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
 
-            <div className="workout-planner-actions">
-              {selectedScheduledWorkout && (
-                <button className="planner-remove-button" type="button" onClick={removeScheduledWorkout}>
-                  <Trash2 size={16} /> {t('REMOVE')}
+                <button className="backfill-add-exercise" type="button" onClick={addBackfillExercise}>
+                  <PlusCircle size={16} /> {t('ADD EXERCISE')}
                 </button>
-              )}
-              <button className="planner-save-button" type="button" onClick={saveScheduledWorkout} disabled={!selectedWorkoutId}>
-                {t('SAVE WORKOUT')}
-              </button>
-            </div>
+
+                <label className="backfill-notes">
+                  <span>{t('SESSION NOTES')}</span>
+                  <textarea
+                    value={backfillNotes}
+                    onChange={(event) => setBackfillNotes(event.target.value)}
+                    placeholder={t('Optional notes')}
+                  />
+                </label>
+
+                {backfillError && <div className="backfill-error">{backfillError}</div>}
+
+                <div className="workout-planner-actions">
+                  <button className="planner-save-button" type="button" onClick={saveBackfilledWorkout} disabled={isSavingBackfill}>
+                    {isSavingBackfill ? t('SAVING') : t('SAVE PAST WORKOUT')}
+                  </button>
+                </div>
+              </div>
+            )}
           </MotionDiv>
         </div>
       )}

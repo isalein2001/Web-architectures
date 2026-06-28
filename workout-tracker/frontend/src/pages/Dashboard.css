@@ -1040,6 +1040,158 @@
   transform: translateY(-1px);
 }
 
+.planner-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: -8px 0 18px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.planner-mode-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  color: #aaa;
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.planner-mode-tabs button.active {
+  color: #050505;
+  background: var(--color-primary);
+  box-shadow: 0 0 20px rgba(197, 254, 0, 0.18);
+}
+
+.backfill-workout-form {
+  display: grid;
+  gap: 16px;
+}
+
+.backfill-plan-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr);
+  gap: 10px;
+}
+
+.backfill-plan-row label,
+.backfill-exercise-row label,
+.backfill-notes {
+  display: grid;
+  gap: 7px;
+}
+
+.backfill-plan-row span,
+.backfill-exercise-row span,
+.backfill-notes span {
+  color: #858585;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.backfill-plan-row input,
+.backfill-plan-row select,
+.backfill-exercise-row input,
+.backfill-notes textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0 13px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 1rem;
+  font-weight: 800;
+  outline: none;
+}
+
+.backfill-plan-row select {
+  appearance: none;
+}
+
+.backfill-plan-row input:focus,
+.backfill-plan-row select:focus,
+.backfill-exercise-row input:focus,
+.backfill-notes textarea:focus {
+  border-color: rgba(197, 254, 0, 0.5);
+  box-shadow: 0 0 0 3px rgba(197, 254, 0, 0.09);
+}
+
+.backfill-exercise-list {
+  display: grid;
+  gap: 10px;
+}
+
+.backfill-exercise-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 74px 74px 92px 38px;
+  gap: 9px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.backfill-row-remove {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+
+.backfill-row-remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.backfill-add-exercise {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px dashed rgba(197, 254, 0, 0.35);
+  border-radius: 999px;
+  padding: 0 15px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.045);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.backfill-notes textarea {
+  min-height: 82px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.backfill-error {
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #ff8aa0;
+  background: rgba(255, 86, 119, 0.08);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
 .workout-session-details {
   display: grid;
   gap: 12px;
@@ -1969,9 +2121,31 @@
     width: 100%;
   }
 
+  .planner-mode-tabs {
+    margin-top: -2px;
+  }
+
   .scheduled-workout-current strong,
   .ready-made-suggestion strong {
     text-align: left;
+  }
+
+  .backfill-plan-row,
+  .backfill-exercise-row {
+    grid-template-columns: 1fr;
+  }
+
+  .backfill-exercise-row {
+    gap: 11px;
+  }
+
+  .backfill-row-remove {
+    width: 100%;
+  }
+
+  .backfill-add-exercise {
+    width: 100%;
+    justify-content: center;
   }
 
   .workout-select-card {
