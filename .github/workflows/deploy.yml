@@ -87,6 +87,13 @@ jobs:
             touch tmp/restart.txt
             touch server.js 2>/dev/null || touch app.js 2>/dev/null
 
+            echo "Starte Node.js-App manuell neu..."
+            pkill -u "$(whoami)" -f "node server.js" 2>/dev/null || true
+            nohup node server.js > ~/log.txt 2>&1 < /dev/null &
+            echo $! > tmp/manual-node.pid
+            sleep 3
+            curl -i -s http://127.0.0.1:3000/ | head -40 || true
+
             echo "Starte Node.js-App neu, damit Backend-Code neu geladen wird..."
             if command -v passenger-config >/dev/null 2>&1; then
               passenger-config restart-app "$(pwd)" || true
