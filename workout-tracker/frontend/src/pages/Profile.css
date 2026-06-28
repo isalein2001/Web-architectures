@@ -4587,6 +4587,392 @@
   }
 }
 
+/* Account profile true final override */
+.profile-main-column .account-panel {
+  padding: 26px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 20px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+  min-height: 0;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-content: flex-start;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.account-panel .profile-avatar-edit::before {
+  width: 132px;
+  height: 132px;
+  top: 6px;
+  opacity: 0.72;
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 116px;
+  height: 116px;
+}
+
+.account-panel .profile-avatar-face {
+  font-size: 1.2rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 36px);
+  top: 88px;
+  width: 31px;
+  min-width: 31px;
+  height: 31px;
+}
+
+.account-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.account-avatar-actions .account-footer-button {
+  width: auto;
+  min-height: 26px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.account-avatar-actions .account-footer-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+.account-panel .account-form-grid {
+  gap: 16px;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 14px;
+}
+
+.account-panel .profile-form-field {
+  gap: 8px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 46px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+}
+
+.account-email-row {
+  gap: 10px;
+}
+
+.account-email-row button {
+  min-width: 128px;
+  padding: 0 14px;
+  font-size: 0.6rem;
+}
+
+.account-save-actions {
+  justify-content: flex-end;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+
+.account-panel .account-save-button {
+  min-width: 142px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel {
+    padding: 18px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    display: grid;
+    grid-template-columns: 94px minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 14px;
+    max-width: none;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    left: 8px;
+    width: 96px;
+    height: 96px;
+    transform: none;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 86px;
+    height: 86px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 64px;
+    top: 62px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+  }
+
+  .account-avatar-actions {
+    align-items: flex-start;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+  }
+
+  .account-avatar-actions .account-footer-button {
+    min-height: 24px;
+    padding: 2px 0;
+    font-size: 0.56rem;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .account-panel .profile-form-field input,
+  .account-email-row button {
+    height: 44px;
+  }
+
+  .account-email-row button,
+  .account-panel .account-save-button {
+    width: 100%;
+  }
+
+  .account-save-actions {
+    padding-top: 2px;
+  }
+}
+
+/* Account profile final cleanup: balanced, not cramped */
+.profile-main-column .account-panel {
+  padding: 26px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 20px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+  min-height: 0;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-content: flex-start;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.account-panel .profile-avatar-edit::before {
+  width: 132px;
+  height: 132px;
+  top: 6px;
+  opacity: 0.72;
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 116px;
+  height: 116px;
+}
+
+.account-panel .profile-avatar-face {
+  font-size: 1.2rem;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 36px);
+  top: 88px;
+  width: 31px;
+  min-width: 31px;
+  height: 31px;
+}
+
+.account-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.account-avatar-actions .account-footer-button {
+  width: auto;
+  min-height: 26px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.account-avatar-actions .account-footer-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+.account-panel .account-form-grid {
+  gap: 16px;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 14px;
+}
+
+.account-panel .profile-form-field {
+  gap: 8px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 46px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+}
+
+.account-email-row {
+  gap: 10px;
+}
+
+.account-email-row button {
+  min-width: 128px;
+  padding: 0 14px;
+  font-size: 0.6rem;
+}
+
+.account-save-actions {
+  justify-content: flex-end;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+
+.account-panel .account-save-button {
+  min-width: 142px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel {
+    padding: 18px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    display: grid;
+    grid-template-columns: 94px minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 14px;
+    max-width: none;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    left: 8px;
+    width: 96px;
+    height: 96px;
+    transform: none;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 86px;
+    height: 86px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 64px;
+    top: 62px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+  }
+
+  .account-avatar-actions {
+    align-items: flex-start;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+  }
+
+  .account-avatar-actions .account-footer-button {
+    min-height: 24px;
+    padding: 2px 0;
+    font-size: 0.56rem;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .account-panel .profile-form-field input,
+  .account-email-row button {
+    height: 44px;
+  }
+
+  .account-email-row button,
+  .account-panel .account-save-button {
+    width: 100%;
+  }
+
+  .account-save-actions {
+    padding-top: 2px;
+  }
+}
+
 /* Final profile app cleanup override */
 .profile-main-column .account-panel,
 .profile-main-column .biometrics-panel,
@@ -5485,5 +5871,186 @@
   .account-panel .profile-avatar-upload {
     left: calc(50% + 34px);
     top: 86px;
+  }
+}
+
+/* Account profile true final override */
+.profile-main-column .account-panel {
+  padding: 26px;
+}
+
+.account-panel .profile-panel-heading {
+  margin-bottom: 20px;
+}
+
+.account-panel .account-profile-body {
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+  min-height: 0;
+}
+
+.account-panel .profile-avatar-edit {
+  justify-content: flex-start;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.account-panel .profile-avatar-edit::before {
+  width: 132px;
+  height: 132px;
+  top: 6px;
+  opacity: 0.72;
+}
+
+.account-panel .profile-avatar-ring,
+.account-panel .profile-avatar-face {
+  width: 116px;
+  height: 116px;
+}
+
+.account-panel .profile-avatar-upload {
+  left: calc(50% + 36px);
+  top: 88px;
+  width: 31px;
+  min-width: 31px;
+  height: 31px;
+}
+
+.account-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.account-avatar-actions .account-footer-button {
+  width: auto;
+  min-height: 26px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.account-avatar-actions .account-footer-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+.account-panel .account-form-grid {
+  gap: 16px;
+}
+
+.account-panel .account-name-row,
+.account-panel .profile-password-row {
+  gap: 14px;
+}
+
+.account-panel .profile-form-field input,
+.account-email-row button {
+  height: 46px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+}
+
+.account-email-row {
+  gap: 10px;
+}
+
+.account-email-row button {
+  min-width: 128px;
+  padding: 0 14px;
+  font-size: 0.6rem;
+}
+
+.account-save-actions {
+  justify-content: flex-end;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+
+.account-panel .account-save-button {
+  min-width: 142px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 760px) {
+  .profile-main-column .account-panel {
+    padding: 18px;
+  }
+
+  .account-panel .account-profile-body {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .account-panel .profile-avatar-edit {
+    display: grid;
+    grid-template-columns: 94px minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 14px;
+    max-width: none;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .account-panel .profile-avatar-edit::before {
+    left: 8px;
+    width: 96px;
+    height: 96px;
+    transform: none;
+  }
+
+  .account-panel .profile-avatar-ring,
+  .account-panel .profile-avatar-face {
+    width: 86px;
+    height: 86px;
+  }
+
+  .account-panel .profile-avatar-upload {
+    left: 64px;
+    top: 62px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+  }
+
+  .account-avatar-actions {
+    align-items: flex-start;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+  }
+
+  .account-avatar-actions .account-footer-button {
+    min-height: 24px;
+    padding: 2px 0;
+    font-size: 0.56rem;
+  }
+
+  .account-panel .account-name-row,
+  .account-panel .profile-password-row,
+  .account-email-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .account-panel .profile-form-field input,
+  .account-email-row button {
+    height: 44px;
+  }
+
+  .account-email-row button,
+  .account-panel .account-save-button {
+    width: 100%;
   }
 }
