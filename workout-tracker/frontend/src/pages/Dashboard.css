@@ -1234,18 +1234,136 @@
 
 .backfill-exercise-list {
   display: grid;
+  gap: 14px;
+}
+
+.backfill-active-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.backfill-active-heading {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 76px 38px;
+  gap: 10px;
+  align-items: end;
+  color: var(--color-primary);
+}
+
+.backfill-active-heading label {
+  display: grid;
+  gap: 7px;
+}
+
+.backfill-active-heading span {
+  color: #858585;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.backfill-active-heading input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0 13px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 1rem;
+  font-weight: 800;
+  outline: none;
+}
+
+.backfill-set-log-table {
+  display: grid;
   gap: 10px;
 }
 
-.backfill-exercise-row {
+.backfill-set-log-head,
+.backfill-set-log-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) 74px 74px 92px 38px;
-  gap: 9px;
-  align-items: end;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+  grid-template-columns: 44px minmax(72px, 1fr) minmax(72px, 1fr) minmax(72px, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+}
+
+.backfill-set-log-head {
+  color: #777;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.backfill-set-log-row {
+  padding: 8px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.028);
+}
+
+.backfill-set-log-row.completed {
+  background: rgba(197, 254, 0, 0.06);
+}
+
+.backfill-set-log-row > strong {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 38px;
+  border-radius: 10px;
+  color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.backfill-set-log-row label {
+  display: grid;
+  gap: 5px;
+}
+
+.backfill-set-log-row label span {
+  color: #777;
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.backfill-set-log-row input {
+  width: 100%;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 10px;
+  color: #fff;
+  background: #0e0e0e;
+  font-size: 0.95rem;
+  font-weight: 850;
+  outline: none;
+}
+
+.backfill-set-log-row button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.backfill-set-log-row button.done {
+  color: #050505;
+  background: var(--color-primary);
 }
 
 .backfill-row-remove {
@@ -2237,12 +2355,33 @@
   }
 
   .backfill-plan-row,
-  .backfill-exercise-row {
+  .backfill-active-heading {
     grid-template-columns: 1fr;
   }
 
-  .backfill-exercise-row {
-    gap: 11px;
+  .backfill-active-heading {
+    align-items: stretch;
+  }
+
+  .backfill-set-count {
+    max-width: none;
+  }
+
+  .backfill-set-log-head {
+    display: none;
+  }
+
+  .backfill-set-log-row {
+    grid-template-columns: 38px 1fr 1fr;
+  }
+
+  .backfill-set-log-row label:nth-of-type(3) {
+    grid-column: 2 / 4;
+  }
+
+  .backfill-set-log-row button {
+    grid-column: 3 / 4;
+    justify-self: end;
   }
 
   .backfill-row-remove {

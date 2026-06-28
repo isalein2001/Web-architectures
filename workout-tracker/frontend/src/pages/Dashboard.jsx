@@ -4,7 +4,7 @@ import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserDisplayName, getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
-import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
+import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle, Check } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   format, 
@@ -154,11 +154,17 @@ const mapBackendPlanToCalendarWorkout = (plan) => {
 
 const createBackfillExerciseFromLabel = (label) => {
   const match = String(label || '').match(/^(.*?)\s*\((\d+)x([^)]*)\)$/);
+  const setCount = Number.parseInt(match?.[2] || '3', 10) || 3;
+  const parsedReps = String(match?.[3] || '10').split('/').map((rep) => rep.trim()).filter(Boolean);
+  const repsBySet = Array.from({ length: setCount }, (_, index) => parsedReps[index] || parsedReps[0] || '10');
+
   return {
     exercise_name: (match?.[1] || label || 'Exercise').trim(),
-    sets: match?.[2] || '3',
-    reps: match?.[3]?.split('/')?.[0]?.trim() || '10',
-    weight: '',
+    sets: String(setCount),
+    repsBySet,
+    weightsBySet: Array.from({ length: setCount }, () => ''),
+    restBySet: Array.from({ length: setCount }, () => ''),
+    completedBySet: Array.from({ length: setCount }, () => false),
   };
 };
 
@@ -915,14 +921,63 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   const updateBackfillExercise = (index, field, value) => {
     setBackfillExercises((currentExercises) => currentExercises.map((exercise, exerciseIndex) => (
-      exerciseIndex === index ? { ...exercise, [field]: value } : exercise
+      exerciseIndex === index ? (() => {
+        if (field !== 'sets') return { ...exercise, [field]: value };
+
+        const nextSetCount = Math.max(1, Math.min(20, Math.round(Number(value) || 1)));
+        const resizeSetValues = (values, fallback) => Array.from(
+          { length: nextSetCount },
+          (_, setIndex) => values?.[setIndex] ?? fallback
+        );
+
+        return {
+          ...exercise,
+          sets: String(nextSetCount),
+          repsBySet: resizeSetValues(exercise.repsBySet, exercise.repsBySet?.[0] || '10'),
+          weightsBySet: resizeSetValues(exercise.weightsBySet, ''),
+          restBySet: resizeSetValues(exercise.restBySet, ''),
+          completedBySet: resizeSetValues(exercise.completedBySet, false),
+        };
+      })() : exercise
     )));
+  };
+
+  const updateBackfillSet = (exerciseIndex, setIndex, field, value) => {
+    setBackfillExercises((currentExercises) => currentExercises.map((exercise, currentExerciseIndex) => {
+      if (currentExerciseIndex !== exerciseIndex) return exercise;
+      const keyMap = {
+        reps: 'repsBySet',
+        weight: 'weightsBySet',
+        rest: 'restBySet',
+      };
+      const key = keyMap[field];
+      if (!key) return exercise;
+      const nextValues = [...(exercise[key] || [])];
+      nextValues[setIndex] = value;
+      return { ...exercise, [key]: nextValues };
+    }));
+  };
+
+  const toggleBackfillSetComplete = (exerciseIndex, setIndex) => {
+    setBackfillExercises((currentExercises) => currentExercises.map((exercise, currentExerciseIndex) => {
+      if (currentExerciseIndex !== exerciseIndex) return exercise;
+      const nextCompleted = [...(exercise.completedBySet || [])];
+      nextCompleted[setIndex] = !nextCompleted[setIndex];
+      return { ...exercise, completedBySet: nextCompleted };
+    }));
   };
 
   const addBackfillExercise = () => {
     setBackfillExercises((currentExercises) => [
       ...currentExercises,
-      { exercise_name: '', sets: '3', reps: '10', weight: '' },
+      {
+        exercise_name: '',
+        sets: '3',
+        repsBySet: ['10', '10', '10'],
+        weightsBySet: ['', '', ''],
+        restBySet: ['', '', ''],
+        completedBySet: [false, false, false],
+      },
     ]);
   };
 
@@ -944,10 +999,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         ...exercise,
         exercise_name: String(exercise.exercise_name || '').trim(),
         sets: Math.max(1, Math.min(20, Math.round(Number(exercise.sets) || 1))),
-        reps: Math.max(1, Math.min(200, Math.round(Number(exercise.reps) || 1))),
-        weight: exercise.weight === '' || exercise.weight === null || exercise.weight === undefined
-          ? null
-          : Math.max(0, Math.min(1000, Number(exercise.weight) || 0)),
       }))
       .filter((exercise) => exercise.exercise_name);
 
@@ -959,12 +1010,23 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     const sessionDate = new Date(selectedCalendarDate);
     sessionDate.setHours(12, 0, 0, 0);
 
-    const logs = validExercises.flatMap((exercise) => Array.from({ length: exercise.sets }, (_, setIndex) => ({
-      exercise_name: exercise.exercise_name,
-      set_number: setIndex + 1,
-      reps: exercise.reps,
-      weight: exercise.weight,
-    })));
+    const logs = validExercises.flatMap((exercise) => Array.from({ length: exercise.sets }, (_, setIndex) => {
+      const repsValue = exercise.repsBySet?.[setIndex] ?? exercise.repsBySet?.[0] ?? '1';
+      const weightValue = exercise.weightsBySet?.[setIndex];
+      const restValue = exercise.restBySet?.[setIndex];
+
+      return {
+        exercise_name: exercise.exercise_name,
+        set_number: setIndex + 1,
+        reps: Math.max(1, Math.min(200, Math.round(Number(repsValue) || 1))),
+        weight: weightValue === '' || weightValue === null || weightValue === undefined
+          ? null
+          : Math.max(0, Math.min(1000, Number(weightValue) || 0)),
+        rest_seconds: restValue === '' || restValue === null || restValue === undefined
+          ? null
+          : Math.max(0, Math.min(3600, Math.round(Number(restValue) || 0))),
+      };
+    }));
 
     setIsSavingBackfill(true);
     setBackfillError('');
@@ -1787,58 +1849,96 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
                     <div className="backfill-exercise-list">
                       {backfillExercises.map((exercise, index) => (
-                        <div className="backfill-exercise-row" key={`${index}-${exercise.exercise_name}`}>
-                          <label className="backfill-exercise-name">
-                            <span>{t('EXERCISE')}</span>
-                            <input
-                              type="text"
-                              value={exercise.exercise_name}
-                              onChange={(event) => updateBackfillExercise(index, 'exercise_name', event.target.value)}
-                              placeholder={t('Exercise name')}
-                            />
-                          </label>
-                          <label>
-                            <span>{t('SETS')}</span>
-                            <input
-                              type="number"
-                              min="1"
-                              max="20"
-                              value={exercise.sets}
-                              onChange={(event) => updateBackfillExercise(index, 'sets', event.target.value)}
-                            />
-                          </label>
-                          <label>
-                            <span>{t('REPS')}</span>
-                            <input
-                              type="number"
-                              min="1"
-                              max="200"
-                              value={exercise.reps}
-                              onChange={(event) => updateBackfillExercise(index, 'reps', event.target.value)}
-                            />
-                          </label>
-                          <label>
-                            <span>{t('WEIGHT')}</span>
-                            <input
-                              type="number"
-                              min="0"
-                              max="1000"
-                              step="0.5"
-                              value={exercise.weight}
-                              onChange={(event) => updateBackfillExercise(index, 'weight', event.target.value)}
-                              placeholder="kg"
-                            />
-                          </label>
-                          <button
-                            className="backfill-row-remove"
-                            type="button"
-                            onClick={() => removeBackfillExercise(index)}
-                            aria-label={t('REMOVE')}
-                            disabled={backfillExercises.length <= 1}
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
+                        <section className="backfill-active-card" key={`${index}-${exercise.exercise_name}`}>
+                          <div className="backfill-active-heading">
+                            <Dumbbell size={18} />
+                            <label>
+                              <span>{t('EXERCISE')}</span>
+                              <input
+                                type="text"
+                                value={exercise.exercise_name}
+                                onChange={(event) => updateBackfillExercise(index, 'exercise_name', event.target.value)}
+                                placeholder={t('Exercise name')}
+                              />
+                            </label>
+                            <label className="backfill-set-count">
+                              <span>{t('SETS')}</span>
+                              <input
+                                type="number"
+                                min="1"
+                                max="20"
+                                value={exercise.sets}
+                                onChange={(event) => updateBackfillExercise(index, 'sets', event.target.value)}
+                              />
+                            </label>
+                            <button
+                              className="backfill-row-remove"
+                              type="button"
+                              onClick={() => removeBackfillExercise(index)}
+                              aria-label={t('REMOVE')}
+                              disabled={backfillExercises.length <= 1}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+
+                          <div className="backfill-set-log-table">
+                            <div className="backfill-set-log-head">
+                              <span>{t('SET')}</span>
+                              <span>{t('REPS')}</span>
+                              <span>{t('WEIGHT')}</span>
+                              <span>{t('REST')}</span>
+                              <span>{t('DONE')}</span>
+                            </div>
+                            {Array.from({ length: Math.max(1, Math.min(20, Math.round(Number(exercise.sets) || 1))) }, (_, setIndex) => (
+                              <div
+                                className={`backfill-set-log-row ${exercise.completedBySet?.[setIndex] ? 'completed' : ''}`}
+                                key={`${exercise.exercise_name}-${setIndex}`}
+                              >
+                                <strong>{setIndex + 1}</strong>
+                                <label>
+                                  <span>{t('REPS')}</span>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="200"
+                                    value={exercise.repsBySet?.[setIndex] ?? ''}
+                                    onChange={(event) => updateBackfillSet(index, setIndex, 'reps', event.target.value)}
+                                  />
+                                </label>
+                                <label>
+                                  <span>KG</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="1000"
+                                    step="0.5"
+                                    value={exercise.weightsBySet?.[setIndex] ?? ''}
+                                    onChange={(event) => updateBackfillSet(index, setIndex, 'weight', event.target.value)}
+                                  />
+                                </label>
+                                <label>
+                                  <span>{t('SEC')}</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="3600"
+                                    value={exercise.restBySet?.[setIndex] ?? ''}
+                                    onChange={(event) => updateBackfillSet(index, setIndex, 'rest', event.target.value)}
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  className={exercise.completedBySet?.[setIndex] ? 'done' : ''}
+                                  onClick={() => toggleBackfillSetComplete(index, setIndex)}
+                                  aria-label={t('DONE')}
+                                >
+                                  <Check size={16} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
                       ))}
                     </div>
 
