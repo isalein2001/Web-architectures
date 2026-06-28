@@ -1075,9 +1075,115 @@
   gap: 16px;
 }
 
+.backfill-source-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.backfill-source-panel > span,
+.backfill-summary-strip span {
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.backfill-saved-workouts {
+  display: grid;
+  gap: 9px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.backfill-source-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 66px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 16px;
+  padding: 9px 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+  cursor: pointer;
+}
+
+.backfill-source-card.active {
+  border-color: rgba(197, 254, 0, 0.75);
+  background: rgba(197, 254, 0, 0.08);
+  box-shadow: 0 0 24px rgba(197, 254, 0, 0.12);
+}
+
+.backfill-source-card strong {
+  display: block;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backfill-source-card small {
+  display: block;
+  margin-top: 3px;
+  color: #888;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.backfill-source-icon,
+.backfill-source-cover {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: var(--color-primary);
+  background: rgba(197, 254, 0, 0.08);
+}
+
+.backfill-source-cover {
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.42);
+}
+
+.backfill-empty-copy {
+  margin: 2px 0 0;
+  color: #888;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.backfill-summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(197, 254, 0, 0.2);
+  border-radius: 14px;
+  background: rgba(197, 254, 0, 0.045);
+}
+
+.backfill-summary-strip strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 950;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .backfill-plan-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 

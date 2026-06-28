@@ -493,7 +493,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
   const [plannerMode, setPlannerMode] = useState('schedule');
-  const [backfillWorkoutId, setBackfillWorkoutId] = useState('');
+  const [backfillWorkoutId, setBackfillWorkoutId] = useState(null);
   const [backfillExercises, setBackfillExercises] = useState(() => createBackfillExercisesFromWorkout(null));
   const [backfillDurationMinutes, setBackfillDurationMinutes] = useState('45');
   const [backfillCalories, setBackfillCalories] = useState('');
@@ -844,7 +844,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     setSelectedCalendarDate(date);
     setSelectedWorkoutId(workoutSchedule[dateKey]?.workoutId || '');
     setPlannerMode(getSessionDateKey(date) <= getSessionDateKey(new Date()) ? 'backfill' : 'schedule');
-    setBackfillWorkoutId('');
+    setBackfillWorkoutId(null);
     setBackfillExercises(createBackfillExercisesFromWorkout(null));
     setBackfillDurationMinutes('45');
     setBackfillCalories('');
@@ -861,7 +861,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     setSelectedCalendarDate(null);
     setSelectedWorkoutId('');
     setPlannerMode('schedule');
-    setBackfillWorkoutId('');
+    setBackfillWorkoutId(null);
     setBackfillExercises(createBackfillExercisesFromWorkout(null));
     setBackfillDurationMinutes('45');
     setBackfillCalories('');
@@ -907,9 +907,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   };
 
   const selectBackfillWorkout = (workoutId) => {
-    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts]
-      .find((workout) => idsMatch(workout.id, workoutId));
-    setBackfillWorkoutId(workoutId);
+    const selectedWorkout = customWorkouts.find((workout) => idsMatch(workout.id, workoutId));
+    setBackfillWorkoutId(workoutId || 'freestyle');
     setBackfillExercises(createBackfillExercisesFromWorkout(selectedWorkout));
     setBackfillError('');
   };
@@ -938,7 +937,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const saveBackfilledWorkout = async () => {
     if (!selectedCalendarDate || isSavingBackfill) return;
 
-    const selectedWorkout = [...customWorkouts, ...readyMadeCalendarWorkouts]
+    const selectedWorkout = customWorkouts
       .find((workout) => idsMatch(workout.id, backfillWorkoutId));
     const validExercises = backfillExercises
       .map((exercise) => ({
@@ -1085,10 +1084,11 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   };
 
   const greeting = getGreetingData();
-  const allCalendarWorkouts = [...customWorkouts, ...readyMadeCalendarWorkouts];
   const availableWorkouts = customWorkouts.length > 0
     ? customWorkouts
     : (showReadyMadeOptions ? readyMadeCalendarWorkouts : []);
+  const selectedBackfillWorkout = customWorkouts.find((workout) => idsMatch(workout.id, backfillWorkoutId));
+  const hasBackfillSource = backfillWorkoutId !== null;
   const selectedDateKey = selectedCalendarDate ? format(selectedCalendarDate, 'yyyy-MM-dd') : '';
   const selectedScheduledWorkout = selectedDateKey ? workoutSchedule[selectedDateKey] : null;
   const isSelectedDateCompleted = selectedDateKey ? completedWorkoutDates.has(selectedDateKey) : false;
@@ -1708,117 +1708,162 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
               </>
             ) : (
               <div className="backfill-workout-form">
-                <div className="backfill-plan-row">
-                  <label>
-                    <span>{t('WORKOUT')}</span>
-                    <select value={backfillWorkoutId} onChange={(event) => selectBackfillWorkout(event.target.value)}>
-                      <option value="">{t('FREESTYLE WORKOUT')}</option>
-                      {allCalendarWorkouts.map((workout) => (
-                        <option key={workout.id} value={workout.id}>{workout.title}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>{t('DURATION')}</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="1440"
-                      value={backfillDurationMinutes}
-                      onChange={(event) => setBackfillDurationMinutes(event.target.value)}
-                      placeholder="45"
-                    />
-                  </label>
-                  <label>
-                    <span>{t('CALORIES')}</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="3000"
-                      value={backfillCalories}
-                      onChange={(event) => setBackfillCalories(event.target.value)}
-                      placeholder="320"
-                    />
-                  </label>
+                <div className="backfill-source-panel">
+                  <span>{t('CHOOSE WORKOUT TYPE')}</span>
+                  <button
+                    className={`backfill-source-card ${backfillWorkoutId === 'freestyle' ? 'active' : ''}`}
+                    type="button"
+                    onClick={() => selectBackfillWorkout('freestyle')}
+                  >
+                    <span className="backfill-source-icon"><PlusCircle size={18} /></span>
+                    <span>
+                      <strong>{t('FREESTYLE WORKOUT')}</strong>
+                      <small>{t('Log exercises manually')}</small>
+                    </span>
+                  </button>
+
+                  {customWorkouts.length > 0 ? (
+                    <div className="backfill-saved-workouts">
+                      {customWorkouts.map((workout) => {
+                        const WorkoutIcon = workoutIconMap[workout.iconKey] || Dumbbell;
+
+                        return (
+                          <button
+                            className={`backfill-source-card ${idsMatch(backfillWorkoutId, workout.id) ? 'active' : ''}`}
+                            type="button"
+                            key={workout.id}
+                            onClick={() => selectBackfillWorkout(workout.id)}
+                          >
+                            <span
+                              className="backfill-source-cover"
+                              style={{ backgroundImage: `url(${workout.image || '/hero-bg.jpg'})` }}
+                            >
+                              <WorkoutIcon size={16} />
+                            </span>
+                            <span>
+                              <strong>{workout.title}</strong>
+                              <small>{[...workout.exercises, ...(workout.extraExercises || [])].length} {t('exercises')}</small>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="backfill-empty-copy">{t('No saved workout yet. Use freestyle instead.')}</p>
+                  )}
                 </div>
 
-                <div className="backfill-exercise-list">
-                  {backfillExercises.map((exercise, index) => (
-                    <div className="backfill-exercise-row" key={`${index}-${exercise.exercise_name}`}>
-                      <label className="backfill-exercise-name">
-                        <span>{t('EXERCISE')}</span>
-                        <input
-                          type="text"
-                          value={exercise.exercise_name}
-                          onChange={(event) => updateBackfillExercise(index, 'exercise_name', event.target.value)}
-                          placeholder={t('Exercise name')}
-                        />
-                      </label>
+                {hasBackfillSource && (
+                  <>
+                    <div className="backfill-summary-strip">
+                      <span>{t('SELECTED')}</span>
+                      <strong>{selectedBackfillWorkout?.title || t('FREESTYLE WORKOUT')}</strong>
+                    </div>
+
+                    <div className="backfill-plan-row">
                       <label>
-                        <span>{t('SETS')}</span>
-                        <input
-                          type="number"
-                          min="1"
-                          max="20"
-                          value={exercise.sets}
-                          onChange={(event) => updateBackfillExercise(index, 'sets', event.target.value)}
-                        />
-                      </label>
-                      <label>
-                        <span>{t('REPS')}</span>
-                        <input
-                          type="number"
-                          min="1"
-                          max="200"
-                          value={exercise.reps}
-                          onChange={(event) => updateBackfillExercise(index, 'reps', event.target.value)}
-                        />
-                      </label>
-                      <label>
-                        <span>{t('WEIGHT')}</span>
+                        <span>{t('DURATION')}</span>
                         <input
                           type="number"
                           min="0"
-                          max="1000"
-                          step="0.5"
-                          value={exercise.weight}
-                          onChange={(event) => updateBackfillExercise(index, 'weight', event.target.value)}
-                          placeholder="kg"
+                          max="1440"
+                          value={backfillDurationMinutes}
+                          onChange={(event) => setBackfillDurationMinutes(event.target.value)}
+                          placeholder="45"
                         />
                       </label>
-                      <button
-                        className="backfill-row-remove"
-                        type="button"
-                        onClick={() => removeBackfillExercise(index)}
-                        aria-label={t('REMOVE')}
-                        disabled={backfillExercises.length <= 1}
-                      >
-                        <Trash2 size={15} />
+                      <label>
+                        <span>{t('CALORIES')}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="3000"
+                          value={backfillCalories}
+                          onChange={(event) => setBackfillCalories(event.target.value)}
+                          placeholder="320"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="backfill-exercise-list">
+                      {backfillExercises.map((exercise, index) => (
+                        <div className="backfill-exercise-row" key={`${index}-${exercise.exercise_name}`}>
+                          <label className="backfill-exercise-name">
+                            <span>{t('EXERCISE')}</span>
+                            <input
+                              type="text"
+                              value={exercise.exercise_name}
+                              onChange={(event) => updateBackfillExercise(index, 'exercise_name', event.target.value)}
+                              placeholder={t('Exercise name')}
+                            />
+                          </label>
+                          <label>
+                            <span>{t('SETS')}</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="20"
+                              value={exercise.sets}
+                              onChange={(event) => updateBackfillExercise(index, 'sets', event.target.value)}
+                            />
+                          </label>
+                          <label>
+                            <span>{t('REPS')}</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="200"
+                              value={exercise.reps}
+                              onChange={(event) => updateBackfillExercise(index, 'reps', event.target.value)}
+                            />
+                          </label>
+                          <label>
+                            <span>{t('WEIGHT')}</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="1000"
+                              step="0.5"
+                              value={exercise.weight}
+                              onChange={(event) => updateBackfillExercise(index, 'weight', event.target.value)}
+                              placeholder="kg"
+                            />
+                          </label>
+                          <button
+                            className="backfill-row-remove"
+                            type="button"
+                            onClick={() => removeBackfillExercise(index)}
+                            aria-label={t('REMOVE')}
+                            disabled={backfillExercises.length <= 1}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button className="backfill-add-exercise" type="button" onClick={addBackfillExercise}>
+                      <PlusCircle size={16} /> {t('ADD EXERCISE')}
+                    </button>
+
+                    <label className="backfill-notes">
+                      <span>{t('SESSION NOTES')}</span>
+                      <textarea
+                        value={backfillNotes}
+                        onChange={(event) => setBackfillNotes(event.target.value)}
+                        placeholder={t('Optional notes')}
+                      />
+                    </label>
+
+                    {backfillError && <div className="backfill-error">{backfillError}</div>}
+
+                    <div className="workout-planner-actions">
+                      <button className="planner-save-button" type="button" onClick={saveBackfilledWorkout} disabled={isSavingBackfill}>
+                        {isSavingBackfill ? t('SAVING') : t('SAVE PAST WORKOUT')}
                       </button>
                     </div>
-                  ))}
-                </div>
-
-                <button className="backfill-add-exercise" type="button" onClick={addBackfillExercise}>
-                  <PlusCircle size={16} /> {t('ADD EXERCISE')}
-                </button>
-
-                <label className="backfill-notes">
-                  <span>{t('SESSION NOTES')}</span>
-                  <textarea
-                    value={backfillNotes}
-                    onChange={(event) => setBackfillNotes(event.target.value)}
-                    placeholder={t('Optional notes')}
-                  />
-                </label>
-
-                {backfillError && <div className="backfill-error">{backfillError}</div>}
-
-                <div className="workout-planner-actions">
-                  <button className="planner-save-button" type="button" onClick={saveBackfilledWorkout} disabled={isSavingBackfill}>
-                    {isSavingBackfill ? t('SAVING') : t('SAVE PAST WORKOUT')}
-                  </button>
-                </div>
+                  </>
+                )}
               </div>
             )}
           </MotionDiv>
