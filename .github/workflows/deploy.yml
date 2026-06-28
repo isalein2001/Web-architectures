@@ -53,6 +53,8 @@ jobs:
             --exclude='.env' \
             --exclude='.git' \
             --exclude='.prisma/client' \
+            --exclude='database.sqlite' \
+            --exclude='database.sqlite-*' \
             workout-tracker/backend/ ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }}:~/workout-tracker
 
       # Der finale SSH-Befehl nutzt ebenfalls sshpass
@@ -60,6 +62,16 @@ jobs:
         run: |
           sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
             cd ~/workout-tracker
+
+            # Die produktive SQLite-Datenbank bleibt auf dem Server.
+            # Sie darf nicht schreibgeschützt sein, sonst können Workouts nicht gespeichert werden.
+            chmod u+rwx .
+            if [ -f database.sqlite ]; then
+              chmod u+rw database.sqlite
+            fi
+            if ls database.sqlite-* >/dev/null 2>&1; then
+              chmod u+rw database.sqlite-*
+            fi
 
             if [ ! -f .env ]; then
               echo "Erzeuge fehlende .env-Datei auf dem Server..."
@@ -81,6 +93,11 @@ jobs:
 
             echo "Generiere Prisma-Client passend zum aktuellen Schema..."
             npx prisma generate --schema=prisma/schema.prisma
+
+            if [ -f database.sqlite ] && [ ! -w database.sqlite ]; then
+              echo "database.sqlite ist nicht schreibbar. Bitte Rechte in konsoleH prüfen."
+              exit 1
+            fi
             
             echo "Erzeuge Restart-Trigger für die Node.js-App..."
             mkdir -p tmp
