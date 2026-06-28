@@ -65,12 +65,12 @@ jobs:
 
             # Die produktive SQLite-Datenbank bleibt auf dem Server.
             # Sie darf nicht schreibgeschützt sein, sonst können Workouts nicht gespeichert werden.
-            chmod u+rwx .
+            chmod ug+rwx .
             if [ -f database.sqlite ]; then
-              chmod u+rw database.sqlite
+              chmod ug+rw database.sqlite
             fi
             if ls database.sqlite-* >/dev/null 2>&1; then
-              chmod u+rw database.sqlite-*
+              chmod ug+rw database.sqlite-*
             fi
 
             if [ ! -f .env ]; then
