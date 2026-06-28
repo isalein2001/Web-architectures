@@ -57,6 +57,31 @@ const getNextLocalMidnightDelay = () => {
   return nextMidnight.getTime() - now.getTime();
 };
 
+const triggerLocalTestNotification = async () => {
+  if (!('Notification' in window)) {
+    console.warn('[PUSH-TEST] Notifications are not supported in this browser.');
+    return { ok: false, reason: 'unsupported' };
+  }
+
+  const permission = Notification.permission === 'granted'
+    ? 'granted'
+    : await Notification.requestPermission();
+
+  if (permission !== 'granted') {
+    console.warn('[PUSH-TEST] Notification permission not granted.');
+    return { ok: false, reason: permission };
+  }
+
+  new Notification('NEXT REPS Test', {
+    body: 'Dies ist eine Test-Benachrichtigung für iOS.',
+    icon: '/favicon.svg?v=2',
+    badge: '/favicon.svg?v=2',
+    tag: 'nextreps-test',
+  });
+
+  return { ok: true, reason: 'granted' };
+};
+
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -109,6 +134,7 @@ function AppLayout() {
   const userDisplayName = getUserDisplayName(currentUser);
   const userInitials = getUserInitials(currentUser);
   const workoutRemindersStorageKey = getUserStorageKey('workoutRemindersEnabled', currentUser);
+  const showPushDebugButton = !isNativeApp && (import.meta.env.DEV || window.location.search.includes('debug=push'));
   const hydrationAlertsStorageKey = getUserStorageKey('hydrationAlertsEnabled', currentUser);
   const waterIntakeMl = dailyActivity?.water_intake_ml || 0;
   const waterGoalMl = dailyActivity?.water_goal_ml || Math.round((currentUser?.hydrationGoalLiters || 3) * 1000);
@@ -177,6 +203,19 @@ function AppLayout() {
 
   const handleUserUpdate = (nextUser) => {
     setCurrentUser(nextUser);
+  };
+
+  const handlePushTest = async () => {
+    try {
+      if (api.testPushNotification) {
+        await api.testPushNotification();
+        return;
+      }
+      await triggerLocalTestNotification();
+    } catch (error) {
+      console.error('[PUSH-TEST] Could not trigger test notification:', error);
+      await triggerLocalTestNotification().catch(() => null);
+    }
   };
 
   const closeSearch = () => {
@@ -723,6 +762,17 @@ function AppLayout() {
                 </div>
               </div>
               {renderSearchBar('mobile-search-bar')}
+              {showPushDebugButton && currentUser && (
+                <button
+                  className="topbar-icon-button"
+                  type="button"
+                  aria-label="Test notification"
+                  title="Test notification"
+                  onClick={handlePushTest}
+                >
+                  <Bell size={18} />
+                </button>
+              )}
               <div className="alerts-selector" ref={alertsRef}>
                 <button
                   className={`topbar-icon-button ${alertsOpen ? 'active' : ''}`}
