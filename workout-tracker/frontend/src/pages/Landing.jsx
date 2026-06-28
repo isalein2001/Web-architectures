@@ -167,17 +167,6 @@ export default function Landing({ currentUser }) {
                 <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>Login</NavLink>
               )}
             </motion.div>
-            <motion.div
-              className="landing-hero-steps"
-              initial="hidden"
-              animate="visible"
-              variants={reveal}
-              transition={{ duration: 0.65, delay: 0.3 }}
-            >
-              <span><Dumbbell size={15} /> Plan workouts</span>
-              <span><PlayCircle size={15} /> Log every set</span>
-              <span><BarChart3 size={15} /> Read progress</span>
-            </motion.div>
           </motion.div>
 
           <motion.aside
@@ -207,6 +196,7 @@ export default function Landing({ currentUser }) {
               <div className="landing-hero-reel-footer">
                 <span>{heroSlides[activeHeroSlide].kicker}</span>
                 <strong>{heroSlides[activeHeroSlide].caption}</strong>
+                <em>Plan workouts · Log every set · Read progress</em>
               </div>
               <div className="landing-hero-reel-progress" key={activeHeroSlide}>
                 {heroSlides.map((slide, index) => (
