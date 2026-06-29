@@ -612,7 +612,7 @@
   width: 126vw;
   min-width: 126vw;
   height: auto;
-  transform: translateX(-2vw);
+  transform: translateX(-26vw);
   filter: drop-shadow(0 0 24px rgba(197, 254, 0, 0.24));
 }
 
@@ -1103,7 +1103,7 @@
     width: 132vw;
     min-width: 132vw;
     height: auto;
-    transform: translateX(-16vw);
+    transform: translateX(-32vw);
   }
 
   .landing-faq {
