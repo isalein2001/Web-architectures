@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { Activity, ArrowRight, BarChart3, Dumbbell, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, Dumbbell, Instagram, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
 import './Landing.css';
 
 const reveal = {
@@ -106,6 +106,7 @@ const HERO_SLIDE_DURATION_MS = 4200;
 export default function Landing({ currentUser }) {
   const statementRef = useRef(null);
   const arrowRef = useRef(null);
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [activeFaq, setActiveFaq] = useState(0);
   const { scrollYProgress } = useScroll();
@@ -115,7 +116,7 @@ export default function Landing({ currentUser }) {
   });
   const { scrollYProgress: arrowScrollProgress } = useScroll({
     target: arrowRef,
-    offset: ['start 125%', 'start 42%'],
+    offset: isCompactViewport ? ['start 125%', 'start 42%'] : ['start 155%', 'start 34%'],
   });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
@@ -134,6 +135,16 @@ export default function Landing({ currentUser }) {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 980px)');
+    const syncViewport = () => setIsCompactViewport(mediaQuery.matches);
+
+    syncViewport();
+    mediaQuery.addEventListener('change', syncViewport);
+
+    return () => mediaQuery.removeEventListener('change', syncViewport);
+  }, []);
+
   return (
     <main className="landing-page">
       <motion.div className="landing-scroll-progress" style={{ scaleX: progressScaleX }} />
@@ -145,6 +156,15 @@ export default function Landing({ currentUser }) {
         <nav className="landing-nav-actions" aria-label="Landing navigation">
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
+          <a
+            className="landing-social-button"
+            href="https://www.instagram.com/next.reps/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <Instagram size={16} />
+            <span>@next.reps</span>
+          </a>
           {currentUser ? (
             <NavLink className="landing-nav-button" to="/dashboard">Dashboard</NavLink>
           ) : (
@@ -175,7 +195,7 @@ export default function Landing({ currentUser }) {
               variants={reveal}
               transition={{ duration: 0.65, delay: 0.08 }}
             >
-              Build your plan. Log your sets. See your progress.
+              Your gym notebook, calendar and analytics in one app.
             </motion.h1>
             <motion.p
               initial="hidden"
@@ -183,7 +203,7 @@ export default function Landing({ currentUser }) {
               variants={reveal}
               transition={{ duration: 0.65, delay: 0.16 }}
             >
-              Next Reps helps you create workout plans, track reps and weights, connect daily activity and understand your training progress in one place.
+              Build workout plans, log every set and keep your training progress connected in one clean system.
             </motion.p>
             <motion.div
               className="landing-hero-actions"
@@ -288,10 +308,10 @@ export default function Landing({ currentUser }) {
           transition={{ duration: 0.6 }}
         >
           <span>What Next Reps does</span>
-          <h2>Your gym notebook, calendar and analytics in one app.</h2>
+          <h2>No more Excel sheets or scattered gym notes.</h2>
           <p>
-            Stop guessing what you trained, which weight you used or whether you are actually improving.
-            Next Reps keeps plans, sessions and progress tied to your account.
+            Your plans, sessions, calendar and analytics stay digital, organized and tied to your account.
+            No messy spreadsheets, no lost notes, no guessing what comes next.
           </p>
         </motion.div>
 
@@ -444,15 +464,6 @@ export default function Landing({ currentUser }) {
             {currentUser ? 'Go to App' : 'Try Next Reps'}
             <ArrowRight size={18} />
           </NavLink>
-          <a
-            className="landing-instagram-link"
-            href="https://www.instagram.com/next.reps/"
-            rel="noreferrer"
-            target="_blank"
-          >
-            <span>Follow the journey</span>
-            <strong>@next.reps</strong>
-          </a>
         </motion.div>
       </section>
     </main>
