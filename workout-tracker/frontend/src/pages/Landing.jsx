@@ -115,7 +115,7 @@ export default function Landing({ currentUser }) {
   });
   const { scrollYProgress: arrowScrollProgress } = useScroll({
     target: arrowRef,
-    offset: ['start 82%', 'end 42%'],
+    offset: ['start 92%', 'start 48%'],
   });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
