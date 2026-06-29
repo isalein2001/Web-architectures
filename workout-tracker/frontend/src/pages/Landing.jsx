@@ -115,7 +115,7 @@ export default function Landing({ currentUser }) {
   });
   const { scrollYProgress: arrowScrollProgress } = useScroll({
     target: arrowRef,
-    offset: ['start 92%', 'start 48%'],
+    offset: ['start 94%', 'start 34%'],
   });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
@@ -123,7 +123,7 @@ export default function Landing({ currentUser }) {
   const faviconRotate = useTransform(statementScrollProgress, [0, 1], [0, 42]);
   const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
   const arrowClipPath = useTransform(arrowScrollProgress, [0, 1], ['inset(0 100% 0 0)', 'inset(0 0% 0 0)']);
-  const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.15, 0.75, 1]);
+  const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   useEffect(() => {
