@@ -580,7 +580,7 @@
   z-index: 1;
   width: 100vw;
   margin: clamp(74px, 9vw, 132px) 0 0;
-  min-height: clamp(260px, 48vw, 560px);
+  min-height: clamp(330px, 48.9vw, 640px);
   overflow: hidden;
   pointer-events: none;
   transform: translateX(-50%);
@@ -609,10 +609,10 @@
 
 .landing-arrow-reveal img {
   display: block;
-  width: 126vw;
-  min-width: 126vw;
+  width: 100vw;
+  min-width: 100vw;
   height: auto;
-  transform: translateX(-26vw);
+  transform: none;
   filter: drop-shadow(0 0 24px rgba(197, 254, 0, 0.24));
 }
 
@@ -1091,7 +1091,7 @@
 
   .landing-arrow-stage {
     margin-top: 54px;
-    min-height: 188px;
+    min-height: 49vw;
   }
 
   .landing-arrow-stage::before {
@@ -1100,10 +1100,10 @@
   }
 
   .landing-arrow-reveal img {
-    width: 132vw;
-    min-width: 132vw;
+    width: 100vw;
+    min-width: 100vw;
     height: auto;
-    transform: translateX(-32vw);
+    transform: none;
   }
 
   .landing-faq {
