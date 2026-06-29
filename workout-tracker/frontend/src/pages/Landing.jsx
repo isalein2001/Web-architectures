@@ -82,7 +82,6 @@ export default function Landing({ currentUser }) {
     target: statementRef,
     offset: ['start 68%', 'end 30%'],
   });
-  const heroImageY = useTransform(scrollYProgress, [0, 0.35], [0, 120]);
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
   const progressScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
@@ -118,10 +117,9 @@ export default function Landing({ currentUser }) {
       </header>
 
       <section className="landing-hero">
-        <motion.div className="landing-hero-media" style={{ y: heroImageY }}>
-          <img src="/hero-bg.jpg" alt="Athlete training with weights" />
+        <div className="landing-hero-media" aria-hidden="true">
           <div className="landing-hero-overlay" />
-        </motion.div>
+        </div>
 
         <div className="landing-hero-layout">
           <motion.div className="landing-hero-content" style={{ y: heroCopyY, opacity: heroOpacity }}>

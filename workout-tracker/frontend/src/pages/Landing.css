@@ -74,6 +74,10 @@
   min-height: 100svh;
   padding: 138px clamp(18px, 5vw, 72px) 54px;
   isolation: isolate;
+  background:
+    radial-gradient(circle at 74% 22%, rgba(197, 254, 0, 0.16), transparent 23%),
+    radial-gradient(circle at 12% 78%, rgba(197, 254, 0, 0.09), transparent 27%),
+    linear-gradient(180deg, #070807 0%, #060706 58%, #070807 100%);
 }
 
 .landing-hero-media {
@@ -83,20 +87,38 @@
   overflow: hidden;
 }
 
-.landing-hero-media img {
-  width: 100%;
-  height: 118%;
-  object-fit: cover;
-  object-position: center;
-  filter: saturate(0.9) contrast(1.08);
+.landing-hero-media::before,
+.landing-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.landing-hero-media::before {
+  background-image: radial-gradient(circle, rgba(197, 254, 0, 0.34) 0 1.35px, transparent 1.5px);
+  background-size: 30px 30px;
+  mask-image:
+    radial-gradient(ellipse at 78% 28%, #000 0%, rgba(0, 0, 0, 0.88) 26%, transparent 64%),
+    linear-gradient(180deg, transparent 0%, #000 12%, #000 76%, transparent 100%);
+  opacity: 0.52;
+  transform: rotate(-7deg) scale(1.08);
+}
+
+.landing-hero-media::after {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0 1px, transparent 1.15px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 18% 74%, #000 0%, rgba(0, 0, 0, 0.58) 30%, transparent 68%);
+  opacity: 0.22;
+  transform: rotate(5deg);
 }
 
 .landing-hero-overlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(7, 8, 7, 0.96) 0%, rgba(7, 8, 7, 0.76) 38%, rgba(7, 8, 7, 0.22) 100%),
-    linear-gradient(180deg, rgba(7, 8, 7, 0.35) 0%, rgba(7, 8, 7, 0.32) 52%, #070807 100%);
+    linear-gradient(90deg, rgba(7, 8, 7, 0.96) 0%, rgba(7, 8, 7, 0.72) 42%, rgba(7, 8, 7, 0.34) 100%),
+    linear-gradient(180deg, rgba(7, 8, 7, 0.2) 0%, rgba(7, 8, 7, 0.24) 54%, #070807 100%);
 }
 
 .landing-hero-layout {
@@ -716,8 +738,8 @@
 
   .landing-hero-overlay {
     background:
-      linear-gradient(180deg, rgba(7, 8, 7, 0.56), rgba(7, 8, 7, 0.77) 48%, #070807 100%),
-      linear-gradient(90deg, rgba(7, 8, 7, 0.82), rgba(7, 8, 7, 0.26));
+      linear-gradient(180deg, rgba(7, 8, 7, 0.28), rgba(7, 8, 7, 0.68) 52%, #070807 100%),
+      linear-gradient(90deg, rgba(7, 8, 7, 0.78), rgba(7, 8, 7, 0.42));
   }
 
   .landing-hero h1 {
