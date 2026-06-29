@@ -109,7 +109,7 @@ export default function Landing({ currentUser }) {
   const faqRef = useRef(null);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
-  const [activeFaq, setActiveFaq] = useState(0);
+  const [activeFaq, setActiveFaq] = useState(-1);
   const { scrollYProgress } = useScroll();
   const { scrollYProgress: statementScrollProgress } = useScroll({
     target: statementRef,
@@ -132,15 +132,15 @@ export default function Landing({ currentUser }) {
   const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
   const faqArrowX = useTransform(
     faqArrowScrollProgress,
-    [0, 0.58, 0.7, 1],
+    [0, 0.58, 1],
     isCompactViewport
-      ? ['-98vw', '34vw', '24vw', '72vw']
-      : ['-62vw', '23vw', '15vw', '46vw']
+      ? ['-98vw', '26vw', '-74vw']
+      : ['-62vw', '18vw', '-48vw']
   );
-  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.58, 0.7, 1], [10, -3, 2, 0]);
-  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.58, 0.7, 1], [-2, 1.2, -0.6, 0]);
-  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.58, 0.7, 1], [0.96, 1.04, 0.99, 1]);
-  const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.16, 0.62, 1], [0, 0.82, 0.5, 0.08]);
+  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [10, -3, 0]);
+  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [-2, 1.1, 0]);
+  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [0.96, 1.04, 1]);
+  const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.14, 1], [0, 0.9, 0.9]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   useEffect(() => {

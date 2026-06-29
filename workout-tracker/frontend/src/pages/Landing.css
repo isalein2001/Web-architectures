@@ -719,8 +719,8 @@
   align-items: center;
   gap: 24px;
   width: 100%;
-  min-height: clamp(86px, 8vw, 120px);
-  padding: 24px 0;
+  min-height: clamp(72px, 6.8vw, 98px);
+  padding: 20px 0;
   border: 0;
   color: #ffffff;
   background: transparent;
@@ -729,9 +729,9 @@
 }
 
 .landing-faq-question span {
-  font-size: clamp(1.25rem, 2.2vw, 2rem);
+  font-size: clamp(1.05rem, 1.75vw, 1.55rem);
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.12;
 }
 
 .landing-faq-question i {
@@ -1183,13 +1183,13 @@
   }
 
   .landing-faq-question {
-    min-height: 78px;
+    min-height: 66px;
     gap: 18px;
-    padding: 20px 0;
+    padding: 16px 0;
   }
 
   .landing-faq-question span {
-    font-size: clamp(1.02rem, 5.2vw, 1.45rem);
+    font-size: clamp(0.94rem, 4.7vw, 1.2rem);
   }
 
   .landing-faq-question i {
