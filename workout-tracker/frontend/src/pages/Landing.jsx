@@ -132,14 +132,14 @@ export default function Landing({ currentUser }) {
   const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
   const faqArrowX = useTransform(
     faqArrowScrollProgress,
-    [0, 1],
+    [0, 0.58, 0.7, 1],
     isCompactViewport
-      ? ['-98vw', '72vw']
-      : ['-62vw', '46vw']
+      ? ['-98vw', '34vw', '24vw', '72vw']
+      : ['-62vw', '23vw', '15vw', '46vw']
   );
-  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 1], [10, 0]);
-  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 1], [-2, 0]);
-  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 1], [0.96, 1]);
+  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.58, 0.7, 1], [10, -3, 2, 0]);
+  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.58, 0.7, 1], [-2, 1.2, -0.6, 0]);
+  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.58, 0.7, 1], [0.96, 1.04, 0.99, 1]);
   const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.16, 0.62, 1], [0, 0.82, 0.5, 0.08]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
