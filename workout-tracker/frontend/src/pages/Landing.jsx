@@ -14,16 +14,22 @@ const featureCards = [
     title: 'Build your own plan',
     text: 'Create workouts with exercises, sets, reps, cover images and plan icons that fit your training style.',
     Icon: Dumbbell,
+    step: '01',
+    meta: 'Plan',
   },
   {
     title: 'Log every session',
     text: 'Start a workout or add it later. Reps, weight, rest time and notes stay saved to your account.',
     Icon: LineChart,
+    step: '02',
+    meta: 'Train',
   },
   {
     title: 'See what changed',
     text: 'Your dashboard, calendar and analytics turn training into visible progress, not guesswork.',
     Icon: Trophy,
+    step: '03',
+    meta: 'Improve',
   },
 ];
 
@@ -283,7 +289,7 @@ export default function Landing({ currentUser }) {
         </motion.div>
 
         <div className="landing-feature-grid">
-          {featureCards.map(({ title, text, Icon }, index) => (
+          {featureCards.map(({ title, text, Icon, step, meta }, index) => (
             <motion.article
               className="landing-feature"
               key={title}
@@ -293,6 +299,10 @@ export default function Landing({ currentUser }) {
               variants={reveal}
               transition={{ duration: 0.55, delay: index * 0.08 }}
             >
+              <div className="landing-feature-topline">
+                <span className="landing-feature-number">{step}</span>
+                <span className="landing-feature-meta">{meta}</span>
+              </div>
               <span className="landing-feature-icon"><Icon size={22} /></span>
               <h3>{title}</h3>
               <p>{text}</p>
