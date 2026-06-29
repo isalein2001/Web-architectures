@@ -608,11 +608,11 @@
 
 .landing-arrow-reveal img {
   display: block;
-  width: 112vw;
-  min-width: 112vw;
+  width: 104vw;
+  min-width: 104vw;
   height: clamp(116px, 13vw, 190px);
   object-fit: fill;
-  transform: translateX(-6vw);
+  transform: translateX(-2vw);
   filter: drop-shadow(0 0 24px rgba(197, 254, 0, 0.24));
 }
 
@@ -1100,10 +1100,10 @@
   }
 
   .landing-arrow-reveal img {
-    width: 118vw;
-    min-width: 118vw;
+    width: 108vw;
+    min-width: 108vw;
     height: 86px;
-    transform: translateX(-9vw);
+    transform: translateX(-4vw);
   }
 
   .landing-faq {
