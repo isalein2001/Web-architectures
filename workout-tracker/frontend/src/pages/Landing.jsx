@@ -33,6 +33,29 @@ const featureCards = [
   },
 ];
 
+const faqItems = [
+  {
+    question: 'Do I need a finished workout plan to use Next Reps?',
+    answer: 'No. You can build your own plan from scratch, start with a saved plan, or log a session afterward when you trained without planning first.',
+  },
+  {
+    question: 'Will my workouts stay saved to my account?',
+    answer: 'Yes. Plans, exercises, workout sessions and uploaded cover images are tied to your user account, so your training history stays available across web and app.',
+  },
+  {
+    question: 'Can I log a workout later?',
+    answer: 'Yes. If you forgot to track live in the gym, you can add the completed workout afterward and still keep your calendar and analytics complete.',
+  },
+  {
+    question: 'Does Next Reps work with Apple Health?',
+    answer: 'In the iOS app, Next Reps can use permitted Health data like steps, active calories and exercise minutes to keep your daily dashboard more accurate.',
+  },
+  {
+    question: 'Can I use Next Reps on web and as an app?',
+    answer: 'Yes. The web version and iOS app use the same account, so your plans, logs and progress stay connected.',
+  },
+];
+
 const scrollFrames = [
   {
     kicker: 'Create',
@@ -83,6 +106,7 @@ const HERO_SLIDE_DURATION_MS = 4200;
 export default function Landing({ currentUser }) {
   const statementRef = useRef(null);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+  const [activeFaq, setActiveFaq] = useState(0);
   const { scrollYProgress } = useScroll();
   const { scrollYProgress: statementScrollProgress } = useScroll({
     target: statementRef,
@@ -285,6 +309,42 @@ export default function Landing({ currentUser }) {
             </motion.article>
           ))}
         </div>
+
+        <motion.div
+          className="landing-faq"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          variants={reveal}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div className="landing-faq-copy">
+            <span>(04) FAQ</span>
+            <h2>Questions? Answers.</h2>
+            <p>Everything that matters before you start planning, logging and tracking your training.</p>
+          </div>
+          <div className="landing-faq-list">
+            {faqItems.map((item, index) => {
+              const isOpen = activeFaq === index;
+              return (
+                <article className={`landing-faq-item ${isOpen ? 'is-open' : ''}`} key={item.question}>
+                  <button
+                    aria-expanded={isOpen}
+                    className="landing-faq-question"
+                    onClick={() => setActiveFaq(isOpen ? -1 : index)}
+                    type="button"
+                  >
+                    <span>{item.question}</span>
+                    <i aria-hidden="true" />
+                  </button>
+                  <div className="landing-faq-answer">
+                    <p>{item.answer}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </motion.div>
       </section>
 
       <section className="landing-scroll-story" id="how-it-works">
