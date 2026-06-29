@@ -679,7 +679,7 @@
 }
 
 .landing-faq-arrows {
-  width: min(360px, 92%);
+  width: min(520px, 118%);
   margin: clamp(26px, 3.2vw, 46px) auto 0;
   transform-origin: 50% 50%;
   will-change: transform, opacity;
@@ -1173,7 +1173,7 @@
   }
 
   .landing-faq-arrows {
-    width: min(248px, 76vw);
+    width: min(340px, 92vw);
     margin: 24px auto 0;
   }
 

@@ -117,11 +117,11 @@ export default function Landing({ currentUser }) {
   });
   const { scrollYProgress: arrowScrollProgress } = useScroll({
     target: arrowRef,
-    offset: isCompactViewport ? ['start 125%', 'start 42%'] : ['start 155%', 'start 34%'],
+    offset: isCompactViewport ? ['start 112%', 'start 38%'] : ['start 108%', 'start 36%'],
   });
   const { scrollYProgress: faqArrowScrollProgress } = useScroll({
     target: faqRef,
-    offset: isCompactViewport ? ['start 100%', 'start 26%'] : ['start 86%', 'start 18%'],
+    offset: isCompactViewport ? ['start 88%', 'start 8%'] : ['start 74%', 'start -4%'],
   });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
@@ -132,15 +132,15 @@ export default function Landing({ currentUser }) {
   const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
   const faqArrowX = useTransform(
     faqArrowScrollProgress,
-    [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1],
+    [0, 0.42, 0.52, 0.62, 0.72, 0.88, 1],
     isCompactViewport
-      ? ['-88vw', '22vw', '12vw', '18vw', '10vw', '-3vw', '0vw']
-      : ['-58vw', '26vw', '17vw', '24vw', '18vw', '7vw', '0vw']
+      ? ['-96vw', '12vw', '5vw', '10vw', '4vw', '-2vw', '0vw']
+      : ['-64vw', '13vw', '6vw', '11vw', '5vw', '1.5vw', '0vw']
   );
-  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1], [14, -3, 5, -4, 3, -2, 0]);
-  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1], [-3, 2.2, -1.5, 1.3, -0.9, 0.4, 0]);
-  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1], [0.9, 1.1, 0.98, 1.06, 0.99, 1.02, 1]);
-  const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.14, 0.86, 1], [0, 0.86, 0.78, 0.72]);
+  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.42, 0.52, 0.62, 0.72, 0.88, 1], [18, -4, 6, -4, 3, -1, 0]);
+  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.42, 0.52, 0.62, 0.72, 0.88, 1], [-3, 2, -1.2, 1, -0.7, 0.25, 0]);
+  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.42, 0.52, 0.62, 0.72, 0.88, 1], [0.92, 1.08, 0.99, 1.04, 1, 1.015, 1]);
+  const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.22, 0.9, 1], [0, 0.86, 0.78, 0.72]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   useEffect(() => {
