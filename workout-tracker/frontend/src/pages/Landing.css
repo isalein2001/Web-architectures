@@ -580,7 +580,7 @@
   z-index: 1;
   width: 100vw;
   margin: clamp(74px, 9vw, 132px) 0 0;
-  min-height: clamp(150px, 18vw, 260px);
+  min-height: clamp(260px, 48vw, 560px);
   overflow: hidden;
   pointer-events: none;
   transform: translateX(-50%);
@@ -602,16 +602,16 @@
   inset: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   transform-origin: 0 50%;
   will-change: clip-path;
 }
 
 .landing-arrow-reveal img {
   display: block;
-  width: 104vw;
-  min-width: 104vw;
-  height: clamp(116px, 13vw, 190px);
-  object-fit: fill;
+  width: 126vw;
+  min-width: 126vw;
+  height: auto;
   transform: translateX(-2vw);
   filter: drop-shadow(0 0 24px rgba(197, 254, 0, 0.24));
 }
@@ -1091,7 +1091,7 @@
 
   .landing-arrow-stage {
     margin-top: 54px;
-    min-height: 112px;
+    min-height: 188px;
   }
 
   .landing-arrow-stage::before {
@@ -1100,10 +1100,10 @@
   }
 
   .landing-arrow-reveal img {
-    width: 108vw;
-    min-width: 108vw;
-    height: 86px;
-    transform: translateX(-4vw);
+    width: 132vw;
+    min-width: 132vw;
+    height: auto;
+    transform: translateX(-16vw);
   }
 
   .landing-faq {
