@@ -219,30 +219,6 @@ export default function Landing({ currentUser }) {
           </motion.aside>
         </div>
 
-        <motion.div
-          className="landing-hero-foundation"
-          initial="hidden"
-          animate="visible"
-          variants={reveal}
-          transition={{ duration: 0.65, delay: 0.42 }}
-        >
-          <div>
-            <span>01</span>
-            <strong>Create a workout plan</strong>
-            <p>Choose exercises, planned reps and a cover image.</p>
-          </div>
-          <div>
-            <span>02</span>
-            <strong>Train or log later</strong>
-            <p>Use the live logger or add yesterday's session.</p>
-          </div>
-          <div>
-            <span>03</span>
-            <strong>Understand progress</strong>
-            <p>Dashboard, calendar and analytics update together.</p>
-          </div>
-        </motion.div>
-
         <div className="landing-scroll-cue">
           <span>Scroll</span>
           <i />

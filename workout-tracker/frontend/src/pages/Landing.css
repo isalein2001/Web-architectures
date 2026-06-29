@@ -339,44 +339,6 @@
   animation: landingHeroReelProgress 4.2s linear forwards;
 }
 
-.landing-hero-foundation {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: clamp(18px, 4vh, 46px);
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-.landing-hero-foundation div {
-  min-height: 112px;
-  padding: 18px 18px 16px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.landing-hero-foundation span {
-  display: block;
-  color: #c5fe00;
-  font-size: 0.62rem;
-  font-weight: 950;
-  letter-spacing: 0.18em;
-}
-
-.landing-hero-foundation strong {
-  display: block;
-  margin-top: 18px;
-  color: #ffffff;
-  font-size: 0.96rem;
-}
-
-.landing-hero-foundation p {
-  margin: 7px 0 0;
-  color: rgba(247, 247, 242, 0.58);
-  font-size: 0.76rem;
-  line-height: 1.5;
-}
-
 .landing-scroll-cue {
   position: absolute;
   left: 50%;
@@ -765,11 +727,6 @@
     min-height: 440px;
   }
 
-  .landing-hero-foundation {
-    grid-template-columns: 1fr;
-    margin-top: 34px;
-  }
-
   .landing-scroll-cue {
     display: none;
   }
@@ -881,16 +838,6 @@
     height: 7px;
   }
 
-  .landing-hero-foundation {
-    gap: 10px;
-    padding-top: 20px;
-  }
-
-  .landing-hero-foundation div {
-    min-height: 0;
-    padding: 16px;
-  }
-
   .landing-intro,
   .landing-brand-statement,
   .landing-scroll-story,
@@ -926,28 +873,35 @@
   }
 
   .landing-feature {
-    min-height: 300px;
-    padding: 24px;
+    min-height: 244px;
+    padding: 20px;
   }
 
   .landing-feature-icon {
-    top: 24px;
-    right: 24px;
-    width: 42px;
-    height: 42px;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
   }
 
   .landing-feature-number {
-    font-size: clamp(4.8rem, 24vw, 7.2rem);
+    font-size: clamp(3.25rem, 17vw, 4.65rem);
+  }
+
+  .landing-feature-meta {
+    margin-top: 7px;
+    font-size: 0.58rem;
   }
 
   .landing-feature h3 {
-    margin-top: 56px;
-    font-size: clamp(1.75rem, 9vw, 2.9rem);
+    margin-top: 38px;
+    font-size: clamp(1.3rem, 6.7vw, 2rem);
   }
 
   .landing-feature p {
-    font-size: 0.88rem;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    line-height: 1.5;
   }
 
   .landing-story-image,
