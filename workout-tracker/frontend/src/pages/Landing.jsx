@@ -132,12 +132,14 @@ export default function Landing({ currentUser }) {
   const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
   const faqArrowX = useTransform(
     faqArrowScrollProgress,
-    [0, 0.46, 0.62, 1],
-    isCompactViewport ? ['-82vw', '18vw', '-4vw', '0vw'] : ['-52vw', '24vw', '8vw', '0vw']
+    [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1],
+    isCompactViewport
+      ? ['-88vw', '22vw', '12vw', '18vw', '10vw', '-3vw', '0vw']
+      : ['-58vw', '26vw', '17vw', '24vw', '18vw', '7vw', '0vw']
   );
-  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.46, 0.62, 1], [12, -2, -8, 0]);
-  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.46, 0.62, 1], [-3, 2, -1.5, 0]);
-  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.46, 0.62, 1], [0.92, 1.08, 0.96, 1]);
+  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1], [14, -3, 5, -4, 3, -2, 0]);
+  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1], [-3, 2.2, -1.5, 1.3, -0.9, 0.4, 0]);
+  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.34, 0.43, 0.52, 0.61, 0.76, 1], [0.9, 1.1, 0.98, 1.06, 0.99, 1.02, 1]);
   const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.14, 0.86, 1], [0, 0.86, 0.78, 0.72]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
@@ -372,8 +374,8 @@ export default function Landing({ currentUser }) {
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           <div className="landing-faq-copy">
-            <span>(04) FAQ</span>
             <h2>Questions? Answers.</h2>
+            <p>Everything that matters before you start planning, logging and tracking your training.</p>
             <motion.div
               aria-hidden="true"
               className="landing-faq-arrows"
@@ -387,7 +389,6 @@ export default function Landing({ currentUser }) {
             >
               <img src="/nextreps-double-arrows.svg" alt="" />
             </motion.div>
-            <p>Everything that matters before you start planning, logging and tracking your training.</p>
           </div>
           <div className="landing-faq-list">
             {faqItems.map((item, index) => {

@@ -18,7 +18,7 @@
 }
 
 .landing-nav {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -670,7 +670,7 @@
 
 .landing-faq-copy h2 {
   max-width: 420px;
-  margin: 22px 0 0;
+  margin: 0 0 20px;
   color: #ffffff;
   font-size: clamp(2.65rem, 5.45vw, 6.25rem);
   font-weight: 950;
@@ -679,8 +679,8 @@
 }
 
 .landing-faq-arrows {
-  width: min(250px, 76%);
-  margin: clamp(18px, 2vw, 28px) auto clamp(20px, 2.6vw, 34px);
+  width: min(360px, 92%);
+  margin: clamp(26px, 3.2vw, 46px) auto 0;
   transform-origin: 50% 50%;
   will-change: transform, opacity;
   filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.12));
@@ -1167,14 +1167,14 @@
 
   .landing-faq-copy h2 {
     max-width: 280px;
-    margin: 16px 0 0;
+    margin: 0 0 14px;
     font-size: clamp(2.25rem, 11.5vw, 3.35rem);
     line-height: 0.9;
   }
 
   .landing-faq-arrows {
-    width: min(188px, 62vw);
-    margin: 14px auto 16px;
+    width: min(248px, 76vw);
+    margin: 24px auto 0;
   }
 
   .landing-faq-copy p {
