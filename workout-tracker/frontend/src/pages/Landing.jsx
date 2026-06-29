@@ -55,20 +55,20 @@ const heroSlides = [
   {
     video: '/hero-reel-1.mp4',
     kicker: '01 / 03',
-    caption: 'Build your plan',
-    label: 'Workout structure',
+    caption: 'Plan workouts',
+    Icon: Dumbbell,
   },
   {
     video: '/hero-reel-2.mp4',
     kicker: '02 / 03',
     caption: 'Log every set',
-    label: 'Live training',
+    Icon: LineChart,
   },
   {
     video: '/hero-reel-3.mp4',
     kicker: '03 / 03',
-    caption: 'See what changed',
-    label: 'Progress insights',
+    caption: 'Read progress',
+    Icon: Trophy,
   },
 ];
 
@@ -191,12 +191,16 @@ export default function Landing({ currentUser }) {
                   />
                 ))}
                 <div className="landing-hero-reel-overlay" />
-                <div className="landing-hero-reel-badge">{heroSlides[activeHeroSlide].label}</div>
+                <div className="landing-hero-reel-badge">next-reps.de</div>
               </div>
               <div className="landing-hero-reel-footer">
+                {React.createElement(heroSlides[activeHeroSlide].Icon, {
+                  'aria-hidden': true,
+                  size: 18,
+                  strokeWidth: 2.4,
+                })}
                 <span>{heroSlides[activeHeroSlide].kicker}</span>
                 <strong>{heroSlides[activeHeroSlide].caption}</strong>
-                <em>Plan workouts · Log every set · Read progress</em>
               </div>
               <div className="landing-hero-reel-progress" key={activeHeroSlide}>
                 {heroSlides.map((slide, index) => (
