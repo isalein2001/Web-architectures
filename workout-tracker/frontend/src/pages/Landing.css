@@ -656,6 +656,7 @@
   position: sticky;
   top: 112px;
   align-self: start;
+  overflow: visible;
 }
 
 .landing-faq-copy span {
@@ -669,12 +670,27 @@
 
 .landing-faq-copy h2 {
   max-width: 420px;
-  margin: 22px 0 22px;
+  margin: 22px 0 0;
   color: #ffffff;
   font-size: clamp(2.65rem, 5.45vw, 6.25rem);
   font-weight: 950;
   line-height: 0.86;
   text-transform: uppercase;
+}
+
+.landing-faq-arrows {
+  width: min(250px, 76%);
+  margin: clamp(18px, 2vw, 28px) auto clamp(20px, 2.6vw, 34px);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.12));
+}
+
+.landing-faq-arrows img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.9;
 }
 
 .landing-faq-copy p {
@@ -1151,9 +1167,14 @@
 
   .landing-faq-copy h2 {
     max-width: 280px;
-    margin: 16px 0 14px;
+    margin: 16px 0 0;
     font-size: clamp(2.25rem, 11.5vw, 3.35rem);
     line-height: 0.9;
+  }
+
+  .landing-faq-arrows {
+    width: min(188px, 62vw);
+    margin: 14px auto 16px;
   }
 
   .landing-faq-copy p {

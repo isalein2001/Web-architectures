@@ -106,6 +106,7 @@ const HERO_SLIDE_DURATION_MS = 4200;
 export default function Landing({ currentUser }) {
   const statementRef = useRef(null);
   const arrowRef = useRef(null);
+  const faqRef = useRef(null);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [activeFaq, setActiveFaq] = useState(0);
@@ -118,6 +119,10 @@ export default function Landing({ currentUser }) {
     target: arrowRef,
     offset: isCompactViewport ? ['start 125%', 'start 42%'] : ['start 155%', 'start 34%'],
   });
+  const { scrollYProgress: faqArrowScrollProgress } = useScroll({
+    target: faqRef,
+    offset: isCompactViewport ? ['start 100%', 'start 26%'] : ['start 86%', 'start 18%'],
+  });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
   const progressScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
@@ -125,6 +130,15 @@ export default function Landing({ currentUser }) {
   const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
   const arrowClipPath = useTransform(arrowScrollProgress, [0, 1], ['inset(0 100% 0 0)', 'inset(0 0% 0 0)']);
   const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
+  const faqArrowX = useTransform(
+    faqArrowScrollProgress,
+    [0, 0.46, 0.62, 1],
+    isCompactViewport ? ['-82vw', '18vw', '-4vw', '0vw'] : ['-52vw', '24vw', '8vw', '0vw']
+  );
+  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.46, 0.62, 1], [12, -2, -8, 0]);
+  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.46, 0.62, 1], [-3, 2, -1.5, 0]);
+  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.46, 0.62, 1], [0.92, 1.08, 0.96, 1]);
+  const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.14, 0.86, 1], [0, 0.86, 0.78, 0.72]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   useEffect(() => {
@@ -350,6 +364,7 @@ export default function Landing({ currentUser }) {
 
         <motion.div
           className="landing-faq"
+          ref={faqRef}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
@@ -359,6 +374,19 @@ export default function Landing({ currentUser }) {
           <div className="landing-faq-copy">
             <span>(04) FAQ</span>
             <h2>Questions? Answers.</h2>
+            <motion.div
+              aria-hidden="true"
+              className="landing-faq-arrows"
+              style={{
+                opacity: faqArrowOpacity,
+                rotate: faqArrowRotate,
+                scale: faqArrowScale,
+                x: faqArrowX,
+                y: faqArrowY,
+              }}
+            >
+              <img src="/nextreps-double-arrows.svg" alt="" />
+            </motion.div>
             <p>Everything that matters before you start planning, logging and tracking your training.</p>
           </div>
           <div className="landing-faq-list">
