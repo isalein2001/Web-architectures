@@ -574,6 +574,44 @@
   line-height: 1.58;
 }
 
+.landing-arrow-stage {
+  position: relative;
+  z-index: 1;
+  margin: clamp(74px, 9vw, 132px) calc(clamp(18px, 5vw, 72px) * -1) 0;
+  min-height: clamp(150px, 18vw, 260px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.landing-arrow-stage::before {
+  content: "";
+  position: absolute;
+  inset: 16% 0 10%;
+  background:
+    radial-gradient(ellipse at 0% 50%, rgba(197, 254, 0, 0.24), transparent 34%),
+    radial-gradient(ellipse at 100% 50%, rgba(197, 254, 0, 0.16), transparent 30%);
+  filter: blur(36px);
+  opacity: 0.78;
+}
+
+.landing-arrow-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  transform-origin: 0 50%;
+  will-change: clip-path;
+}
+
+.landing-arrow-reveal img {
+  display: block;
+  width: 100vw;
+  min-width: 100%;
+  height: clamp(116px, 13vw, 190px);
+  object-fit: fill;
+  filter: drop-shadow(0 0 24px rgba(197, 254, 0, 0.24));
+}
+
 .landing-faq {
   position: relative;
   z-index: 1;
@@ -1045,6 +1083,20 @@
     margin-top: 12px;
     font-size: 0.8rem;
     line-height: 1.5;
+  }
+
+  .landing-arrow-stage {
+    margin-top: 54px;
+    min-height: 112px;
+  }
+
+  .landing-arrow-stage::before {
+    inset: 22% 0 18%;
+    filter: blur(24px);
+  }
+
+  .landing-arrow-reveal img {
+    height: 86px;
   }
 
   .landing-faq {

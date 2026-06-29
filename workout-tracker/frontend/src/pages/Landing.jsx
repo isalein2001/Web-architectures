@@ -105,6 +105,7 @@ const HERO_SLIDE_DURATION_MS = 4200;
 
 export default function Landing({ currentUser }) {
   const statementRef = useRef(null);
+  const arrowRef = useRef(null);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [activeFaq, setActiveFaq] = useState(0);
   const { scrollYProgress } = useScroll();
@@ -112,11 +113,17 @@ export default function Landing({ currentUser }) {
     target: statementRef,
     offset: ['start 68%', 'end 30%'],
   });
+  const { scrollYProgress: arrowScrollProgress } = useScroll({
+    target: arrowRef,
+    offset: ['start 82%', 'end 42%'],
+  });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
   const progressScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
   const faviconRotate = useTransform(statementScrollProgress, [0, 1], [0, 42]);
   const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
+  const arrowClipPath = useTransform(arrowScrollProgress, [0, 1], ['inset(0 100% 0 0)', 'inset(0 0% 0 0)']);
+  const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.15, 0.75, 1]);
   const primaryCta = currentUser ? '/dashboard' : '/register';
 
   useEffect(() => {
@@ -309,6 +316,17 @@ export default function Landing({ currentUser }) {
             </motion.article>
           ))}
         </div>
+
+        <motion.div
+          aria-hidden="true"
+          className="landing-arrow-stage"
+          ref={arrowRef}
+          style={{ opacity: arrowGlowOpacity }}
+        >
+          <motion.div className="landing-arrow-reveal" style={{ clipPath: arrowClipPath }}>
+            <img src="/nextreps-arrow-long.svg" alt="" />
+          </motion.div>
+        </motion.div>
 
         <motion.div
           className="landing-faq"
