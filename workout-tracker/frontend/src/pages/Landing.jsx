@@ -115,7 +115,7 @@ export default function Landing({ currentUser }) {
   });
   const { scrollYProgress: arrowScrollProgress } = useScroll({
     target: arrowRef,
-    offset: ['start 108%', 'start 55%'],
+    offset: ['start 125%', 'start 42%'],
   });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
@@ -444,6 +444,15 @@ export default function Landing({ currentUser }) {
             {currentUser ? 'Go to App' : 'Try Next Reps'}
             <ArrowRight size={18} />
           </NavLink>
+          <a
+            className="landing-instagram-link"
+            href="https://www.instagram.com/next.reps/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <span>Follow the journey</span>
+            <strong>@next.reps</strong>
+          </a>
         </motion.div>
       </section>
     </main>
