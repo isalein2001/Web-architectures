@@ -38,7 +38,7 @@
 
 .landing-brand img {
   display: block;
-  width: 156px;
+  width: 124px;
   max-width: 40vw;
   height: auto;
 }
@@ -984,8 +984,8 @@
   }
 
   .landing-brand img {
-    width: 132px;
-    max-width: 36vw;
+    width: 104px;
+    max-width: 32vw;
   }
 
   .landing-nav-actions .landing-nav-button {

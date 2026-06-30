@@ -36,7 +36,7 @@
 
 .sidebar-logo img {
   display: block;
-  width: 168px;
+  width: 136px;
   max-width: 100%;
   height: auto;
 }
@@ -202,8 +202,8 @@
 
 .mobile-topbar-brand img {
   display: block;
-  width: 104px;
-  max-width: 30vw;
+  width: 82px;
+  max-width: 24vw;
   height: auto;
 }
 
@@ -1176,8 +1176,8 @@
   .topbar {
     left: 0;
     top: 0;
-    height: calc(72px + env(safe-area-inset-top));
-    padding: calc(env(safe-area-inset-top) + 8px) 14px 0;
+    height: calc(82px + env(safe-area-inset-top));
+    padding: calc(env(safe-area-inset-top) + 18px) 14px 0;
     border-bottom-color: rgba(255,255,255,0.07);
     background: #0E0E0E;
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
@@ -1451,8 +1451,8 @@
   }
 
   .main-content {
-    margin-top: calc(72px + env(safe-area-inset-top));
-    min-height: calc(100vh - 72px - env(safe-area-inset-top));
+    margin-top: calc(82px + env(safe-area-inset-top));
+    min-height: calc(100vh - 82px - env(safe-area-inset-top));
     padding: 16px 12px calc(104px + env(safe-area-inset-bottom));
   }
 
@@ -1494,7 +1494,7 @@
 
 @media (max-width: 520px) {
   .topbar {
-    padding: calc(env(safe-area-inset-top) + 8px) 12px 0;
+    padding: calc(env(safe-area-inset-top) + 18px) 12px 0;
   }
 
   .mobile-topbar-brand small {
