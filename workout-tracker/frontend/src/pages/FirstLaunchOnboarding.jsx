@@ -2,9 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ArrowRight, BarChart3, Check, Dumbbell, LineChart, NotebookPen, Sparkles, Target } from 'lucide-react';
+import {
+  readFirstLaunchOnboardingDraft,
+  writeFirstLaunchOnboardingDraft,
+} from '../firstLaunchOnboardingStorage';
 import './FirstLaunchOnboarding.css';
-
-const STORAGE_KEY = 'nextRepsFirstLaunchOnboarding';
 
 const introScreens = [
   {
@@ -76,25 +78,21 @@ const slideVariants = {
   exit: { opacity: 0, y: -20, scale: 0.985 },
 };
 
-export const hasCompletedFirstLaunchOnboarding = () => {
-  try {
-    return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '{}')?.completed === true;
-  } catch {
-    return false;
-  }
+const splitName = (value) => {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' '),
+  };
 };
 
-export default function FirstLaunchOnboarding({ currentUser, onComplete }) {
+export default function FirstLaunchOnboarding({ onComplete }) {
   const navigate = useNavigate();
+  const existingDraft = readFirstLaunchOnboardingDraft();
+  const [hasStarted, setHasStarted] = useState(false);
   const [step, setStep] = useState(0);
-  const [name, setName] = useState(() => {
-    try {
-      return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '{}')?.name || '';
-    } catch {
-      return '';
-    }
-  });
-  const [answers, setAnswers] = useState({});
+  const [name, setName] = useState(() => existingDraft?.name || '');
+  const [answers, setAnswers] = useState(() => existingDraft?.answers || {});
   const [nameTouched, setNameTouched] = useState(false);
 
   const totalSteps = 1 + introScreens.length + setupScreens.length + 1;
@@ -118,22 +116,28 @@ export default function FirstLaunchOnboarding({ currentUser, onComplete }) {
   const ActiveIcon = activeIcon;
 
   const persistOnboarding = (completed = false) => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    writeFirstLaunchOnboardingDraft({
       completed,
       name: cleanName,
+      ...splitName(cleanName),
       answers,
       updatedAt: new Date().toISOString(),
-    }));
+    });
   };
 
   const finishOnboarding = () => {
-    persistOnboarding(true);
+    const nameParts = splitName(cleanName);
+    const onboardingPrefill = {
+      completed: true,
+      name: cleanName,
+      ...nameParts,
+      answers,
+      updatedAt: new Date().toISOString(),
+    };
+
+    writeFirstLaunchOnboardingDraft(onboardingPrefill);
     onComplete?.();
-    if (currentUser?.emailVerified && currentUser?.onboardingCompleted) {
-      navigate('/dashboard', { replace: true });
-      return;
-    }
-    navigate('/login', { replace: true, state: { loginIntent: true } });
+    navigate('/register', { replace: true, state: { onboardingPrefill } });
   };
 
   const continueFlow = () => {
@@ -156,6 +160,26 @@ export default function FirstLaunchOnboarding({ currentUser, onComplete }) {
   };
 
   const renderScreen = () => {
+    if (!hasStarted) {
+      return (
+        <>
+          <span className="first-launch-kicker">Next Reps App</span>
+          <h1>Your training starts here.</h1>
+          <p>New here? We’ll set up your training space in a few quick swipes. Already have an account? Jump straight back in.</p>
+          <div className="first-launch-choice-grid">
+            <button onClick={() => setHasStarted(true)} type="button">
+              <strong>I’m new</strong>
+              <span>Set up my space</span>
+            </button>
+            <button onClick={() => navigate('/login', { state: { loginIntent: true } })} type="button">
+              <strong>Login</strong>
+              <span>Open my account</span>
+            </button>
+          </div>
+        </>
+      );
+    }
+
     if (isNameStep) {
       return (
         <>
@@ -250,7 +274,7 @@ export default function FirstLaunchOnboarding({ currentUser, onComplete }) {
       </header>
 
       <section className="first-launch-shell" aria-live="polite">
-        <div className="first-launch-progress" aria-hidden="true">
+        <div className={`first-launch-progress ${!hasStarted ? 'idle' : ''}`} aria-hidden="true">
           <span style={{ width: `${progress}%` }} />
         </div>
 
@@ -278,18 +302,24 @@ export default function FirstLaunchOnboarding({ currentUser, onComplete }) {
               <button className="first-launch-back" onClick={goBack} type="button">
                 Back
               </button>
+            ) : hasStarted ? (
+              <button className="first-launch-back" onClick={() => setHasStarted(false)} type="button">
+                Back
+              </button>
             ) : (
               <span />
             )}
-            <button
-              className="first-launch-primary"
-              disabled={!canContinue}
-              onClick={continueFlow}
-              type="button"
-            >
-              {isFinalStep ? 'Enter Next Reps' : introScreens[introIndex]?.button || 'Continue'}
-              <ArrowRight size={17} />
-            </button>
+            {hasStarted && (
+              <button
+                className="first-launch-primary"
+                disabled={!canContinue}
+                onClick={continueFlow}
+                type="button"
+              >
+                {isFinalStep ? 'Create my account' : introScreens[introIndex]?.button || 'Continue'}
+                <ArrowRight size={17} />
+              </button>
+            )}
           </div>
         </div>
       </section>

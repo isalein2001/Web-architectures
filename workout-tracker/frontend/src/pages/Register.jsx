@@ -1,13 +1,27 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AtSign, Lock, ShieldCheck, User, Zap } from 'lucide-react';
 import { api } from '../api';
+import { readFirstLaunchOnboardingDraft } from '../firstLaunchOnboardingStorage';
 import './Auth.css';
+
+const splitName = (value = '') => {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' '),
+  };
+};
 
 export default function Register({ onLogin }) {
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const location = useLocation();
+  const onboardingPrefill = location.state?.onboardingPrefill || readFirstLaunchOnboardingDraft();
+  const nameParts = onboardingPrefill?.firstName
+    ? onboardingPrefill
+    : splitName(onboardingPrefill?.name);
+  const [firstName, setFirstName] = useState(nameParts.firstName || '');
+  const [lastName, setLastName] = useState(nameParts.lastName || '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

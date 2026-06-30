@@ -103,6 +103,10 @@
   transition: width 0.35s ease;
 }
 
+.first-launch-progress.idle span {
+  width: 0 !important;
+}
+
 .first-launch-card {
   position: relative;
   width: min(760px, 100%);
@@ -221,6 +225,53 @@
   gap: 10px;
   width: min(620px, 100%);
   margin-top: 8px;
+}
+
+.first-launch-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(560px, 100%);
+  margin-top: 10px;
+}
+
+.first-launch-choice-grid button {
+  min-height: 116px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 80% 10%, rgba(197, 254, 0, 0.16), transparent 34%),
+    rgba(255, 255, 255, 0.06);
+  padding: 18px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.first-launch-choice-grid button:hover {
+  border-color: rgba(197, 254, 0, 0.62);
+  background: rgba(197, 254, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.first-launch-choice-grid strong,
+.first-launch-choice-grid span {
+  display: block;
+}
+
+.first-launch-choice-grid strong {
+  color: #ffffff;
+  font-size: 1.08rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.first-launch-choice-grid span {
+  margin-top: 8px;
+  color: rgba(247, 247, 242, 0.58);
+  font-size: 0.82rem;
+  font-weight: 850;
 }
 
 .first-launch-options button {
@@ -380,6 +431,14 @@
   .first-launch-options button {
     min-height: 52px;
     padding-inline: 14px;
+  }
+
+  .first-launch-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .first-launch-choice-grid button {
+    min-height: 86px;
   }
 
   .first-launch-actions {

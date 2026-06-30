@@ -7,7 +7,7 @@ import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
-import FirstLaunchOnboarding, { hasCompletedFirstLaunchOnboarding } from "./pages/FirstLaunchOnboarding";
+import FirstLaunchOnboarding from "./pages/FirstLaunchOnboarding";
 import Support from "./pages/Support";
 import About from "./pages/About";
 import WorkoutLogger from "./pages/WorkoutLogger";
@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import Onboarding from "./pages/Onboarding";
 import { api, isNativeApp } from "./api";
+import { hasCompletedFirstLaunchOnboarding } from "./firstLaunchOnboardingStorage";
 import { getUserDisplayName, getUserInitials, getUserStorageKey } from "./userStorage";
 import "./index.css";
 import "./App.css";
@@ -103,7 +104,9 @@ function AppLayout() {
   const [activeReminder, setActiveReminder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [hasSeenFirstLaunch, setHasSeenFirstLaunch] = useState(() => hasCompletedFirstLaunchOnboarding());
+  const [hasSeenFirstLaunch, setHasSeenFirstLaunch] = useState(() => (
+    isNativeApp && hasCompletedFirstLaunchOnboarding()
+  ));
   const [quickLogOpen, setQuickLogOpen] = useState(false);
   const [quickLogTab, setQuickLogTab] = useState('water');
   const [dailyActivity, setDailyActivity] = useState(null);
@@ -628,9 +631,9 @@ function AppLayout() {
       <Routes>
         <Route
           path="/"
-          element={hasSeenFirstLaunch
-            ? <Landing currentUser={currentUser} />
-            : <FirstLaunchOnboarding currentUser={currentUser} onComplete={() => setHasSeenFirstLaunch(true)} />}
+          element={isNativeApp && !hasSeenFirstLaunch
+            ? <FirstLaunchOnboarding onComplete={() => setHasSeenFirstLaunch(true)} />
+            : <Landing currentUser={currentUser} />}
         />
       </Routes>
     );
