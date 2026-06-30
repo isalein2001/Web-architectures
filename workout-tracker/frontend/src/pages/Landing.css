@@ -650,8 +650,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1fr);
-  gap: clamp(34px, 5vw, 78px);
+  grid-template-columns: minmax(260px, 0.52fr) minmax(0, 1fr);
+  gap: clamp(72px, 9vw, 160px);
   margin-top: clamp(84px, 11vw, 150px);
   padding-top: clamp(28px, 4vw, 54px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -726,6 +726,7 @@
   position: relative;
   z-index: 1;
   display: grid;
+  align-content: start;
 }
 
 .landing-faq-item {
@@ -740,10 +741,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 18px;
+  gap: 24px;
   width: 100%;
   min-height: 0;
-  padding: 5px 0;
+  padding: clamp(20px, 2.3vw, 34px) 0;
   border: 0;
   color: #ffffff;
   background: transparent;
@@ -752,7 +753,7 @@
 }
 
 .landing-faq-question span {
-  font-size: clamp(0.82rem, 1.02vw, 0.98rem);
+  font-size: clamp(1.12rem, 1.75vw, 1.65rem);
   font-weight: 900;
   line-height: 1.12;
 }
@@ -761,8 +762,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   transition: background 0.2s ease, transform 0.2s ease;
@@ -772,7 +773,7 @@
 .landing-faq-question i::after {
   content: "";
   position: absolute;
-  width: 12px;
+  width: 18px;
   height: 2px;
   border-radius: 999px;
   background: #ffffff;
@@ -798,7 +799,7 @@
 }
 
 .landing-faq-item.is-open .landing-faq-question {
-  padding: 12px 0 10px;
+  padding: clamp(24px, 2.7vw, 40px) 0 14px;
 }
 
 .landing-faq-answer {
@@ -1221,26 +1222,26 @@
 
   .landing-faq-question {
     min-height: 0;
-    gap: 14px;
-    padding: 5px 0;
+    gap: 16px;
+    padding: 16px 0;
   }
 
   .landing-faq-question span {
-    font-size: clamp(0.78rem, 3.55vw, 0.94rem);
+    font-size: clamp(0.98rem, 4.6vw, 1.18rem);
   }
 
   .landing-faq-question i {
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
   }
 
   .landing-faq-question i::before,
   .landing-faq-question i::after {
-    width: 11px;
+    width: 15px;
   }
 
   .landing-faq-item.is-open .landing-faq-question {
-    padding: 11px 0 9px;
+    padding: 20px 0 10px;
   }
 
   .landing-faq-answer p {
