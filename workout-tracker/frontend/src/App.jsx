@@ -7,6 +7,7 @@ import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
+import FirstLaunchOnboarding, { hasCompletedFirstLaunchOnboarding } from "./pages/FirstLaunchOnboarding";
 import Support from "./pages/Support";
 import About from "./pages/About";
 import WorkoutLogger from "./pages/WorkoutLogger";
@@ -102,6 +103,7 @@ function AppLayout() {
   const [activeReminder, setActiveReminder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [hasSeenFirstLaunch, setHasSeenFirstLaunch] = useState(() => hasCompletedFirstLaunchOnboarding());
   const [quickLogOpen, setQuickLogOpen] = useState(false);
   const [quickLogTab, setQuickLogTab] = useState('water');
   const [dailyActivity, setDailyActivity] = useState(null);
@@ -624,7 +626,12 @@ function AppLayout() {
   if (isLanding) {
     return (
       <Routes>
-        <Route path="/" element={<Landing currentUser={currentUser} />} />
+        <Route
+          path="/"
+          element={hasSeenFirstLaunch
+            ? <Landing currentUser={currentUser} />
+            : <FirstLaunchOnboarding currentUser={currentUser} onComplete={() => setHasSeenFirstLaunch(true)} />}
+        />
       </Routes>
     );
   }
