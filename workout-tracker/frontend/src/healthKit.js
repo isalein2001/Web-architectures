@@ -3,6 +3,7 @@ import { api } from './api';
 import { getUserStorageKey } from './userStorage';
 
 const NativeHealthKit = registerPlugin('HealthKit');
+const PENDING_HEALTH_SYNC_KEY = 'pendingAppleHealthMetrics';
 
 export const isHealthKitRuntime = () => Capacitor.getPlatform() === 'ios';
 
@@ -57,6 +58,61 @@ const persistHealthConnection = (currentUser, metrics) => {
   window.dispatchEvent(new CustomEvent('apple-health-sync', { detail: metrics }));
 };
 
+const getPendingHealthSyncKey = (currentUser) => getUserStorageKey(PENDING_HEALTH_SYNC_KEY, currentUser);
+
+const persistPendingHealthSync = (currentUser, metrics) => {
+  if (!currentUser?.id || !metrics) return;
+  window.localStorage.setItem(getPendingHealthSyncKey(currentUser), JSON.stringify(metrics));
+};
+
+const clearPendingHealthSync = (currentUser) => {
+  if (!currentUser?.id) return;
+  window.localStorage.removeItem(getPendingHealthSyncKey(currentUser));
+};
+
+const getPendingHealthSync = (currentUser) => {
+  if (!currentUser?.id) return null;
+
+  const savedMetrics = window.localStorage.getItem(getPendingHealthSyncKey(currentUser));
+  if (!savedMetrics) return null;
+
+  try {
+    const metrics = normalizeHealthMetrics(JSON.parse(savedMetrics));
+    return isHealthMetricsFromToday(metrics) ? metrics : null;
+  } catch {
+    return null;
+  }
+};
+
+const pushHealthMetricsToServer = async (currentUser, metrics) => {
+  if (!currentUser?.id || !metrics) return null;
+
+  const activity = await api.updateTodayActivity({
+    date: metrics.dateKey,
+    steps: metrics.steps,
+    active_energy_kcal: metrics.activeEnergyKcal,
+    exercise_minutes: metrics.exerciseMinutes,
+  });
+
+  clearPendingHealthSync(currentUser);
+  window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+  return activity;
+};
+
+export const syncPendingAppleHealthActivity = async (currentUser) => {
+  const pendingMetrics = getPendingHealthSync(currentUser);
+  if (!pendingMetrics) return null;
+
+  try {
+    return await pushHealthMetricsToServer(currentUser, pendingMetrics);
+  } catch (error) {
+    window.dispatchEvent(new CustomEvent('apple-health-server-sync-failed', {
+      detail: { message: error.message || 'APPLE HEALTH SERVER SYNC FAILED', metrics: pendingMetrics },
+    }));
+    return null;
+  }
+};
+
 export const syncAppleHealthActivity = async (currentUser) => {
   const availability = await healthKit.isAvailable();
   if (!availability.available) {
@@ -68,21 +124,18 @@ export const syncAppleHealthActivity = async (currentUser) => {
   persistHealthConnection(currentUser, metrics);
 
   let activity = null;
+  let syncError = null;
   try {
-    activity = await api.updateTodayActivity({
-      date: metrics.dateKey,
-      steps: metrics.steps,
-      active_energy_kcal: metrics.activeEnergyKcal,
-      exercise_minutes: metrics.exerciseMinutes,
-    });
-    window.dispatchEvent(new CustomEvent('daily-activity-change', { detail: activity }));
+    activity = await pushHealthMetricsToServer(currentUser, metrics);
   } catch (error) {
+    syncError = error;
+    persistPendingHealthSync(currentUser, metrics);
     window.dispatchEvent(new CustomEvent('apple-health-server-sync-failed', {
       detail: { message: error.message || 'APPLE HEALTH SERVER SYNC FAILED', metrics },
     }));
   }
 
-  return { metrics, activity };
+  return { metrics, activity, syncError };
 };
 
 let autoSyncPromise = null;
@@ -94,7 +147,8 @@ export const autoSyncAppleHealthActivity = async (currentUser, reason = 'auto') 
 
   if (autoSyncPromise) return autoSyncPromise;
 
-  autoSyncPromise = syncAppleHealthActivity(currentUser)
+  autoSyncPromise = syncPendingAppleHealthActivity(currentUser)
+    .then(() => syncAppleHealthActivity(currentUser))
     .then((result) => {
       window.dispatchEvent(new CustomEvent('apple-health-auto-sync', {
         detail: { reason, ...result },

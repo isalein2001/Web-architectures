@@ -131,10 +131,12 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
     setWatchSyncStatus('');
 
     try {
-      const { metrics, activity } = await syncAppleHealthActivity(currentUser);
+      const { metrics, activity, syncError } = await syncAppleHealthActivity(currentUser);
       setWatchMetrics(metrics);
       setIsWatchConnected(true);
-      setWatchSyncStatus(activity ? 'APPLE HEALTH SYNCED' : 'APPLE HEALTH CONNECTED');
+      setWatchSyncStatus(syncError
+        ? 'APPLE HEALTH CONNECTED - SERVER SYNC WILL RETRY'
+        : (activity ? 'APPLE HEALTH SYNCED' : 'APPLE HEALTH CONNECTED'));
     } catch (error) {
       console.error(error);
       if (!watchMetrics) {
