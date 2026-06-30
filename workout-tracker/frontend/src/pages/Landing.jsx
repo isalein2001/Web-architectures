@@ -30,7 +30,8 @@ const landingCopy = {
     heroTitle: 'Your gym notebook, calendar and analytics in one app.',
     heroText: 'Build workout plans, log every set and keep your training progress connected in one clean system.',
     statement:
-      'Next Reps is built for people who want structure without slowing down their training. Create your plan, train from it, log the real numbers and come back to a dashboard that actually remembers what changed. No scattered notes, no lost workouts, no guessing your next move. Just every set, every session and every next rep in one clear system.',
+      'Next Reps keeps your training simple, structured, and actually smart. Build your plan, take it to the gym, log your sets, and let the dashboard do the thinking after. See what changed, where you progressed, and what your next move should be. No notes app. No Excel sheets. No "wait, what weight did I use last time?"',
+    statementHighlight: 'Just train, track, analyze - and hit your next rep.',
     introEyebrow: 'What Next Reps does',
     introTitle: 'No more Excel sheets or scattered gym notes.',
     introText:
@@ -127,7 +128,8 @@ const landingCopy = {
     heroTitle: 'Dein Gym-Notizbuch, Kalender und deine Analytics in einer App.',
     heroText: 'Plane Workouts, logge jeden Satz und behalte deinen Fortschritt in einem cleanen System im Blick.',
     statement:
-      'Next Reps ist für alle, die Struktur wollen, ohne ihr Training auszubremsen. Bau deinen Plan, trainiere danach, logge die echten Zahlen und komm zurück zu einem Dashboard, das wirklich weiß, was sich verändert hat. Keine verstreuten Notizen, keine verlorenen Workouts, kein Rätselraten. Nur jeder Satz, jede Session und jeder nächste Rep an einem Ort.',
+      'Next Reps hält dein Training simpel, strukturiert und wirklich smart. Bau deinen Plan, nimm ihn mit ins Gym, logge deine Sätze und lass danach das Dashboard für dich mitdenken. Sieh, was sich verändert hat, wo du stärker geworden bist und was als Nächstes ansteht. Keine Notizen-App. Keine Excel-Listen. Kein "warte, welches Gewicht hatte ich letztes Mal?"',
+    statementHighlight: 'Einfach trainieren, tracken, analysieren - und den nächsten Rep holen.',
     introEyebrow: 'Was Next Reps macht',
     introTitle: 'Nie wieder Excel-Listen oder lose Gym-Notizen.',
     introText:
@@ -252,6 +254,11 @@ export default function Landing({ currentUser }) {
   const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [-2, 1.1, 0]);
   const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [0.96, 1.04, 1]);
   const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.14, 1], [0, 0.9, 0.9]);
+  const faqLogoX = useTransform(
+    faqArrowScrollProgress,
+    [0, 0.58, 1],
+    isCompactViewport ? ['0vw', '0vw', '82vw'] : ['0vw', '0vw', '48vw']
+  );
   const primaryCta = currentUser ? '/dashboard' : '/register';
   const copy = landingCopy[lang] || landingCopy.en;
   const heroSlides = copy.heroSlides.map((slide, index) => ({
@@ -440,6 +447,7 @@ export default function Landing({ currentUser }) {
           </div>
           <p>
             {copy.statement}
+            <strong>{copy.statementHighlight}</strong>
           </p>
         </motion.div>
       </section>
@@ -500,6 +508,13 @@ export default function Landing({ currentUser }) {
           variants={reveal}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
+          <motion.img
+            aria-hidden="true"
+            className="landing-faq-watermark"
+            src="/nextreps-logo.svg"
+            alt=""
+            style={{ x: faqLogoX }}
+          />
           <div className="landing-faq-copy">
             <h2>{copy.faqTitle}</h2>
             <p>{copy.faqText}</p>
