@@ -49,7 +49,8 @@
   gap: clamp(12px, 2vw, 28px);
 }
 
-.landing-nav-actions a {
+.landing-nav-actions a,
+.landing-language-button {
   color: rgba(247, 247, 242, 0.78);
   text-decoration: none;
   font-size: 0.86rem;
@@ -57,11 +58,13 @@
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.landing-nav-actions a:hover {
+.landing-nav-actions a:hover,
+.landing-language-button:hover {
   color: #ffffff;
 }
 
-.landing-nav-actions .landing-social-button {
+.landing-nav-actions .landing-social-button,
+.landing-language-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -74,11 +77,19 @@
   backdrop-filter: blur(14px);
 }
 
-.landing-nav-actions .landing-social-button svg {
+.landing-language-button {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.landing-nav-actions .landing-social-button svg,
+.landing-language-button svg {
   color: #c5fe00;
 }
 
-.landing-nav-actions .landing-social-button:hover {
+.landing-nav-actions .landing-social-button:hover,
+.landing-language-button:hover {
   border-color: rgba(197, 254, 0, 0.38);
   color: #c5fe00;
 }
@@ -364,7 +375,7 @@
 .landing-scroll-cue {
   position: absolute;
   left: 50%;
-  bottom: 18px;
+  bottom: -12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -980,7 +991,7 @@
 
 @media (max-width: 640px) {
   .landing-nav {
-    padding: 18px 16px;
+    padding: calc(env(safe-area-inset-top) + 48px) 16px 18px;
   }
 
   .landing-brand img {
@@ -993,19 +1004,21 @@
     font-size: 0.78rem;
   }
 
-  .landing-nav-actions .landing-social-button {
+  .landing-nav-actions .landing-social-button,
+  .landing-language-button {
     min-height: 36px;
     padding: 0 11px;
     font-size: 0.76rem;
   }
 
-  .landing-nav-actions .landing-social-button svg {
+  .landing-nav-actions .landing-social-button svg,
+  .landing-language-button svg {
     width: 14px;
     height: 14px;
   }
 
   .landing-hero {
-    padding: 108px 16px 136px;
+    padding: calc(env(safe-area-inset-top) + 174px) 16px 148px;
   }
 
   .landing-hero-overlay {
