@@ -65,7 +65,6 @@ jobs:
               echo "Erzeuge fehlende .env-Datei auf dem Server..."
               JWT_SECRET_VALUE="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
               {
-                echo 'DATABASE_URL="mysql://BENUTZER:PASSWORT@HOST:3306/DATENBANKNAME"'
                 echo "JWT_SECRET=\"$JWT_SECRET_VALUE\""
                 echo 'APP_URL="https://next-reps.de"'
                 echo 'NODE_ENV="production"'
