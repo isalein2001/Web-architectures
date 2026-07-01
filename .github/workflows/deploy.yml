@@ -73,6 +73,7 @@ jobs:
             fi
 
             if ! grep -q '^DATABASE_URL="mysql://' .env && ! grep -q '^DATABASE_URL=mysql://' .env; then
+              echo ${DATABASE_URL}
               echo "DATABASE_URL muss auf Hetzner auf eure MySQL/MariaDB-Datenbank zeigen."
               echo 'Beispiel: DATABASE_URL="mysql://BENUTZER:PASSWORT@HOST:3306/DATENBANKNAME"'
               exit 1
