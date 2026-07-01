@@ -76,7 +76,7 @@ jobs:
             chmod 600 .env
             
             echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
-            npm ci --omit=dev
+            npm i --omit=dev
             
             echo "Führe Datenbank-Migrationen aus (migrate deploy)..."
             npx prisma migrate deploy --schema=prisma/schema.prisma
