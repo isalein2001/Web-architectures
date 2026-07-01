@@ -53,8 +53,6 @@ jobs:
             --exclude='.env' \
             --exclude='.git' \
             --exclude='.prisma/client' \
-            --exclude='database.sqlite' \
-            --exclude='database.sqlite-*' \
             workout-tracker/backend/ ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }}:~/workout-tracker
 
       # Der finale SSH-Befehl nutzt ebenfalls sshpass
@@ -63,31 +61,11 @@ jobs:
           sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
             cd ~/workout-tracker
 
-            # Die produktive SQLite-Datenbank liegt bewusst außerhalb des
-            # Deploy-Ordners, damit rsync/Passenger sie nicht schreibgeschützt
-            # oder kaputt anfassen kann.
-            DATA_DIR="$HOME/next-reps-data"
-            DB_PATH="$DATA_DIR/database.sqlite"
-            mkdir -p "$DATA_DIR"
-            chmod a+rwx "$DATA_DIR"
-
-            if [ ! -f "$DB_PATH" ] && [ -f database.sqlite ]; then
-              echo "Kopiere bestehende Datenbank in persistenten Datenordner..."
-              cp database.sqlite "$DB_PATH"
-            fi
-
-            if [ -f "$DB_PATH" ]; then
-              chmod a+rw "$DB_PATH"
-            fi
-            if ls "$DATA_DIR"/database.sqlite-* >/dev/null 2>&1; then
-              chmod a+rw "$DATA_DIR"/database.sqlite-*
-            fi
-
             if [ ! -f .env ]; then
               echo "Erzeuge fehlende .env-Datei auf dem Server..."
               JWT_SECRET_VALUE="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
               {
-                echo 'DATABASE_URL="file:./database.sqlite"'
+                echo 'DATABASE_URL="mysql://BENUTZER:PASSWORT@HOST:3306/DATENBANKNAME"'
                 echo "JWT_SECRET=\"$JWT_SECRET_VALUE\""
                 echo 'APP_URL="https://next-reps.de"'
                 echo 'NODE_ENV="production"'
@@ -95,11 +73,10 @@ jobs:
               chmod 600 .env
             fi
 
-            # DATABASE_URL immer auf den persistenten, beschreibbaren DB-Pfad setzen.
-            if grep -q '^DATABASE_URL=' .env; then
-              sed -i.bak "s#^DATABASE_URL=.*#DATABASE_URL=\"file:$DB_PATH\"#" .env
-            else
-              echo "DATABASE_URL=\"file:$DB_PATH\"" >> .env
+            if ! grep -q '^DATABASE_URL="mysql://' .env && ! grep -q '^DATABASE_URL=mysql://' .env; then
+              echo "DATABASE_URL muss auf Hetzner auf eure MySQL/MariaDB-Datenbank zeigen."
+              echo 'Beispiel: DATABASE_URL="mysql://BENUTZER:PASSWORT@HOST:3306/DATENBANKNAME"'
+              exit 1
             fi
             chmod 600 .env
             
@@ -111,11 +88,6 @@ jobs:
 
             echo "Generiere Prisma-Client passend zum aktuellen Schema..."
             npx prisma generate --schema=prisma/schema.prisma
-
-            if [ -f "$DB_PATH" ] && [ ! -w "$DB_PATH" ]; then
-              echo "$DB_PATH ist nicht schreibbar. Bitte Rechte in konsoleH prüfen."
-              exit 1
-            fi
             
             echo "Erzeuge Restart-Trigger für die Node.js-App..."
             mkdir -p tmp

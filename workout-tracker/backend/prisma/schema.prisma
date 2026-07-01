@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
 }
 
 model User {
@@ -21,7 +21,7 @@ model User {
   gender       String?
   hydrationGoalLiters Float? @map("hydration_goal_liters")
   fitnessGoal  String?  @map("fitness_goal")
-  profileImage  String?  @map("profile_image")
+  profileImage  String?  @db.LongText @map("profile_image")
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
   plans        Plan[]
@@ -35,7 +35,7 @@ model User {
 model PushSubscription {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
-  endpoint  String   @unique
+  endpoint  String   @unique @db.VarChar(512)
   p256dh    String
   auth      String
   createdAt DateTime @default(now()) @map("created_at")
@@ -68,8 +68,8 @@ model DailyActivity {
 model Plan {
   id          Int              @id @default(autoincrement())
   name        String
-  description String?
-  image       String?
+  description String?          @db.Text
+  image       String?          @db.LongText
   iconKey     String?          @map("icon_key")
   userId      Int?             @map("user_id")
   user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -98,7 +98,7 @@ model WorkoutSession {
   planId Int?         @map("plan_id")
   planName String?     @map("plan_name")
   userId Int?         @map("user_id")
-  notes  String?
+  notes  String? @db.Text
   caloriesBurned Int? @map("calories_burned")
   durationSeconds Int? @map("duration_seconds")
   intensity String?

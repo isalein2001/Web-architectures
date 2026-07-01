@@ -1,0 +1,23 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: next-reps-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: next_reps_root_password
+      MYSQL_DATABASE: next_reps_dev
+      MYSQL_USER: next_reps
+      MYSQL_PASSWORD: next_reps_dev_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - next_reps_mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  next_reps_mysql_data:

@@ -1,28 +1,43 @@
 const React = require('react');
 const { render } = require('@react-email/render');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const VerificationEmail = require('./emails/VerificationEmail');
 
 const DEMO_EMAIL = 'jonasarnold@gmail.com';
 
 const normalizeBaseUrl = (url) => (url || 'http://localhost:5173').replace(/\/+$/, '');
 const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
+const parseBoolean = (value) => ['1', 'true', 'yes'].includes(String(value).trim().toLowerCase());
 
 const getMailConfig = () => ({
-  apiKey: process.env.RESEND_API_KEY,
-  from: process.env.MAIL_FROM || 'NEXT REPS <onboarding@resend.dev>',
+  host: process.env.SMTP_SERVER,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: process.env.SMTP_SECURE ? parseBoolean(process.env.SMTP_SECURE) : Number(process.env.SMTP_PORT) === 465,
+  user: process.env.SMTP_USER,
+  password: process.env.SMTP_PASSWORD,
+  from: process.env.MAIL_FROM || (process.env.SMTP_USER ? `NEXT REPS <${process.env.SMTP_USER}>` : undefined),
   appUrl: normalizeBaseUrl(process.env.APP_URL),
 });
 
-const getResendClient = () => {
-  const { apiKey } = getMailConfig();
-  return apiKey ? new Resend(apiKey) : null;
+const getSmtpTransporter = () => {
+  const { host, port, secure, user, password } = getMailConfig();
+  if (!host || !user || !password) return null;
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: {
+      user,
+      pass: password,
+    },
+  });
 };
 
 async function sendVerificationEmail({ to, firstName, code }) {
   const normalizedTo = normalizeEmail(to);
   const { from, appUrl } = getMailConfig();
-  const resend = getResendClient();
+  const transporter = getSmtpTransporter();
   const verifyUrl = `${appUrl}/verify-email`;
 
   if (normalizedTo === DEMO_EMAIL) {
@@ -30,9 +45,9 @@ async function sendVerificationEmail({ to, firstName, code }) {
     return;
   }
 
-  if (!resend) {
+  if (!transporter) {
     console.warn(`[DEV EMAIL] Verification code for ${normalizedTo || to}: ${code}`);
-    console.warn('[DEV EMAIL] RESEND_API_KEY is not set, so no email was sent.');
+    console.warn('[DEV EMAIL] SMTP_SERVER, SMTP_USER, or SMTP_PASSWORD is not set, so no email was sent.');
     return;
   }
 
@@ -43,7 +58,7 @@ async function sendVerificationEmail({ to, firstName, code }) {
       verifyUrl,
     }));
 
-    await resend.emails.send({
+    await transporter.sendMail({
       from,
       to: normalizedTo || to,
       subject: 'Verify your NEXT REPS email',
