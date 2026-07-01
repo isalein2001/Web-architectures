@@ -551,10 +551,14 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const waterProgress = Math.min(100, Math.round((waterIntakeMl / Math.max(waterGoalMl, 1)) * 100));
   const healthCalories = Number(appleHealthMetrics?.activeEnergyKcal) || Number(displayActivity?.active_energy_kcal) || 0;
   const healthMinutes = Number(appleHealthMetrics?.exerciseMinutes) || Number(displayActivity?.exercise_minutes) || 0;
-  const workoutCalories = displaySessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
+  const todayDateKey = getSessionDateKey(new Date());
+  const dailyMetricSessions = shouldUseDemoValues
+    ? displaySessions
+    : displaySessions.filter((session) => getSessionDateKey(session.date) === todayDateKey);
+  const workoutCalories = dailyMetricSessions.reduce((sum, session) => sum + (Number(session.calories_burned) || 0), 0);
   const stepCalories = Math.round(stepsValue * (Number(currentUser?.weightKg) || 75) * 0.00055);
   const caloriesValue = healthCalories || (workoutCalories + stepCalories);
-  const minutesValue = healthMinutes || Math.round(displaySessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
+  const minutesValue = healthMinutes || Math.round(dailyMetricSessions.reduce((sum, session) => sum + (Number(session.duration_seconds) || 0), 0) / 60);
   const stepsProgress = Math.min(100, Math.round((stepsValue / Math.max(stepGoal, 1)) * 100));
   const caloriesProgress = Math.min(100, Math.round((caloriesValue / Math.max(dailyGoals.calories || 1, 1)) * 100));
   const minutesProgress = Math.min(100, Math.round((minutesValue / Math.max(dailyGoals.trainingMinutes || 1, 1)) * 100));
