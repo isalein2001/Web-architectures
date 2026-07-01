@@ -25,6 +25,7 @@ const serializeSession = (session) => ({
   calories_burned: session.caloriesBurned,
   duration_seconds: session.durationSeconds,
   intensity: session.intensity,
+  perceived_exertion: session.perceivedExertion,
   plan_name: session.planName || session.plan?.name || null,
   logs: (session.logs || []).map(serializeLog),
 });
@@ -68,6 +69,7 @@ function createSessionsRouter() {
       calories_burned,
       duration_seconds,
       intensity,
+      perceived_exertion,
     } = req.body;
     const planId = plan_id === undefined || plan_id === null ? null : toNumberId(plan_id);
     const caloriesBurned = calories_burned === undefined || calories_burned === null || calories_burned === ''
@@ -76,6 +78,9 @@ function createSessionsRouter() {
     const durationSeconds = duration_seconds === undefined || duration_seconds === null || duration_seconds === ''
       ? null
       : Number(duration_seconds);
+    const perceivedExertion = perceived_exertion === undefined || perceived_exertion === null || perceived_exertion === ''
+      ? null
+      : Number(perceived_exertion);
 
     if (!date || typeof date !== 'string') {
       return res.status(400).json({ error: 'Session date is required' });
@@ -103,6 +108,10 @@ function createSessionsRouter() {
 
     if (intensity && !['light', 'moderate', 'intense', 'hiit'].includes(intensity)) {
       return res.status(400).json({ error: 'Intensity is invalid' });
+    }
+
+    if (perceivedExertion !== null && (!Number.isInteger(perceivedExertion) || perceivedExertion < 1 || perceivedExertion > 10)) {
+      return res.status(400).json({ error: 'Perceived exertion must be a number between 1 and 10' });
     }
 
     const invalidLog = logs.find((log) => !log.exercise_name);
@@ -158,6 +167,7 @@ function createSessionsRouter() {
           caloriesBurned,
           durationSeconds,
           intensity: intensity || null,
+          perceivedExertion,
           logs: {
             create: logs.map((log) => ({
               exerciseName: log.exercise_name,

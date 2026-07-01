@@ -54,6 +54,14 @@ const getSessionDateKey = (date) => {
   if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
   return format(parsedDate, 'yyyy-MM-dd');
 };
+const exertionOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+const getExertionZone = (value) => {
+  const exertion = Math.min(10, Math.max(1, Math.round(Number(value) || 6)));
+  if (exertion <= 3) return { label: 'LIGHT', description: 'Easy pace', intensity: 'light' };
+  if (exertion <= 6) return { label: 'MODERATE', description: 'Controlled effort', intensity: 'moderate' };
+  if (exertion <= 9) return { label: 'HARD', description: 'Demanding sets', intensity: 'intense' };
+  return { label: 'MAX EFFORT', description: 'All-out session', intensity: 'hiit' };
+};
 const groupLogsByExercise = (logs = []) => logs.reduce((groups, log) => {
   const exerciseName = log.exercise_name || 'Workout';
   return {
@@ -503,6 +511,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [backfillExercises, setBackfillExercises] = useState(() => createBackfillExercisesFromWorkout(null));
   const [backfillDurationMinutes, setBackfillDurationMinutes] = useState('45');
   const [backfillCalories, setBackfillCalories] = useState('');
+  const [backfillExertion, setBackfillExertion] = useState(6);
   const [backfillNotes, setBackfillNotes] = useState('');
   const [backfillError, setBackfillError] = useState('');
   const [isSavingBackfill, setIsSavingBackfill] = useState(false);
@@ -859,6 +868,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     setBackfillExercises(createBackfillExercisesFromWorkout(null));
     setBackfillDurationMinutes('45');
     setBackfillCalories('');
+    setBackfillExertion(6);
     setBackfillNotes('');
     setBackfillError('');
     setIsSavingBackfill(false);
@@ -1039,7 +1049,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         plan_name: selectedWorkout?.title || t('FREESTYLE WORKOUT'),
         duration_seconds: Math.max(0, Math.min(86400, Math.round(Number(backfillDurationMinutes) || 0) * 60)),
         calories_burned: backfillCalories === '' ? null : Math.max(0, Math.min(3000, Math.round(Number(backfillCalories) || 0))),
-        intensity: 'moderate',
+        intensity: getExertionZone(backfillExertion).intensity,
+        perceived_exertion: backfillExertion,
         notes: backfillNotes,
         logs,
       });
@@ -1621,6 +1632,14 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                         <small>{sessionTime}</small>
                       </div>
 
+                      {session.perceived_exertion && (
+                        <div className="session-exertion-pill">
+                          <span>{t('EFFORT')}</span>
+                          <strong>{session.perceived_exertion}/10</strong>
+                          <small>{t(getExertionZone(session.perceived_exertion).label)}</small>
+                        </div>
+                      )}
+
                       {confirmingSessionId === session.id && (
                         <div className="session-delete-confirm">
                           <p>{t('Delete this completed workout?')}</p>
@@ -1846,6 +1865,26 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                           placeholder="320"
                         />
                       </label>
+                    </div>
+
+                    <div className="backfill-exertion-panel">
+                      <div>
+                        <span>{t('EFFORT LEVEL')}</span>
+                        <strong>{backfillExertion}/10 · {t(getExertionZone(backfillExertion).label)}</strong>
+                      </div>
+                      <div className="backfill-exertion-scale" role="group" aria-label={t('Effort level')}>
+                        {exertionOptions.map((value) => (
+                          <button
+                            type="button"
+                            key={value}
+                            className={backfillExertion === value ? 'active' : ''}
+                            onClick={() => setBackfillExertion(value)}
+                          >
+                            {value}
+                          </button>
+                        ))}
+                      </div>
+                      <small>{t('1-3 light, 4-6 moderate, 7-9 hard, 10 max effort.')}</small>
                     </div>
 
                     <div className="backfill-exercise-list">

@@ -102,6 +102,7 @@ model WorkoutSession {
   caloriesBurned Int? @map("calories_burned")
   durationSeconds Int? @map("duration_seconds")
   intensity String?
+  perceivedExertion Int? @map("perceived_exertion")
   plan   Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
   user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs   WorkoutLog[]

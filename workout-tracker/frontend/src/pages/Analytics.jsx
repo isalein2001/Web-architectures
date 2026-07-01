@@ -203,6 +203,13 @@ const getSessionDateKey = (date) => {
   if (Number.isNaN(parsedDate.getTime())) return String(date).slice(0, 10);
   return format(parsedDate, 'yyyy-MM-dd');
 };
+const getExertionZone = (value) => {
+  const exertion = Math.min(10, Math.max(1, Math.round(Number(value) || 6)));
+  if (exertion <= 3) return { label: 'LIGHT' };
+  if (exertion <= 6) return { label: 'MODERATE' };
+  if (exertion <= 9) return { label: 'HARD' };
+  return { label: 'MAX EFFORT' };
+};
 const groupLogsByExercise = (logs = []) => logs.reduce((groups, log) => {
   const exerciseName = log.exercise_name || 'Workout';
   return {
@@ -740,7 +747,7 @@ const buildWeeklyTrainingQuality = (sessions = [], workoutSchedule = {}, referen
     ? weeklyEntries.length / completedSessionCount
     : 0;
   const setQualityScore = Math.min((averageSetsPerSession / 12) * 100, 100);
-  const sessionsWithIntensity = sessionsThisWeek.filter((session) => session.intensity).length;
+  const sessionsWithIntensity = sessionsThisWeek.filter((session) => session.intensity || session.perceived_exertion).length;
   const intensityScore = completedSessionCount
     ? (sessionsWithIntensity / completedSessionCount) * 100
     : 0;
@@ -1938,6 +1945,14 @@ export default function Analytics({ currentUser }) {
                         </div>
                         <small>{sessionTime}</small>
                       </div>
+
+                      {session.perceived_exertion && (
+                        <div className="analytics-session-exertion-pill">
+                          <span>{t('EFFORT')}</span>
+                          <strong>{session.perceived_exertion}/10</strong>
+                          <small>{t(getExertionZone(session.perceived_exertion).label)}</small>
+                        </div>
+                      )}
 
                       {confirmingSessionId === session.id && (
                         <div className="analytics-session-delete-confirm">

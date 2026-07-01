@@ -1232,6 +1232,72 @@
   box-shadow: 0 0 0 3px rgba(197, 254, 0, 0.09);
 }
 
+.backfill-exertion-panel {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.backfill-exertion-panel > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.backfill-exertion-panel span {
+  color: #858585;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.backfill-exertion-panel strong {
+  color: var(--color-primary);
+  font-size: 0.86rem;
+  font-weight: 950;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.backfill-exertion-panel small {
+  color: #858585;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.backfill-exertion-scale {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.backfill-exertion-scale button {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.045);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.backfill-exertion-scale button.active,
+.backfill-exertion-scale button:hover {
+  border-color: rgba(197, 254, 0, 0.58);
+  color: #101408;
+  background: var(--color-primary);
+}
+
 .backfill-exercise-list {
   display: grid;
   gap: 12px;
@@ -1464,6 +1530,33 @@
   font-size: 0.75rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.session-exertion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: -4px 0 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba(197, 254, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(197, 254, 0, 0.07);
+}
+
+.session-exertion-pill span,
+.session-exertion-pill small {
+  color: #9b9b9b;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.session-exertion-pill strong {
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 950;
 }
 
 .session-trash-button {
@@ -2352,6 +2445,19 @@
 
   .backfill-plan-row {
     grid-template-columns: 1fr;
+  }
+
+  .backfill-exertion-panel > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .backfill-exertion-panel strong {
+    text-align: left;
+  }
+
+  .backfill-exertion-scale {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .backfill-active-heading {

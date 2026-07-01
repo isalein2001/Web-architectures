@@ -70,6 +70,16 @@ const intensityOptions = [
   },
 ];
 
+const exertionOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+
+const getExertionZone = (value) => {
+  const exertion = clamp(Number(value) || 6, 1, 10);
+  if (exertion <= 3) return { label: 'LIGHT', description: 'Easy pace', intensity: 'light' };
+  if (exertion <= 6) return { label: 'MODERATE', description: 'Controlled effort', intensity: 'moderate' };
+  if (exertion <= 9) return { label: 'HARD', description: 'Demanding sets', intensity: 'intense' };
+  return { label: 'MAX EFFORT', description: 'All-out session', intensity: 'hiit' };
+};
+
 const compoundKeywords = [
   'bench',
   'press',
@@ -228,6 +238,7 @@ export default function WorkoutLogger({ currentUser }) {
   const [saveState, setSaveState] = useState('idle');
   const [sessionStartedAt, setSessionStartedAt] = useState(() => (initialSelectedPlan ? Date.now() : null));
   const [intensity, setIntensity] = useState('moderate');
+  const [perceivedExertion, setPerceivedExertion] = useState(6);
   const [energyMode, setEnergyMode] = useState('estimate');
   const [manualCalories, setManualCalories] = useState('');
   const [durationOverrideMinutes, setDurationOverrideMinutes] = useState('');
@@ -368,6 +379,7 @@ export default function WorkoutLogger({ currentUser }) {
     setCountdown(3);
     setSessionStartedAt(null);
     setIntensity('moderate');
+    setPerceivedExertion(6);
     setEnergyMode('estimate');
     setManualCalories('');
     setDurationOverrideMinutes('');
@@ -377,6 +389,7 @@ export default function WorkoutLogger({ currentUser }) {
 
   const openWorkoutSummary = () => {
     setManualCalories(String(estimatedCalories));
+    setIntensity(getExertionZone(perceivedExertion).intensity);
     setSaveState('idle');
     setPhase('summary');
   };
@@ -395,6 +408,7 @@ export default function WorkoutLogger({ currentUser }) {
       calories_burned: caloriesToSave,
       duration_seconds: durationSeconds,
       intensity,
+      perceived_exertion: perceivedExertion,
       logs: logs
         .filter((log) => log.completed || log.reps || log.weight)
         .map((log) => ({
@@ -416,6 +430,7 @@ export default function WorkoutLogger({ currentUser }) {
       calories_burned: caloriesToSave,
       duration_seconds: durationSeconds,
       intensity,
+      perceived_exertion: perceivedExertion,
       logs: logs
         .filter((log) => log.completed || log.reps || log.weight)
         .map((log) => ({
@@ -591,19 +606,28 @@ export default function WorkoutLogger({ currentUser }) {
             </div>
           </label>
 
-          <div className="summary-section-label">{t('TRAINING INTENSITY')}</div>
-          <div className="summary-intensity-grid">
-            {intensityOptions.map((option) => (
-              <button
-                type="button"
-                key={option.id}
-                className={`summary-intensity-button ${intensity === option.id ? 'active' : ''}`}
-                onClick={() => setIntensity(option.id)}
-              >
-                <strong>{t(option.label)}</strong>
-                <span>{t(option.description)}</span>
-              </button>
-            ))}
+          <div className="summary-section-label">{t('EFFORT LEVEL')}</div>
+          <div className="summary-exertion-panel">
+            <div>
+              <strong>{perceivedExertion}/10</strong>
+              <span>{t(getExertionZone(perceivedExertion).label)} · {t(getExertionZone(perceivedExertion).description)}</span>
+            </div>
+            <div className="summary-exertion-scale" role="group" aria-label={t('Effort level')}>
+              {exertionOptions.map((value) => (
+                <button
+                  type="button"
+                  key={value}
+                  className={perceivedExertion === value ? 'active' : ''}
+                  onClick={() => {
+                    setPerceivedExertion(value);
+                    setIntensity(getExertionZone(value).intensity);
+                  }}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <small>{t('1-3 light, 4-6 moderate, 7-9 hard, 10 max effort.')}</small>
           </div>
 
           <div className="summary-calories-panel">

@@ -2287,6 +2287,33 @@
   white-space: nowrap;
 }
 
+.analytics-session-exertion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: -4px 0 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba(197, 254, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(197, 254, 0, 0.07);
+}
+
+.analytics-session-exertion-pill span,
+.analytics-session-exertion-pill small {
+  color: #9b9b9b;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.analytics-session-exertion-pill strong {
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 950;
+}
+
 .analytics-session-trash-button {
   position: absolute;
   right: 16px;

@@ -608,6 +608,67 @@
   line-height: 1.45;
 }
 
+.summary-exertion-panel {
+  display: grid;
+  gap: 14px;
+  margin: 12px 0 20px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+}
+
+.summary-exertion-panel > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summary-exertion-panel strong {
+  color: var(--color-primary);
+  font-size: 1.65rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.summary-exertion-panel span,
+.summary-exertion-panel small {
+  color: #8e8e8e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.summary-exertion-scale {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.summary-exertion-scale button {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 36px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(255,255,255,0.04);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 950;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.summary-exertion-scale button:hover,
+.summary-exertion-scale button.active {
+  border-color: rgba(197, 254, 0, 0.58);
+  color: #101408;
+  background: var(--color-primary);
+  transform: translateY(-1px);
+}
+
 .summary-calories-panel {
   display: flex;
   align-items: center;
@@ -698,6 +759,15 @@
   .summary-calories-panel {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .summary-exertion-panel > div:first-child {
+    display: grid;
+    gap: 6px;
+  }
+
+  .summary-exertion-scale {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .workout-start-card {
