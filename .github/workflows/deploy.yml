@@ -65,6 +65,7 @@ jobs:
               echo "Erzeuge fehlende .env-Datei auf dem Server..."
               JWT_SECRET_VALUE="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
               {
+                echo 'DATABASE_URL="$DATABASE_URL"'
                 echo "JWT_SECRET=\"$JWT_SECRET_VALUE\""
                 echo 'APP_URL="https://next-reps.de"'
                 echo 'NODE_ENV="production"'
@@ -73,7 +74,6 @@ jobs:
             fi
 
             if ! grep -q '^DATABASE_URL="mysql://' .env && ! grep -q '^DATABASE_URL=mysql://' .env; then
-              echo ${DATABASE_URL}
               echo "DATABASE_URL muss auf Hetzner auf eure MySQL/MariaDB-Datenbank zeigen."
               echo 'Beispiel: DATABASE_URL="mysql://BENUTZER:PASSWORT@HOST:3306/DATENBANKNAME"'
               exit 1
