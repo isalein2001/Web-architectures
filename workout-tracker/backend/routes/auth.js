@@ -128,6 +128,8 @@ function createAuthRouter() {
         ...(process.env.NODE_ENV !== 'production' && verificationCode ? { verificationCode } : {}),
       });
     } catch (error) {
+      console.log("\n", new Date().toISOString(), error)
+
       res.status(500).json({ error: error.message });
     }
   });
@@ -174,6 +176,7 @@ function createAuthRouter() {
         },
       });
     } catch (error) {
+      console.log("\n", new Date().toISOString(), error)
       res.status(500).json({ error: error.message });
     }
   });
@@ -311,6 +314,8 @@ function createAuthRouter() {
 
       res.status(200).json({ user });
     } catch (error) {
+      console.log("\n", new Date().toISOString(), error)
+
       res.status(500).json({ error: error.message });
     }
   });
