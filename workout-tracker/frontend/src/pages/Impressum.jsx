@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Building2, UserCheck, AtSign, Phone, ShieldCheck } from 'lucide-react';
+import { Building2, AtSign, ShieldCheck } from 'lucide-react';
 import './Legal.css';
 
 export default function Impressum() {
@@ -22,41 +22,26 @@ export default function Impressum() {
             </div>
           </div>
 
-          <div className="entity-title">NEXT REPS ELITE PERFORMANCE GMBH</div>
+          <div className="entity-title">Isabel Prieb</div>
 
           <div className="entity-grid">
             <div className="entity-details">
               <div className="card-block">
                 <div className="card-label">{t('REGISTERED OFFICE')}</div>
                 <div className="card-value">
-                  Fitnessstr. 1<br />
-                  10115 Berlin<br />
+                  Windsbacher Straße 16<br />
+                  91174 Spalt<br />
                   {t('Germany')}
                 </div>
               </div>
             </div>
             <div className="entity-details">
               <div className="card-block">
-                <div className="card-label">{t('REGISTRY COURT')}</div>
-                <div className="card-value">Amtsgericht Berlin</div>
-              </div>
-              <div className="card-block">
-                <div className="card-label">{t('REGISTRY NUMBER')}</div>
-                <div className="card-value">HRB 123456 B</div>
+                <div className="card-label">Website</div>
+                <div className="card-value">next-reps.de</div>
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="legal-card representative-card">
-          <div className="widget-header">
-            <div className="header-label">
-              <UserCheck size={18} />
-              <span>{t('LEGAL REPRESENTATIVES')}</span>
-            </div>
-          </div>
-          <div className="card-title">ALEX MERCER</div>
-          <div className="card-value">{t('CEO / MANAGING DIRECTOR')}</div>
         </section>
 
         <section className="legal-card contact-card">
@@ -71,17 +56,11 @@ export default function Impressum() {
             <div className="row">
               <div className="detail-wrapper">
                 <div className="card-label">{t('EMAIL')}</div>
-                <div className="card-value">contact@nextreps.elite</div>
+                <div className="card-value">IsabelPrieb@gmail.com</div>
               </div>
               <div className="detail-wrapper">
                 <div className="card-label">{t('PHONE')}</div>
-                <div className="card-value">+49 30 12345678</div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="detail-wrapper">
-                <div className="card-label">{t('VAT ID')}</div>
-                <div className="card-value">DE 987654321</div>
+                <div className="card-value">+49 176 72240218</div>
               </div>
             </div>
           </div>
