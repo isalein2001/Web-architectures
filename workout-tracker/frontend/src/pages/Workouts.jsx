@@ -73,81 +73,14 @@ const exerciseCategoryFilters = ['All', 'Chest', 'Back', 'Legs', 'Glutes', 'Shou
 const EXERCISE_SELECTION_MOVE_DELAY = 420;
 const EXERCISE_REMOVAL_MOVE_DELAY = 220;
 
-const getExerciseHighlights = (pattern = '', muscleGroup = '') => {
-  const normalizedPattern = pattern.toLowerCase();
-  const normalizedMuscle = muscleGroup.toLowerCase();
-  const highlights = new Set();
-
-  if (normalizedPattern.includes('push') || normalizedPattern.includes('press')) {
-    highlights.add('chest');
-    highlights.add('shoulders');
-    highlights.add('arms');
-  }
-
-  if (normalizedPattern.includes('pull') || normalizedPattern.includes('row') || normalizedPattern.includes('lat')) {
-    highlights.add('back');
-    highlights.add('arms');
-  }
-
-  if (normalizedPattern.includes('squat') || normalizedPattern.includes('lunge') || normalizedPattern.includes('legs')) {
-    highlights.add('legs');
-    highlights.add('glutes');
-  }
-
-  if (normalizedPattern.includes('hinge') || normalizedPattern.includes('deadlift')) {
-    highlights.add('back');
-    highlights.add('legs');
-    highlights.add('glutes');
-  }
-
-  if (normalizedPattern.includes('core') || normalizedMuscle.includes('core')) {
-    highlights.add('core');
-  }
-
-  if (normalizedPattern.includes('conditioning')) {
-    highlights.add('legs');
-    highlights.add('core');
-    highlights.add('arms');
-  }
-
-  if (normalizedMuscle.includes('schulter')) highlights.add('shoulders');
-  if (normalizedMuscle.includes('brust')) highlights.add('chest');
-  if (normalizedMuscle.includes('rücken')) highlights.add('back');
-  if (normalizedMuscle.includes('arme')) highlights.add('arms');
-  if (normalizedMuscle.includes('beine')) highlights.add('legs');
-  if (normalizedMuscle.includes('po')) highlights.add('glutes');
-
-  return highlights;
-};
-
 const getExerciseCategory = (exercise) => {
   if (exercise.pattern === 'conditioning') return 'Cardio';
   return exercise.muscleGroup;
 };
 
-function ExerciseIllustration({ exercise }) {
-  const highlights = getExerciseHighlights(exercise.pattern, exercise.muscleGroup);
-  const areaColor = (area) => (highlights.has(area) ? '#c5fe00' : '#dfe4ec');
-
+function ExerciseIllustration() {
   return (
-    <div className="exercise-illustration" aria-hidden="true">
-      <svg viewBox="0 0 180 124" role="img">
-        <rect x="10" y="94" width="160" height="6" rx="3" className="exercise-illustration-floor" />
-        <path d="M28 26h42M110 26h42" className="exercise-illustration-equipment" />
-        <circle cx="90" cy="21" r="9" className="exercise-illustration-ink" />
-        <path d="M90 31v18" className="exercise-illustration-line" />
-        <path d="M70 39c12 8 28 8 40 0" stroke={areaColor('shoulders')} className="exercise-illustration-muscle" />
-        <path d="M79 48c8 6 14 6 22 0" stroke={areaColor('chest')} className="exercise-illustration-muscle thin" />
-        <path d="M90 50c-4 10-5 20-2 29M90 50c7 9 9 19 6 29" stroke={areaColor('core')} className="exercise-illustration-muscle" />
-        <path d="M71 41 52 63M109 41l19 22" stroke={areaColor('arms')} className="exercise-illustration-muscle" />
-        <path d="M86 78 70 104M97 78l20 25" stroke={areaColor('legs')} className="exercise-illustration-muscle" />
-        <path d="M82 70c8 6 18 6 26 0" stroke={areaColor('glutes')} className="exercise-illustration-muscle thin" />
-        <path d="M76 48c-10 10-14 20-13 31M104 48c12 8 18 18 18 31" stroke={areaColor('back')} className="exercise-illustration-muscle thin" />
-        <path d="M54 64h-16M126 64h16" className="exercise-illustration-equipment" />
-        <circle cx="39" cy="64" r="5" className="exercise-illustration-weight" />
-        <circle cx="141" cy="64" r="5" className="exercise-illustration-weight" />
-      </svg>
-    </div>
+    <div className="exercise-illustration exercise-illustration-placeholder" aria-hidden="true" />
   );
 }
 
