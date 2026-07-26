@@ -499,16 +499,9 @@ export default function Workouts({ currentUser }) {
   };
 
   const createExerciseFromLibrary = (libraryExercise) => {
-    const setCount = Math.max(1, Math.min(12, Number.parseInt(libraryExercise.defaultSets, 10) || 3));
-
     return {
-      id: Date.now() + Math.random(),
+      ...emptyExercise(),
       name: libraryExercise.name,
-      sets: libraryExercise.defaultSets,
-      reps: libraryExercise.defaultReps,
-      setReps: Array.from({ length: setCount }, () => libraryExercise.defaultReps),
-      rest: libraryExercise.defaultRest,
-      notes: libraryExercise.focus,
       muscleGroup: libraryExercise.muscleGroup,
       equipment: libraryExercise.equipment,
       focus: libraryExercise.focus,
@@ -1326,7 +1319,7 @@ export default function Workouts({ currentUser }) {
               aria-label={t('Close exercise library')}
               onClick={() => setIsExerciseLibraryOpen(false)}
             >
-              <X size={22} />
+              <X size={18} />
             </button>
           </div>
 

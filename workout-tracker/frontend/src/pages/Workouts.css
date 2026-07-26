@@ -641,9 +641,9 @@
   display: flex;
   flex-direction: column;
   width: min(560px, 100%);
-  max-height: min(92dvh, 760px);
+  max-height: min(96dvh, 820px);
   min-height: 0;
-  padding: 12px 12px 10px;
+  padding: 12px 12px 14px;
   -webkit-text-size-adjust: 100%;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
@@ -677,8 +677,8 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.045);
@@ -955,7 +955,8 @@
   gap: 7px;
   min-width: 0;
   min-height: 40px;
-  margin-top: 9px;
+  margin-top: 13px;
+  margin-bottom: 4px;
   padding: 0 16px;
   border: 1px solid rgba(197, 254, 0, 0.22);
   border-radius: 999px;
@@ -1526,8 +1527,8 @@
 
   .exercise-library-sheet {
     width: min(100%, 390px);
-    max-height: min(92dvh, 720px);
-    padding: 10px 10px 8px;
+    max-height: min(96dvh, 800px);
+    padding: 10px 10px 14px;
     border-radius: 16px;
   }
 
@@ -1541,8 +1542,8 @@
   }
 
   .exercise-library-close {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
   }
 
   .exercise-library-search {
