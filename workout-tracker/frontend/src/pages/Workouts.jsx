@@ -70,6 +70,7 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
 
 const exerciseCategoryFilters = ['All', 'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Core', 'Cardio'];
 const EXERCISE_SELECTION_MOVE_DELAY = 420;
+const EXERCISE_REMOVAL_MOVE_DELAY = 220;
 
 const getExerciseHighlights = (pattern = '', muscleGroup = '') => {
   const normalizedPattern = pattern.toLowerCase();
@@ -318,6 +319,7 @@ export default function Workouts({ currentUser }) {
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState('');
   const [activeExerciseCategory, setActiveExerciseCategory] = useState('All');
   const [pendingExerciseNames, setPendingExerciseNames] = useState(() => new Set());
+  const [removingExerciseNames, setRemovingExerciseNames] = useState(() => new Set());
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
     noExercises: false,
@@ -326,6 +328,7 @@ export default function Workouts({ currentUser }) {
   const exerciseCardRefs = useRef(new Map());
   const activeDrag = useRef({ id: null, startY: 0, lastY: 0 });
   const pendingExerciseTimers = useRef(new Map());
+  const removingExerciseTimers = useRef(new Map());
 
   const selectedExerciseNames = useMemo(() => (
     new Set(exercises.map((exercise) => exercise.name.trim().toLowerCase()).filter(Boolean))
@@ -416,6 +419,8 @@ export default function Workouts({ currentUser }) {
   useEffect(() => () => {
     pendingExerciseTimers.current.forEach((timer) => window.clearTimeout(timer));
     pendingExerciseTimers.current.clear();
+    removingExerciseTimers.current.forEach((timer) => window.clearTimeout(timer));
+    removingExerciseTimers.current.clear();
   }, []);
 
   const updateExercise = (id, field, value) => {
@@ -527,6 +532,17 @@ export default function Workouts({ currentUser }) {
       return;
     }
 
+    if (removingExerciseTimers.current.has(normalizedName)) {
+      window.clearTimeout(removingExerciseTimers.current.get(normalizedName));
+      removingExerciseTimers.current.delete(normalizedName);
+      setRemovingExerciseNames((currentNames) => {
+        const nextNames = new Set(currentNames);
+        nextNames.delete(normalizedName);
+        return nextNames;
+      });
+      return;
+    }
+
     if (!selectedExerciseNames.has(normalizedName)) {
       setPendingExerciseNames((currentNames) => new Set(currentNames).add(normalizedName));
 
@@ -552,19 +568,20 @@ export default function Workouts({ currentUser }) {
       return;
     }
 
-    setExercises((currentExercises) => {
-      const alreadySelected = currentExercises.some(
-        (exercise) => exercise.name.trim().toLowerCase() === normalizedName
-      );
+    setRemovingExerciseNames((currentNames) => new Set(currentNames).add(normalizedName));
+    const timer = window.setTimeout(() => {
+      setExercises((currentExercises) => currentExercises.filter(
+        (exercise) => exercise.name.trim().toLowerCase() !== normalizedName
+      ));
+      setRemovingExerciseNames((currentNames) => {
+        const nextNames = new Set(currentNames);
+        nextNames.delete(normalizedName);
+        return nextNames;
+      });
+      removingExerciseTimers.current.delete(normalizedName);
+    }, EXERCISE_REMOVAL_MOVE_DELAY);
 
-      if (alreadySelected) {
-        return currentExercises.filter(
-          (exercise) => exercise.name.trim().toLowerCase() !== normalizedName
-        );
-      }
-
-      return currentExercises;
-    });
+    removingExerciseTimers.current.set(normalizedName, timer);
   };
 
   const removeExercise = (id) => {
@@ -1354,10 +1371,11 @@ export default function Workouts({ currentUser }) {
                 <h3>{t('Selected Exercises')} ({selectedLibraryExercises.length})</h3>
                 {selectedLibraryExercises.map((exercise) => {
                   const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
+                  const isRemoving = removingExerciseNames.has(exercise.name.toLowerCase());
 
                   return (
                     <MotionDiv
-                      className="exercise-library-row selected"
+                      className={`exercise-library-row selected${isRemoving ? ' removing' : ''}`}
                       key={`selected-${exercise.name}`}
                       layout
                       layoutId={`exercise-library-row-${exercise.name}`}
@@ -1369,13 +1387,13 @@ export default function Workouts({ currentUser }) {
                         <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
                       </span>
                       <MotionButton
-                        className={`exercise-library-toggle${isSelected ? ' selected' : ''}`}
+                        className={`exercise-library-toggle${isSelected && !isRemoving ? ' selected' : ''}`}
                         type="button"
                         aria-label={isSelected ? t('Remove exercise') : t('Add exercise')}
                         onClick={() => toggleLibraryExercise(exercise)}
                         whileTap={{ scale: 0.9 }}
                       >
-                        {isSelected ? <Check size={19} /> : <Plus size={20} />}
+                        {isSelected && !isRemoving ? <Check size={18} /> : <Plus size={19} />}
                       </MotionButton>
                     </MotionDiv>
                   );
