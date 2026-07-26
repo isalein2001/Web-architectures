@@ -1217,8 +1217,8 @@ export default function Workouts({ currentUser }) {
           <div className="exercise-library-handle" />
           <div className="exercise-library-header">
             <div>
-              <h2>{t('Übung auswählen')}</h2>
-              <p>{t('Wähle eine Übung für dein Workout')}</p>
+              <h2>{t('Select exercise')}</h2>
+              <p>{t('Choose an exercise for your workout')}</p>
             </div>
             <button
               className="exercise-library-close"
@@ -1236,7 +1236,7 @@ export default function Workouts({ currentUser }) {
               type="search"
               value={exerciseSearchQuery}
               onChange={(event) => setExerciseSearchQuery(event.target.value)}
-              placeholder={t('Nach Übungen suchen...')}
+              placeholder={t('Search exercises...')}
               autoFocus
             />
           </label>
@@ -1303,7 +1303,7 @@ export default function Workouts({ currentUser }) {
 
           <button className="exercise-library-custom" type="button" onClick={addExercise}>
             <PlusCircle size={18} />
-            {t('Eigene Übung erstellen')}
+            {t('Create custom exercise')}
           </button>
         </section>
       </div>
