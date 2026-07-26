@@ -5,21 +5,21 @@ import {
   Bike,
   BrainCircuit,
   Camera,
+  Check,
   Dumbbell,
   Flame,
   Flower2,
   GripVertical,
-  MapPin,
+  Plus,
   PlusCircle,
   Search,
-  SlidersHorizontal,
   Trash2,
   X,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey } from '../userStorage';
 import { API_URL, api } from '../api';
-import { exerciseFilterGroups, exerciseLibrary } from '../data/exerciseLibrary';
+import { exerciseLibrary } from '../data/exerciseLibrary';
 import './Workouts.css';
 
 const readyPlans = [
@@ -63,11 +63,7 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
   return icons;
 }, {});
 
-const exerciseFilterMeta = {
-  equipment: { label: 'Equipment', Icon: SlidersHorizontal },
-  muscleGroup: { label: 'Muscle group', Icon: Activity },
-  location: { label: 'Location', Icon: MapPin },
-};
+const exerciseCategoryFilters = ['All', 'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Core', 'Cardio'];
 
 const getExerciseHighlights = (pattern = '', muscleGroup = '') => {
   const normalizedPattern = pattern.toLowerCase();
@@ -114,6 +110,12 @@ const getExerciseHighlights = (pattern = '', muscleGroup = '') => {
   if (normalizedMuscle.includes('po')) highlights.add('glutes');
 
   return highlights;
+};
+
+const getExerciseCategory = (exercise) => {
+  if (exercise.pattern === 'conditioning') return 'Cardio';
+  if (exercise.muscleGroup === 'Full Body') return 'Cardio';
+  return exercise.muscleGroup;
 };
 
 function ExerciseIllustration({ exercise }) {
@@ -308,12 +310,7 @@ export default function Workouts({ currentUser }) {
   const [isCoachLoading, setIsCoachLoading] = useState(false);
   const [isExerciseLibraryOpen, setIsExerciseLibraryOpen] = useState(false);
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState('');
-  const [activeExerciseFilterGroup, setActiveExerciseFilterGroup] = useState('equipment');
-  const [exerciseFilters, setExerciseFilters] = useState({
-    equipment: 'All',
-    muscleGroup: 'All',
-    location: 'All',
-  });
+  const [activeExerciseCategory, setActiveExerciseCategory] = useState('All');
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
     noExercises: false,
@@ -321,6 +318,10 @@ export default function Workouts({ currentUser }) {
   });
   const exerciseCardRefs = useRef(new Map());
   const activeDrag = useRef({ id: null, startY: 0, lastY: 0 });
+
+  const selectedExerciseNames = useMemo(() => (
+    new Set(exercises.map((exercise) => exercise.name.trim().toLowerCase()).filter(Boolean))
+  ), [exercises]);
 
   const filteredLibraryExercises = useMemo(() => {
     const normalizedQuery = exerciseSearchQuery.trim().toLowerCase();
@@ -334,13 +335,27 @@ export default function Workouts({ currentUser }) {
         exercise.focus,
       ].some((value) => value.toLowerCase().includes(normalizedQuery));
 
-      const matchesFilters = Object.entries(exerciseFilters).every(([filterKey, selectedValue]) =>
-        selectedValue === 'All' || exercise[filterKey] === selectedValue
-      );
+      const matchesCategory = activeExerciseCategory === 'All'
+        || getExerciseCategory(exercise) === activeExerciseCategory;
 
-      return matchesQuery && matchesFilters;
+      return matchesQuery && matchesCategory;
     });
-  }, [exerciseFilters, exerciseSearchQuery]);
+  }, [activeExerciseCategory, exerciseSearchQuery]);
+
+  const recentlyUsedLibraryExercises = useMemo(() => {
+    if (exerciseSearchQuery.trim() || activeExerciseCategory !== 'All') return [];
+
+    return exerciseLibrary
+      .filter((exercise) => selectedExerciseNames.has(exercise.name.toLowerCase()))
+      .slice(0, 4);
+  }, [activeExerciseCategory, exerciseSearchQuery, selectedExerciseNames]);
+
+  const libraryListExercises = useMemo(() => {
+    if (!recentlyUsedLibraryExercises.length) return filteredLibraryExercises;
+
+    const recentExerciseNames = new Set(recentlyUsedLibraryExercises.map((exercise) => exercise.name));
+    return filteredLibraryExercises.filter((exercise) => !recentExerciseNames.has(exercise.name));
+  }, [filteredLibraryExercises, recentlyUsedLibraryExercises]);
 
   const refreshBackendPlans = () => {
     return api.getPlans()
@@ -469,27 +484,44 @@ export default function Workouts({ currentUser }) {
     setIsExerciseLibraryOpen(false);
   };
 
-  const addLibraryExercise = (libraryExercise) => {
+  const createExerciseFromLibrary = (libraryExercise) => {
     const setCount = Math.max(1, Math.min(12, Number.parseInt(libraryExercise.defaultSets, 10) || 3));
 
+    return {
+      id: Date.now() + Math.random(),
+      name: libraryExercise.name,
+      sets: libraryExercise.defaultSets,
+      reps: libraryExercise.defaultReps,
+      setReps: Array.from({ length: setCount }, () => libraryExercise.defaultReps),
+      rest: libraryExercise.defaultRest,
+      notes: libraryExercise.focus,
+      muscleGroup: libraryExercise.muscleGroup,
+      equipment: libraryExercise.equipment,
+      focus: libraryExercise.focus,
+      pattern: libraryExercise.pattern,
+    };
+  };
+
+  const toggleLibraryExercise = (libraryExercise) => {
+    const normalizedName = libraryExercise.name.trim().toLowerCase();
+
     setValidationErrors((currentErrors) => ({ ...currentErrors, noExercises: false }));
-    setExercises((currentExercises) => [
-      ...currentExercises,
-      {
-        id: Date.now() + Math.random(),
-        name: libraryExercise.name,
-        sets: libraryExercise.defaultSets,
-        reps: libraryExercise.defaultReps,
-        setReps: Array.from({ length: setCount }, () => libraryExercise.defaultReps),
-        rest: libraryExercise.defaultRest,
-        notes: libraryExercise.focus,
-        muscleGroup: libraryExercise.muscleGroup,
-        equipment: libraryExercise.equipment,
-        focus: libraryExercise.focus,
-        pattern: libraryExercise.pattern,
-      },
-    ]);
-    setIsExerciseLibraryOpen(false);
+    setExercises((currentExercises) => {
+      const alreadySelected = currentExercises.some(
+        (exercise) => exercise.name.trim().toLowerCase() === normalizedName
+      );
+
+      if (alreadySelected) {
+        return currentExercises.filter(
+          (exercise) => exercise.name.trim().toLowerCase() !== normalizedName
+        );
+      }
+
+      return [
+        ...currentExercises,
+        createExerciseFromLibrary(libraryExercise),
+      ];
+    });
   };
 
   const removeExercise = (id) => {
@@ -1214,12 +1246,8 @@ export default function Workouts({ currentUser }) {
         }}
       >
         <section className="exercise-library-sheet" aria-label={t('Exercise library')}>
-          <div className="exercise-library-handle" />
           <div className="exercise-library-header">
-            <div>
-              <h2>{t('Select exercise')}</h2>
-              <p>{t('Choose an exercise for your workout')}</p>
-            </div>
+            <h2>{t('Add exercise')}</h2>
             <button
               className="exercise-library-close"
               type="button"
@@ -1236,38 +1264,17 @@ export default function Workouts({ currentUser }) {
               type="search"
               value={exerciseSearchQuery}
               onChange={(event) => setExerciseSearchQuery(event.target.value)}
-              placeholder={t('Search exercises...')}
+              placeholder={t('Search exercises compact')}
             />
           </label>
 
-          <div className="exercise-library-tabs" aria-label={t('Exercise filters')}>
-            {Object.entries(exerciseFilterMeta).map(([key, { label, Icon }]) => {
-              const FilterIcon = Icon;
-
-              return (
-                <button
-                  key={key}
-                  className={activeExerciseFilterGroup === key ? 'active' : ''}
-                  type="button"
-                  onClick={() => setActiveExerciseFilterGroup(key)}
-                >
-                  <FilterIcon size={18} />
-                  {t(label)}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="exercise-library-filter-options">
-            {exerciseFilterGroups[activeExerciseFilterGroup].map((option) => (
+          <div className="exercise-library-filter-options" aria-label={t('Exercise filters')}>
+            {exerciseCategoryFilters.map((option) => (
               <button
                 key={option}
-                className={exerciseFilters[activeExerciseFilterGroup] === option ? 'active' : ''}
+                className={activeExerciseCategory === option ? 'active' : ''}
                 type="button"
-                onClick={() => setExerciseFilters((currentFilters) => ({
-                  ...currentFilters,
-                  [activeExerciseFilterGroup]: option,
-                }))}
+                onClick={() => setActiveExerciseCategory(option)}
               >
                 {option === 'All' ? t('All') : t(option)}
               </button>
@@ -1275,24 +1282,58 @@ export default function Workouts({ currentUser }) {
           </div>
 
           <div className="exercise-library-list">
-            {filteredLibraryExercises.map((exercise) => (
-              <button
-                className="exercise-library-row"
-                key={exercise.name}
-                type="button"
-                onClick={() => addLibraryExercise(exercise)}
-              >
-                <span className="exercise-library-info">
-                  <strong>{t(exercise.name)}</strong>
-                  <span>
-                    <i />
-                    {t(exercise.muscleGroup)}
-                  </span>
-                  <small>{t(exercise.focus)}</small>
-                </span>
-                <ExerciseIllustration exercise={exercise} />
-              </button>
-            ))}
+            {recentlyUsedLibraryExercises.length > 0 && (
+              <div className="exercise-library-section">
+                <h3>{t('Recently used')}</h3>
+                {recentlyUsedLibraryExercises.map((exercise) => {
+                  const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
+
+                  return (
+                    <div className="exercise-library-row" key={`recent-${exercise.name}`}>
+                      <ExerciseIllustration exercise={exercise} />
+                      <span className="exercise-library-info">
+                        <strong>{t(exercise.name)}</strong>
+                        <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
+                      </span>
+                      <button
+                        className={`exercise-library-toggle${isSelected ? ' selected' : ''}`}
+                        type="button"
+                        aria-label={isSelected ? t('Remove exercise') : t('Add exercise')}
+                        onClick={() => toggleLibraryExercise(exercise)}
+                      >
+                        {isSelected ? <Check size={19} /> : <Plus size={20} />}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {libraryListExercises.length > 0 && (
+              <div className="exercise-library-section">
+                <h3>{t('All exercises')}</h3>
+                {libraryListExercises.map((exercise) => {
+                  const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
+
+                  return (
+                    <div className="exercise-library-row" key={exercise.name}>
+                      <ExerciseIllustration exercise={exercise} />
+                      <span className="exercise-library-info">
+                        <strong>{t(exercise.name)}</strong>
+                        <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
+                      </span>
+                      <button
+                        className={`exercise-library-toggle${isSelected ? ' selected' : ''}`}
+                        type="button"
+                        aria-label={isSelected ? t('Remove exercise') : t('Add exercise')}
+                        onClick={() => toggleLibraryExercise(exercise)}
+                      >
+                        {isSelected ? <Check size={19} /> : <Plus size={20} />}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {filteredLibraryExercises.length === 0 && (
               <div className="exercise-library-empty">
                 {t('No matching exercises found.')}
