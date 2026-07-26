@@ -1352,7 +1352,6 @@ export default function Workouts({ currentUser }) {
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               >
                 <h3>{t('Selected Exercises')} ({selectedLibraryExercises.length})</h3>
-                <AnimatePresence initial={false}>
                 {selectedLibraryExercises.map((exercise) => {
                   const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
 
@@ -1362,10 +1361,7 @@ export default function Workouts({ currentUser }) {
                       key={`selected-${exercise.name}`}
                       layout
                       layoutId={`exercise-library-row-${exercise.name}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                      transition={{ layout: { type: 'spring', stiffness: 520, damping: 42 } }}
                     >
                       <ExerciseIllustration exercise={exercise} />
                       <span className="exercise-library-info">
@@ -1384,14 +1380,12 @@ export default function Workouts({ currentUser }) {
                     </MotionDiv>
                   );
                 })}
-                </AnimatePresence>
               </MotionDiv>
             )}
             </AnimatePresence>
             {libraryListExercises.length > 0 && (
               <MotionDiv className="exercise-library-section" layout>
                 <h3>{t('All exercises')}</h3>
-                <AnimatePresence initial={false}>
                 {libraryListExercises.map((exercise) => {
                   const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
                   const isPending = pendingExerciseNames.has(exercise.name.toLowerCase());
@@ -1402,10 +1396,7 @@ export default function Workouts({ currentUser }) {
                       key={exercise.name}
                       layout
                       layoutId={`exercise-library-row-${exercise.name}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                      transition={{ layout: { type: 'spring', stiffness: 520, damping: 42 } }}
                     >
                       <ExerciseIllustration exercise={exercise} />
                       <span className="exercise-library-info">
@@ -1424,7 +1415,6 @@ export default function Workouts({ currentUser }) {
                     </MotionDiv>
                   );
                 })}
-                </AnimatePresence>
               </MotionDiv>
             )}
             {filteredLibraryExercises.length === 0 && (
@@ -1436,7 +1426,7 @@ export default function Workouts({ currentUser }) {
           </LayoutGroup>
 
           <button className="exercise-library-custom" type="button" onClick={addExercise}>
-            <PlusCircle size={14} />
+            <PlusCircle size={12} />
             {t('Create custom exercise')}
           </button>
         </MotionSection>

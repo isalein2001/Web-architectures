@@ -643,7 +643,7 @@
   width: min(560px, 100%);
   max-height: min(92dvh, 760px);
   min-height: 0;
-  padding: 12px;
+  padding: 12px 12px 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
   background:
@@ -659,24 +659,25 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 1px 0 10px;
+  padding: 2px 0 9px;
 }
 
 .exercise-library-header h2 {
   margin: 0;
   color: #fff;
-  font-size: 1.22rem;
-  line-height: 1.2;
-  font-weight: 900;
-  text-transform: none;
+  font-size: 1.42rem;
+  line-height: 1.08;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .exercise-library-close {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.045);
@@ -695,8 +696,8 @@
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
-  min-height: 50px;
-  padding: 0 14px;
+  min-height: 48px;
+  padding: 0 13px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 999px;
   background: #161616;
@@ -722,9 +723,9 @@
 .exercise-library-filter-options {
   display: flex;
   flex: 0 0 auto;
-  gap: 6px;
-  margin: 8px -2px 0;
-  padding: 0 2px 3px;
+  gap: 5px;
+  margin: 7px -2px 0;
+  padding: 0 2px 2px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -739,14 +740,14 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  min-width: 44px;
-  min-height: 30px;
-  padding: 0 10px;
+  min-width: 0;
+  min-height: 24px;
+  padding: 0 7px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   background: #141414;
   color: var(--color-text-muted);
-  font-size: 0.66rem;
+  font-size: 0.52rem;
   font-weight: 720;
   letter-spacing: 0;
   text-transform: none;
@@ -762,9 +763,9 @@
 .exercise-library-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin: 12px -2px 0;
-  padding: 0 2px 12px;
+  gap: 13px;
+  margin: 10px -2px 0;
+  padding: 0 2px 8px;
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
@@ -805,11 +806,7 @@
   color: #fff;
   text-align: left;
   box-shadow: none;
-  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
-}
-
-.exercise-library-row:active {
-  transform: scale(0.992);
+  transition: border-color 0.18s ease, background 0.18s ease;
 }
 
 .exercise-library-row.selected {
@@ -933,17 +930,17 @@
   justify-content: center;
   flex: 0 0 auto;
   align-self: center;
-  gap: 7px;
-  min-width: 44px;
-  min-height: 38px;
-  margin-top: 7px;
-  padding: 0 12px;
-  border: 1px solid rgba(197, 254, 0, 0.16);
+  gap: 5px;
+  min-width: 0;
+  min-height: 28px;
+  margin-top: 5px;
+  padding: 0 8px;
+  border: 0;
   border-radius: 999px;
   background: transparent;
-  color: rgba(197, 254, 0, 0.78);
-  font-size: 0.7rem;
-  font-weight: 720;
+  color: rgba(197, 254, 0, 0.64);
+  font-size: 0.56rem;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -1507,7 +1504,7 @@
   .exercise-library-sheet {
     width: min(100%, 390px);
     max-height: min(92dvh, 720px);
-    padding: 10px;
+    padding: 10px 10px 8px;
     border-radius: 16px;
   }
 
@@ -1517,16 +1514,16 @@
   }
 
   .exercise-library-header h2 {
-    font-size: 1.14rem;
+    font-size: 1.28rem;
   }
 
   .exercise-library-close {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
   }
 
   .exercise-library-search {
-    min-height: 48px;
+    min-height: 46px;
     padding: 0 12px;
   }
 
@@ -1535,15 +1532,15 @@
   }
 
   .exercise-library-filter-options {
-    gap: 6px;
-    margin-top: 8px;
+    gap: 5px;
+    margin-top: 7px;
     padding-bottom: 2px;
   }
 
   .exercise-library-filter-options button {
-    min-height: 30px;
-    padding: 0 9px;
-    font-size: 0.64rem;
+    min-height: 24px;
+    padding: 0 7px;
+    font-size: 0.52rem;
     letter-spacing: 0;
     white-space: nowrap;
   }
@@ -1580,8 +1577,9 @@
   }
 
   .exercise-library-custom {
-    min-height: 38px;
-    font-size: 0.68rem;
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 0.54rem;
   }
 
   .ready-plans-intro {
