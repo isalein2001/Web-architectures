@@ -1353,8 +1353,10 @@ export default function Workouts({ currentUser }) {
                 {activeExerciseCategory === option && (
                   <MotionSpan
                     className="exercise-library-filter-pill"
-                    layoutId="exercise-library-active-filter"
-                    transition={{ type: 'spring', stiffness: 420, damping: 38, mass: 0.7 }}
+                    initial={{ opacity: 0, scaleX: 0.72 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0.72 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                   />
                 )}
                 <span className="exercise-library-filter-label">
@@ -1410,16 +1412,15 @@ export default function Workouts({ currentUser }) {
               </MotionDiv>
             )}
             </AnimatePresence>
-            <AnimatePresence initial={false} mode="popLayout">
+            <AnimatePresence initial={false} mode="wait">
               {libraryListExercises.length > 0 && (
                 <MotionDiv
                   className="exercise-library-section"
                   key={`all-exercises-${activeExerciseCategory}-${exerciseSearchQuery.trim().toLowerCase()}`}
-                  layout
-                  initial={{ opacity: 0, y: 5 }}
+                  initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <h3>{t('All exercises')}</h3>
                   {libraryListExercises.map((exercise) => {
@@ -1430,8 +1431,8 @@ export default function Workouts({ currentUser }) {
                       <MotionDiv
                         className={`exercise-library-row${isPending ? ' pending' : ''}`}
                         key={exercise.name}
-                        layout
-                        layoutId={`exercise-library-row-${exercise.name}`}
+                        layout={isPending ? 'position' : false}
+                        layoutId={isPending ? `exercise-library-row-${exercise.name}` : undefined}
                         transition={{ layout: { duration: 0.24, ease: [0.22, 1, 0.36, 1] } }}
                       >
                         <ExerciseIllustration exercise={exercise} />
