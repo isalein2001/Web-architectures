@@ -596,6 +596,58 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     dailyGoalCompletion,
     currentUser,
   ]);
+  const dailyCoachNudge = useMemo(() => {
+    if (dailyGoalCompletion >= 100) {
+      return {
+        label: 'AI DAILY COACH',
+        title: 'Hold the line',
+        body: 'Daily targets are complete. Keep the next workout controlled and protect recovery tonight.',
+        metric: '100%',
+      };
+    }
+
+    if (remainingHydration > 0.7) {
+      return {
+        label: 'AI DAILY COACH',
+        title: 'Hydration first',
+        body: `Add ${remainingHydration.toFixed(1)}L before chasing more intensity. Better hydration makes the next session easier to read.`,
+        metric: `${Math.round((currentHydration / Math.max(hydrationGoal, 1)) * 100)}%`,
+      };
+    }
+
+    if (minutesProgress < 55 && hasWorkoutData) {
+      return {
+        label: 'AI DAILY COACH',
+        title: 'Short session window',
+        body: 'A compact 25-35 minute lift is enough today. Keep two reps in reserve and log the sets.',
+        metric: `${minutesProgress}%`,
+      };
+    }
+
+    if (stepsProgress < 70) {
+      return {
+        label: 'AI DAILY COACH',
+        title: 'Move the baseline',
+        body: 'A short walk will raise today’s activity score without stealing recovery from strength work.',
+        metric: `${stepsProgress}%`,
+      };
+    }
+
+    return {
+      label: 'AI DAILY COACH',
+      title: 'Ready for quality work',
+      body: 'Your daily base looks steady. Choose the next planned workout and keep the first working set clean.',
+      metric: `${dailyGoalCompletion}%`,
+    };
+  }, [
+    currentHydration,
+    dailyGoalCompletion,
+    hasWorkoutData,
+    hydrationGoal,
+    minutesProgress,
+    remainingHydration,
+    stepsProgress,
+  ]);
 
   const completedWorkoutDates = new Set((displayStats.sessionDates || []).map(getSessionDateKey));
 
@@ -1268,6 +1320,18 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
             {/* Background decorative drop */}
             <Droplets className="bg-icon-drop" size={120} />
           </button>
+
+          <div className="card daily-coach-card">
+            <div className="daily-coach-icon">
+              <Brain size={22} />
+            </div>
+            <div className="daily-coach-copy">
+              <span>{t(dailyCoachNudge.label)}</span>
+              <h3>{t(dailyCoachNudge.title)}</h3>
+              <p>{t(dailyCoachNudge.body)}</p>
+            </div>
+            <strong>{dailyCoachNudge.metric}</strong>
+          </div>
 
           {/* Calendar */}
           <div className="card calendar-card">

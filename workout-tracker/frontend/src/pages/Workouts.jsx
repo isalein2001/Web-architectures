@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Activity,
   Bike,
+  BrainCircuit,
   Camera,
   Dumbbell,
   Flame,
@@ -232,6 +233,8 @@ export default function Workouts({ currentUser }) {
   const [selectedIconKey, setSelectedIconKey] = useState('dumbbell');
   const [savedPlans, setSavedPlans] = useState([]);
   const [editingPlanId, setEditingPlanId] = useState(null);
+  const [coachAnalysis, setCoachAnalysis] = useState(null);
+  const [isCoachLoading, setIsCoachLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
     noExercises: false,
@@ -252,6 +255,20 @@ export default function Workouts({ currentUser }) {
 
   useEffect(() => {
     refreshBackendPlans();
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setIsCoachLoading(true);
+      api.getCoachAnalysis()
+        .then((analysis) => setCoachAnalysis(analysis))
+        .catch(() => setCoachAnalysis(null))
+        .finally(() => setIsCoachLoading(false));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [currentUser?.id]);
 
   useEffect(() => {
@@ -534,6 +551,32 @@ export default function Workouts({ currentUser }) {
       id: Date.now() + Math.random(),
     })));
     setValidationErrors({ workoutName: false, noExercises: false, exercises: {} });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const applyCoachDayToBuilder = (day) => {
+    if (!day) return;
+
+    setEditingPlanId(null);
+    setWorkoutName(`AI ${day.title}`.toUpperCase());
+    setCoverImage('/hero-bg.jpg');
+    setSelectedIconKey('dumbbell');
+    setExercises((day.exercises || []).map((exercise) => {
+      const setCount = Math.max(1, Math.min(12, Number.parseInt(exercise.target_sets, 10) || 3));
+      const targetReps = String(exercise.target_reps || '10');
+
+      return {
+        id: Date.now() + Math.random(),
+        name: exercise.exercise_name || '',
+        sets: String(setCount),
+        reps: targetReps,
+        setReps: Array.from({ length: setCount }, () => targetReps),
+        rest: '',
+        notes: t('Coach suggestion'),
+      };
+    }));
+    setValidationErrors({ workoutName: false, noExercises: false, exercises: {} });
+    setWorkoutSaveStatus(t('Coach suggestion loaded into the builder.'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -903,6 +946,48 @@ export default function Workouts({ currentUser }) {
             </div>
           </div>
         )}
+
+        <div className="workout-coach-panel">
+          <div className="workout-coach-heading">
+            <span>
+              <BrainCircuit size={18} />
+              {t('NEXT REPS COACH')}
+            </span>
+            <h2>{t('Smart plan support')}</h2>
+            <p>{t('Your training data quietly shapes suggestions here, without adding an extra tab to the app.')}</p>
+          </div>
+
+          {isCoachLoading && !coachAnalysis ? (
+            <div className="workout-coach-state">{t('Analyzing your recent training...')}</div>
+          ) : coachAnalysis ? (
+            <>
+              <div className="workout-coach-score">
+                <strong>{coachAnalysis.summary.score}</strong>
+                <span>{t('Coach score')}</span>
+                <small>{coachAnalysis.summary.headline}</small>
+              </div>
+
+              <div className="workout-coach-recommendation">
+                {t(coachAnalysis.recommendations?.[0] || 'Log your next workout to unlock sharper suggestions.')}
+              </div>
+
+              <div className="workout-coach-week">
+                {(coachAnalysis.suggestedWeek || []).slice(0, 3).map((day) => (
+                  <article className="workout-coach-day" key={day.day}>
+                    <span>{t(day.day)}</span>
+                    <h3>{t(day.title)}</h3>
+                    <p>{t(day.goal)}</p>
+                    <button type="button" onClick={() => applyCoachDayToBuilder(day)}>
+                      {t('USE THIS DAY')}
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="workout-coach-state">{t('Log workouts to unlock coach suggestions.')}</div>
+          )}
+        </div>
 
         <div className="ready-plans-intro ready-plans-separator">
           <span>{t('NEED A STARTING POINT?')}</span>

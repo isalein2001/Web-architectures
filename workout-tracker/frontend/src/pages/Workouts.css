@@ -664,6 +664,146 @@
   gap: 28px;
 }
 
+.workout-coach-panel {
+  margin: 34px 0 58px;
+  padding: 26px;
+  border: 1px solid rgba(197, 254, 0, 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(197, 254, 0, 0.055), rgba(255, 255, 255, 0.018)),
+    #121212;
+  box-shadow: var(--shadow-elevate);
+}
+
+.workout-coach-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.workout-coach-heading h2 {
+  margin: 14px 0 10px;
+  color: #fff;
+  font-size: clamp(1.42rem, 2vw, 2rem);
+  line-height: 1;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.workout-coach-heading p,
+.workout-coach-state,
+.workout-coach-recommendation {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.workout-coach-state {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.035);
+  font-weight: 800;
+}
+
+.workout-coach-score {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: center;
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.035);
+}
+
+.workout-coach-score strong {
+  grid-row: span 2;
+  color: var(--color-primary);
+  font-size: 2.4rem;
+  line-height: 0.9;
+  font-weight: 950;
+}
+
+.workout-coach-score span {
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.workout-coach-score small {
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.workout-coach-recommendation {
+  margin-top: 16px;
+  padding-left: 14px;
+  border-left: 3px solid var(--color-primary);
+  color: #d9d9d9;
+  font-weight: 750;
+}
+
+.workout-coach-week {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.workout-coach-day {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 14px;
+  background-color: rgba(5, 5, 5, 0.34);
+}
+
+.workout-coach-day span {
+  color: var(--color-primary);
+  font-size: 0.66rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.workout-coach-day h3 {
+  margin: 8px 0 8px;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.05;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.workout-coach-day p {
+  margin: 0 0 14px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.workout-coach-day button {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--color-primary);
+  color: #050505;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .ready-plan-card {
   overflow: hidden;
   border-radius: 16px;
