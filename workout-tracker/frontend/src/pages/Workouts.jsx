@@ -1237,7 +1237,6 @@ export default function Workouts({ currentUser }) {
               value={exerciseSearchQuery}
               onChange={(event) => setExerciseSearchQuery(event.target.value)}
               placeholder={t('Search exercises...')}
-              autoFocus
             />
           </label>
 

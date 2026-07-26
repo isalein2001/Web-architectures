@@ -627,38 +627,38 @@
   inset: 0;
   z-index: 1000;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
   background:
-    linear-gradient(180deg, rgba(5, 5, 5, 0.34), rgba(5, 5, 5, 0.82)),
-    rgba(0, 0, 0, 0.64);
-  backdrop-filter: blur(14px);
+    linear-gradient(180deg, rgba(5, 5, 5, 0.24), rgba(5, 5, 5, 0.58)),
+    rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(8px);
 }
 
 .exercise-library-sheet {
   display: flex;
   flex-direction: column;
-  width: min(760px, 100%);
-  max-height: min(calc(100dvh - 28px), 820px);
-  padding: 16px 28px max(22px, env(safe-area-inset-bottom));
+  width: min(720px, 100%);
+  max-height: min(82dvh, 760px);
+  padding: 18px 24px 20px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: 0;
-  border-radius: 22px 22px 0 0;
+  border-radius: 22px;
   background:
     radial-gradient(circle at 26% 0%, rgba(197, 254, 0, 0.1), transparent 32%),
     linear-gradient(180deg, rgba(24, 24, 24, 0.98), rgba(13, 13, 13, 0.99)),
     #121212;
   color: #fff;
   box-shadow:
-    0 -34px 90px rgba(0, 0, 0, 0.6),
+    0 34px 90px rgba(0, 0, 0, 0.64),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
 .exercise-library-handle {
-  width: 82px;
-  height: 5px;
-  margin: 0 auto 22px;
+  width: 62px;
+  height: 4px;
+  margin: 0 auto 16px;
   border-radius: 999px;
   background: rgba(197, 254, 0, 0.28);
   box-shadow: 0 0 18px rgba(197, 254, 0, 0.14);
@@ -669,23 +669,23 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 20px;
+  padding-bottom: 14px;
 }
 
 .exercise-library-header h2 {
   margin: 0;
   color: #fff;
-  font-size: clamp(1.75rem, 5.2vw, 2.35rem);
-  line-height: 0.95;
+  font-size: clamp(1.35rem, 4.2vw, 2rem);
+  line-height: 1;
   font-weight: 950;
   text-transform: uppercase;
-  max-width: 10ch;
+  max-width: none;
 }
 
 .exercise-library-header p {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: var(--color-text-muted);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 750;
   line-height: 1.35;
 }
@@ -714,8 +714,9 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 58px;
-  padding: 0 18px;
+  flex: 0 0 auto;
+  min-height: 50px;
+  padding: 0 16px;
   border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 999px;
   background: #161616;
@@ -743,9 +744,10 @@
 .exercise-library-tabs,
 .exercise-library-filter-options {
   display: flex;
-  gap: 12px;
-  margin: 18px -28px 0;
-  padding: 0 28px 4px;
+  flex: 0 0 auto;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0 0 2px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -762,8 +764,8 @@
   justify-content: center;
   flex: 0 0 auto;
   gap: 9px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 40px;
+  padding: 0 15px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   background: #141414;
@@ -791,9 +793,9 @@
 .exercise-library-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin: 18px -28px 0;
-  padding: 0 28px 20px;
+  gap: 12px;
+  margin: 14px -4px 0;
+  padding: 0 4px 14px;
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
@@ -801,11 +803,11 @@
 
 .exercise-library-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 156px;
+  grid-template-columns: minmax(0, 1fr) 136px;
   align-items: center;
-  gap: 18px;
-  min-height: 132px;
-  padding: 18px 20px 18px 34px;
+  gap: 16px;
+  min-height: 112px;
+  padding: 16px 18px 16px 24px;
   border: 1px solid rgba(255, 255, 255, 0.055);
   border-radius: 16px;
   background:
@@ -834,7 +836,7 @@
 
 .exercise-library-info strong {
   color: #fff;
-  font-size: 1.35rem;
+  font-size: 1.14rem;
   line-height: 1.05;
   font-weight: 950;
   letter-spacing: 0;
@@ -873,7 +875,7 @@
 .exercise-illustration {
   display: grid;
   place-items: center;
-  width: 156px;
+  width: 136px;
   aspect-ratio: 1.55;
   border-radius: 14px;
   background:
@@ -935,8 +937,8 @@
   flex: 0 0 auto;
   gap: 10px;
   width: 100%;
-  min-height: 56px;
-  margin-top: 4px;
+  min-height: 50px;
+  margin-top: 2px;
   border: 1px dashed rgba(197, 254, 0, 0.26);
   border-radius: 999px;
   background: transparent;
@@ -1504,30 +1506,31 @@
   }
 
   .exercise-library-sheet {
-    max-height: calc(100dvh - 22px);
-    padding: 12px 20px max(16px, env(safe-area-inset-bottom));
-    border-radius: 22px 22px 0 0;
+    width: min(100%, 390px);
+    max-height: min(78dvh, 660px);
+    padding: 12px 14px 14px;
+    border-radius: 20px;
   }
 
   .exercise-library-handle {
-    width: 72px;
+    width: 54px;
     height: 4px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .exercise-library-header {
-    gap: 14px;
-    padding-bottom: 14px;
+    gap: 12px;
+    padding-bottom: 10px;
   }
 
   .exercise-library-header h2 {
-    font-size: clamp(1.55rem, 7vw, 1.95rem);
-    max-width: 9ch;
+    font-size: clamp(1.28rem, 5.9vw, 1.58rem);
+    max-width: none;
   }
 
   .exercise-library-header p {
-    margin-top: 8px;
-    font-size: 0.82rem;
+    margin-top: 6px;
+    font-size: 0.74rem;
   }
 
   .exercise-library-close {
@@ -1536,43 +1539,60 @@
   }
 
   .exercise-library-search {
-    min-height: 52px;
-    padding: 0 14px;
+    min-height: 46px;
+    padding: 0 12px;
+  }
+
+  .exercise-library-search input {
+    font-size: 0.88rem;
   }
 
   .exercise-library-tabs,
   .exercise-library-filter-options {
-    gap: 10px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 10px;
     padding-bottom: 2px;
+  }
+
+  .exercise-library-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
   }
 
   .exercise-library-tabs button,
   .exercise-library-filter-options button {
-    min-height: 38px;
-    padding: 0 14px;
-    font-size: 0.68rem;
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
   }
 
-  .exercise-library-tabs,
   .exercise-library-filter-options,
   .exercise-library-list {
-    margin-left: -20px;
-    margin-right: -20px;
-    padding-left: 20px;
-    padding-right: 20px;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .exercise-library-row {
-    grid-template-columns: minmax(0, 1fr) 116px;
-    min-height: 116px;
-    padding: 16px 12px 16px 18px;
-    border-radius: 20px;
+    grid-template-columns: minmax(0, 1fr) 94px;
+    min-height: 92px;
+    gap: 10px;
+    padding: 12px 10px 12px 14px;
+    border-radius: 14px;
   }
 
   .exercise-library-info strong {
-    font-size: clamp(1.08rem, 4.8vw, 1.32rem);
+    font-size: clamp(0.98rem, 4.2vw, 1.14rem);
     overflow-wrap: anywhere;
+  }
+
+  .exercise-library-info span {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
   }
 
   .exercise-library-info small {
@@ -1580,7 +1600,13 @@
   }
 
   .exercise-illustration {
-    width: 116px;
+    width: 94px;
+    border-radius: 12px;
+  }
+
+  .exercise-library-custom {
+    min-height: 46px;
+    font-size: 0.68rem;
   }
 
   .ready-plans-intro {
