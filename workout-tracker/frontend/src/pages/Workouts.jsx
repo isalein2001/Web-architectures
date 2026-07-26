@@ -1319,7 +1319,7 @@ export default function Workouts({ currentUser }) {
               aria-label={t('Close exercise library')}
               onClick={() => setIsExerciseLibraryOpen(false)}
             >
-              <X size={18} />
+              <X size={14} strokeWidth={1.8} />
             </button>
           </div>
 

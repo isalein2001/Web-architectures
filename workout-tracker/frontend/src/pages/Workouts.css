@@ -677,11 +677,12 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 38px;
-  height: 38px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.032);
   color: var(--color-text-muted);
   transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
@@ -726,7 +727,8 @@
   flex: 0 0 auto;
   gap: 7px;
   margin: 14px -2px 0;
-  padding: 0 2px 3px;
+  padding: 0 2px 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -783,7 +785,7 @@
   display: flex;
   flex-direction: column;
   gap: 13px;
-  margin: 12px -2px 0;
+  margin: 14px -2px 0;
   padding: 0 2px 8px;
   min-height: 0;
   flex: 1 1 auto;
@@ -1546,8 +1548,8 @@
   }
 
   .exercise-library-close {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
   }
 
   .exercise-library-search {
@@ -1562,7 +1564,7 @@
   .exercise-library-filter-options {
     gap: 7px;
     margin-top: 14px;
-    padding-bottom: 3px;
+    padding-bottom: 13px;
   }
 
   .exercise-library-filter-options button {
