@@ -68,7 +68,7 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
   return icons;
 }, {});
 
-const exerciseCategoryFilters = ['All', 'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Core', 'Cardio'];
+const exerciseCategoryFilters = ['All', 'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body'];
 const EXERCISE_SELECTION_MOVE_DELAY = 420;
 const EXERCISE_REMOVAL_MOVE_DELAY = 220;
 
