@@ -9,6 +9,7 @@ const createProgressRouter = require('./routes/progress');
 const createStatsRouter = require('./routes/stats');
 const createDailyActivityRouter = require('./routes/dailyActivity');
 const createPushRouter = require('./routes/push');
+const createCoachRouter = require('./routes/coach');
 const { authenticate } = require('./middleware/authenticate');
 const { createEventsRouter } = require('./events');
 
@@ -42,6 +43,7 @@ app.use('/api/progress', authenticate, createProgressRouter());
 app.use('/api/stats', authenticate, createStatsRouter());
 app.use('/api/daily-activity', authenticate, createDailyActivityRouter());
 app.use('/api/push', authenticate, createPushRouter());
+app.use('/api/coach', authenticate, createCoachRouter());
 
 // Unknown API paths should stay JSON responses and must not fall through
 // to the React SPA fallback.

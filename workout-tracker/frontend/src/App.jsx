@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X, Flame, User, PlayCircle, Target, BarChart3, Dumbbell } from "lucide-react";
+import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X, Flame, User, PlayCircle, Target, BarChart3, Dumbbell, BrainCircuit } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";
 import Analytics from "./pages/Analytics";
@@ -10,6 +10,7 @@ import Landing from "./pages/Landing";
 import FirstLaunchOnboarding from "./pages/FirstLaunchOnboarding";
 import Support from "./pages/Support";
 import About from "./pages/About";
+import Coach from "./pages/Coach";
 import WorkoutLogger from "./pages/WorkoutLogger";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -135,7 +136,9 @@ function AppLayout() {
               ? 'About Us'
               : location.pathname === '/support'
                 ? 'Support'
-                : 'NEXT REPS';
+                : location.pathname === '/coach'
+                  ? 'AI Coach'
+                  : 'NEXT REPS';
   const userDisplayName = getUserDisplayName(currentUser);
   const userInitials = getUserInitials(currentUser);
   const workoutRemindersStorageKey = getUserStorageKey('workoutRemindersEnabled', currentUser);
@@ -165,6 +168,7 @@ function AppLayout() {
     { type: 'Page', label: 'Analytics', description: 'Strength progress and training insights', path: '/analytics', Icon: LineChart },
     { type: 'Page', label: 'Settings', description: 'Account and preferences', path: '/settings', Icon: Activity },
     { type: 'Page', label: 'Profile', description: 'Body metrics and advanced biometrics', path: '/profile', Icon: User },
+    { type: 'Page', label: 'AI Coach', description: 'Training analysis and plan suggestions', path: '/coach', Icon: BrainCircuit },
     { type: 'Page', label: 'Support', description: 'Help center and ticket form', path: '/support', Icon: LifeBuoy },
     { type: 'Page', label: 'About Us', description: 'Founders and NEXT REPS philosophy', path: '/about', Icon: Info },
     { type: 'Action', label: 'Start Workout', description: 'Open workout launcher', path: '/start-workout', Icon: PlayCircle },
@@ -727,6 +731,9 @@ function AppLayout() {
           <NavLink to="/analytics" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             <LineChart size={20} /> {t('Analytics')}
           </NavLink>
+          <NavLink to="/coach" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+            <BrainCircuit size={20} /> {t('AI Coach')}
+          </NavLink>
           <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             <Activity size={20} /> {t('Settings')}
           </NavLink>
@@ -967,6 +974,7 @@ function AppLayout() {
             <Route path="/workouts" element={<Workouts currentUser={currentUser} />} />
             <Route path="/start-workout" element={<WorkoutLogger currentUser={currentUser} />} />
             <Route path="/analytics" element={<Analytics currentUser={currentUser} />} />
+            <Route path="/coach" element={<Coach currentUser={currentUser} />} />
             <Route path="/settings" element={<Profile currentUser={currentUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />

@@ -187,6 +187,9 @@ export const api = {
   getStats: async () => {
     return requestJson(`${API_URL}/stats`);
   },
+  getCoachAnalysis: async () => {
+    return requestJson(`${API_URL}/coach/analysis`);
+  },
 
   // Daily activity
   getTodayActivity: async (date) => {
