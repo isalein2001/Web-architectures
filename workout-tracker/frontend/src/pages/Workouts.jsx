@@ -26,6 +26,7 @@ import './Workouts.css';
 const MotionButton = motion.button;
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
+const MotionSpan = motion.span;
 
 const readyPlans = [
   {
@@ -121,7 +122,6 @@ const getExerciseHighlights = (pattern = '', muscleGroup = '') => {
 
 const getExerciseCategory = (exercise) => {
   if (exercise.pattern === 'conditioning') return 'Cardio';
-  if (exercise.muscleGroup === 'Full Body') return 'Cardio';
   return exercise.muscleGroup;
 };
 
@@ -1347,10 +1347,19 @@ export default function Workouts({ currentUser }) {
                 className={activeExerciseCategory === option ? 'active' : ''}
                 type="button"
                 onClick={() => setActiveExerciseCategory(option)}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'tween', duration: 0.14, ease: 'easeOut' }}
               >
-                {option === 'All' ? t('All') : t(option)}
+                {activeExerciseCategory === option && (
+                  <MotionSpan
+                    className="exercise-library-filter-pill"
+                    layoutId="exercise-library-active-filter"
+                    transition={{ type: 'spring', stiffness: 420, damping: 38, mass: 0.7 }}
+                  />
+                )}
+                <span className="exercise-library-filter-label">
+                  {option === 'All' ? t('All') : t(option)}
+                </span>
               </MotionButton>
             ))}
           </div>
@@ -1401,40 +1410,50 @@ export default function Workouts({ currentUser }) {
               </MotionDiv>
             )}
             </AnimatePresence>
-            {libraryListExercises.length > 0 && (
-              <MotionDiv className="exercise-library-section" layout>
-                <h3>{t('All exercises')}</h3>
-                {libraryListExercises.map((exercise) => {
-                  const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
-                  const isPending = pendingExerciseNames.has(exercise.name.toLowerCase());
+            <AnimatePresence initial={false} mode="popLayout">
+              {libraryListExercises.length > 0 && (
+                <MotionDiv
+                  className="exercise-library-section"
+                  key={`all-exercises-${activeExerciseCategory}-${exerciseSearchQuery.trim().toLowerCase()}`}
+                  layout
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <h3>{t('All exercises')}</h3>
+                  {libraryListExercises.map((exercise) => {
+                    const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
+                    const isPending = pendingExerciseNames.has(exercise.name.toLowerCase());
 
-                  return (
-                    <MotionDiv
-                      className={`exercise-library-row${isPending ? ' pending' : ''}`}
-                      key={exercise.name}
-                      layout
-                      layoutId={`exercise-library-row-${exercise.name}`}
-                      transition={{ layout: { type: 'spring', stiffness: 520, damping: 42 } }}
-                    >
-                      <ExerciseIllustration exercise={exercise} />
-                      <span className="exercise-library-info">
-                        <strong>{t(exercise.name)}</strong>
-                        <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
-                      </span>
-                      <MotionButton
-                        className={`exercise-library-toggle${isSelected || isPending ? ' selected' : ''}`}
-                        type="button"
-                        aria-label={isSelected || isPending ? t('Remove exercise') : t('Add exercise')}
-                        onClick={() => toggleLibraryExercise(exercise)}
-                        whileTap={{ scale: 0.9 }}
+                    return (
+                      <MotionDiv
+                        className={`exercise-library-row${isPending ? ' pending' : ''}`}
+                        key={exercise.name}
+                        layout
+                        layoutId={`exercise-library-row-${exercise.name}`}
+                        transition={{ layout: { duration: 0.24, ease: [0.22, 1, 0.36, 1] } }}
                       >
-                        {isSelected || isPending ? <Check size={18} /> : <Plus size={20} />}
-                      </MotionButton>
-                    </MotionDiv>
-                  );
-                })}
-              </MotionDiv>
-            )}
+                        <ExerciseIllustration exercise={exercise} />
+                        <span className="exercise-library-info">
+                          <strong>{t(exercise.name)}</strong>
+                          <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
+                        </span>
+                        <MotionButton
+                          className={`exercise-library-toggle${isSelected || isPending ? ' selected' : ''}`}
+                          type="button"
+                          aria-label={isSelected || isPending ? t('Remove exercise') : t('Add exercise')}
+                          onClick={() => toggleLibraryExercise(exercise)}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          {isSelected || isPending ? <Check size={18} /> : <Plus size={20} />}
+                        </MotionButton>
+                      </MotionDiv>
+                    );
+                  })}
+                </MotionDiv>
+              )}
+            </AnimatePresence>
             {filteredLibraryExercises.length === 0 && (
               <div className="exercise-library-empty">
                 {t('No matching exercises found.')}

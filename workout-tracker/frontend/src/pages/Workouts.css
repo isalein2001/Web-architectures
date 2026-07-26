@@ -724,9 +724,9 @@
 .exercise-library-filter-options {
   display: flex;
   flex: 0 0 auto;
-  gap: 5px;
+  gap: 7px;
   margin: 14px -2px 0;
-  padding: 0 2px 2px;
+  padding: 0 2px 3px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -737,29 +737,46 @@
 }
 
 .exercise-library-filter-options button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
   min-width: 0;
-  min-height: 26px;
-  padding: 0 9px;
+  min-height: 32px;
+  padding: 0 13px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   background: #141414;
   color: var(--color-text-muted);
-  font-size: 10px !important;
-  font-weight: 680 !important;
+  font-size: 12px !important;
+  font-weight: 720 !important;
   letter-spacing: 0;
   line-height: 1 !important;
   text-transform: none;
+  overflow: hidden;
+  transition: border-color 0.18s ease, color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
 }
 
 .exercise-library-filter-options button.active {
   border-color: rgba(197, 254, 0, 0.72);
-  background: var(--color-primary);
+  background: #141414;
   color: #050505;
   box-shadow: none;
+}
+
+.exercise-library-filter-pill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.exercise-library-filter-label {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
 }
 
 .exercise-library-list {
@@ -1538,15 +1555,15 @@
   }
 
   .exercise-library-filter-options {
-    gap: 5px;
+    gap: 7px;
     margin-top: 14px;
-    padding-bottom: 2px;
+    padding-bottom: 3px;
   }
 
   .exercise-library-filter-options button {
-    min-height: 26px;
-    padding: 0 9px;
-    font-size: 10px !important;
+    min-height: 32px;
+    padding: 0 13px;
+    font-size: 12px !important;
     letter-spacing: 0;
     white-space: nowrap;
   }
