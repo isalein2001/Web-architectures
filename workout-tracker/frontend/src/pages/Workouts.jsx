@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Activity,
@@ -21,6 +22,10 @@ import { getUserStorageKey } from '../userStorage';
 import { API_URL, api } from '../api';
 import { exerciseLibrary } from '../data/exerciseLibrary';
 import './Workouts.css';
+
+const MotionButton = motion.button;
+const MotionDiv = motion.div;
+const MotionSection = motion.section;
 
 const readyPlans = [
   {
@@ -64,6 +69,7 @@ const planIconMap = planIconOptions.reduce((icons, option) => {
 }, {});
 
 const exerciseCategoryFilters = ['All', 'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Core', 'Cardio'];
+const EXERCISE_SELECTION_MOVE_DELAY = 420;
 
 const getExerciseHighlights = (pattern = '', muscleGroup = '') => {
   const normalizedPattern = pattern.toLowerCase();
@@ -311,6 +317,7 @@ export default function Workouts({ currentUser }) {
   const [isExerciseLibraryOpen, setIsExerciseLibraryOpen] = useState(false);
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState('');
   const [activeExerciseCategory, setActiveExerciseCategory] = useState('All');
+  const [pendingExerciseNames, setPendingExerciseNames] = useState(() => new Set());
   const [validationErrors, setValidationErrors] = useState({
     workoutName: false,
     noExercises: false,
@@ -318,10 +325,15 @@ export default function Workouts({ currentUser }) {
   });
   const exerciseCardRefs = useRef(new Map());
   const activeDrag = useRef({ id: null, startY: 0, lastY: 0 });
+  const pendingExerciseTimers = useRef(new Map());
 
   const selectedExerciseNames = useMemo(() => (
     new Set(exercises.map((exercise) => exercise.name.trim().toLowerCase()).filter(Boolean))
   ), [exercises]);
+
+  const selectedLibraryExercises = useMemo(() => (
+    exerciseLibrary.filter((exercise) => selectedExerciseNames.has(exercise.name.toLowerCase()))
+  ), [selectedExerciseNames]);
 
   const filteredLibraryExercises = useMemo(() => {
     const normalizedQuery = exerciseSearchQuery.trim().toLowerCase();
@@ -342,20 +354,12 @@ export default function Workouts({ currentUser }) {
     });
   }, [activeExerciseCategory, exerciseSearchQuery]);
 
-  const recentlyUsedLibraryExercises = useMemo(() => {
-    if (exerciseSearchQuery.trim() || activeExerciseCategory !== 'All') return [];
-
-    return exerciseLibrary
-      .filter((exercise) => selectedExerciseNames.has(exercise.name.toLowerCase()))
-      .slice(0, 4);
-  }, [activeExerciseCategory, exerciseSearchQuery, selectedExerciseNames]);
-
   const libraryListExercises = useMemo(() => {
-    if (!recentlyUsedLibraryExercises.length) return filteredLibraryExercises;
-
-    const recentExerciseNames = new Set(recentlyUsedLibraryExercises.map((exercise) => exercise.name));
-    return filteredLibraryExercises.filter((exercise) => !recentExerciseNames.has(exercise.name));
-  }, [filteredLibraryExercises, recentlyUsedLibraryExercises]);
+    return filteredLibraryExercises.filter((exercise) => {
+      const normalizedName = exercise.name.toLowerCase();
+      return !selectedExerciseNames.has(normalizedName) || pendingExerciseNames.has(normalizedName);
+    });
+  }, [filteredLibraryExercises, pendingExerciseNames, selectedExerciseNames]);
 
   const refreshBackendPlans = () => {
     return api.getPlans()
@@ -408,6 +412,11 @@ export default function Workouts({ currentUser }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [isExerciseLibraryOpen]);
+
+  useEffect(() => () => {
+    pendingExerciseTimers.current.forEach((timer) => window.clearTimeout(timer));
+    pendingExerciseTimers.current.clear();
+  }, []);
 
   const updateExercise = (id, field, value) => {
     setValidationErrors((currentErrors) => ({
@@ -506,6 +515,43 @@ export default function Workouts({ currentUser }) {
     const normalizedName = libraryExercise.name.trim().toLowerCase();
 
     setValidationErrors((currentErrors) => ({ ...currentErrors, noExercises: false }));
+
+    if (pendingExerciseTimers.current.has(normalizedName)) {
+      window.clearTimeout(pendingExerciseTimers.current.get(normalizedName));
+      pendingExerciseTimers.current.delete(normalizedName);
+      setPendingExerciseNames((currentNames) => {
+        const nextNames = new Set(currentNames);
+        nextNames.delete(normalizedName);
+        return nextNames;
+      });
+      return;
+    }
+
+    if (!selectedExerciseNames.has(normalizedName)) {
+      setPendingExerciseNames((currentNames) => new Set(currentNames).add(normalizedName));
+
+      const timer = window.setTimeout(() => {
+        setExercises((currentExercises) => {
+          const alreadySelected = currentExercises.some(
+            (exercise) => exercise.name.trim().toLowerCase() === normalizedName
+          );
+
+          return alreadySelected
+            ? currentExercises
+            : [...currentExercises, createExerciseFromLibrary(libraryExercise)];
+        });
+        setPendingExerciseNames((currentNames) => {
+          const nextNames = new Set(currentNames);
+          nextNames.delete(normalizedName);
+          return nextNames;
+        });
+        pendingExerciseTimers.current.delete(normalizedName);
+      }, EXERCISE_SELECTION_MOVE_DELAY);
+
+      pendingExerciseTimers.current.set(normalizedName, timer);
+      return;
+    }
+
     setExercises((currentExercises) => {
       const alreadySelected = currentExercises.some(
         (exercise) => exercise.name.trim().toLowerCase() === normalizedName
@@ -517,10 +563,7 @@ export default function Workouts({ currentUser }) {
         );
       }
 
-      return [
-        ...currentExercises,
-        createExerciseFromLibrary(libraryExercise),
-      ];
+      return currentExercises;
     });
   };
 
@@ -1237,15 +1280,27 @@ export default function Workouts({ currentUser }) {
         </div>
       </aside>
     </div>
+    <AnimatePresence>
     {isExerciseLibraryOpen && (
-      <div
+      <MotionDiv
         className="exercise-library-overlay"
         role="presentation"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) setIsExerciseLibraryOpen(false);
         }}
       >
-        <section className="exercise-library-sheet" aria-label={t('Exercise library')}>
+        <MotionSection
+          className="exercise-library-sheet"
+          aria-label={t('Exercise library')}
+          initial={{ opacity: 0, y: 22, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 14, scale: 0.98 }}
+          transition={{ type: 'spring', stiffness: 360, damping: 34 }}
+        >
           <div className="exercise-library-header">
             <h2>{t('Add exercise')}</h2>
             <button
@@ -1270,69 +1325,107 @@ export default function Workouts({ currentUser }) {
 
           <div className="exercise-library-filter-options" aria-label={t('Exercise filters')}>
             {exerciseCategoryFilters.map((option) => (
-              <button
+              <MotionButton
                 key={option}
                 className={activeExerciseCategory === option ? 'active' : ''}
                 type="button"
                 onClick={() => setActiveExerciseCategory(option)}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               >
                 {option === 'All' ? t('All') : t(option)}
-              </button>
+              </MotionButton>
             ))}
           </div>
 
+          <LayoutGroup>
           <div className="exercise-library-list">
-            {recentlyUsedLibraryExercises.length > 0 && (
-              <div className="exercise-library-section">
-                <h3>{t('Recently used')}</h3>
-                {recentlyUsedLibraryExercises.map((exercise) => {
+            <AnimatePresence initial={false}>
+            {selectedLibraryExercises.length > 0 && (
+              <MotionDiv
+                className="exercise-library-section"
+                key="selected-exercises"
+                layout
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              >
+                <h3>{t('Selected Exercises')} ({selectedLibraryExercises.length})</h3>
+                <AnimatePresence initial={false}>
+                {selectedLibraryExercises.map((exercise) => {
                   const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
 
                   return (
-                    <div className="exercise-library-row" key={`recent-${exercise.name}`}>
+                    <MotionDiv
+                      className="exercise-library-row selected"
+                      key={`selected-${exercise.name}`}
+                      layout
+                      layoutId={`exercise-library-row-${exercise.name}`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                    >
                       <ExerciseIllustration exercise={exercise} />
                       <span className="exercise-library-info">
                         <strong>{t(exercise.name)}</strong>
                         <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
                       </span>
-                      <button
+                      <MotionButton
                         className={`exercise-library-toggle${isSelected ? ' selected' : ''}`}
                         type="button"
                         aria-label={isSelected ? t('Remove exercise') : t('Add exercise')}
                         onClick={() => toggleLibraryExercise(exercise)}
+                        whileTap={{ scale: 0.9 }}
                       >
                         {isSelected ? <Check size={19} /> : <Plus size={20} />}
-                      </button>
-                    </div>
+                      </MotionButton>
+                    </MotionDiv>
                   );
                 })}
-              </div>
+                </AnimatePresence>
+              </MotionDiv>
             )}
+            </AnimatePresence>
             {libraryListExercises.length > 0 && (
-              <div className="exercise-library-section">
+              <MotionDiv className="exercise-library-section" layout>
                 <h3>{t('All exercises')}</h3>
+                <AnimatePresence initial={false}>
                 {libraryListExercises.map((exercise) => {
                   const isSelected = selectedExerciseNames.has(exercise.name.toLowerCase());
+                  const isPending = pendingExerciseNames.has(exercise.name.toLowerCase());
 
                   return (
-                    <div className="exercise-library-row" key={exercise.name}>
+                    <MotionDiv
+                      className={`exercise-library-row${isPending ? ' pending' : ''}`}
+                      key={exercise.name}
+                      layout
+                      layoutId={`exercise-library-row-${exercise.name}`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                    >
                       <ExerciseIllustration exercise={exercise} />
                       <span className="exercise-library-info">
                         <strong>{t(exercise.name)}</strong>
                         <span>{t(exercise.muscleGroup)} · {t(exercise.equipment)}</span>
                       </span>
-                      <button
-                        className={`exercise-library-toggle${isSelected ? ' selected' : ''}`}
+                      <MotionButton
+                        className={`exercise-library-toggle${isSelected || isPending ? ' selected' : ''}`}
                         type="button"
-                        aria-label={isSelected ? t('Remove exercise') : t('Add exercise')}
+                        aria-label={isSelected || isPending ? t('Remove exercise') : t('Add exercise')}
                         onClick={() => toggleLibraryExercise(exercise)}
+                        whileTap={{ scale: 0.9 }}
                       >
-                        {isSelected ? <Check size={19} /> : <Plus size={20} />}
-                      </button>
-                    </div>
+                        {isSelected || isPending ? <Check size={18} /> : <Plus size={20} />}
+                      </MotionButton>
+                    </MotionDiv>
                   );
                 })}
-              </div>
+                </AnimatePresence>
+              </MotionDiv>
             )}
             {filteredLibraryExercises.length === 0 && (
               <div className="exercise-library-empty">
@@ -1340,14 +1433,16 @@ export default function Workouts({ currentUser }) {
               </div>
             )}
           </div>
+          </LayoutGroup>
 
           <button className="exercise-library-custom" type="button" onClick={addExercise}>
-            <PlusCircle size={18} />
+            <PlusCircle size={14} />
             {t('Create custom exercise')}
           </button>
-        </section>
-      </div>
+        </MotionSection>
+      </MotionDiv>
     )}
+    </AnimatePresence>
     </>
   );
 }
