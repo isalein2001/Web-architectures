@@ -91,8 +91,9 @@ function AppLayout() {
   const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
   const isVerificationPage = location.pathname === "/verify-email";
   const isOnboardingPage = location.pathname === "/onboarding";
-  const isLanding = location.pathname === "/";
-  const canShowLogin = location.pathname === "/login" && location.state?.loginIntent === true;
+  const isRootPath = location.pathname === "/";
+  const isLanding = isRootPath && !isNativeApp;
+  const canShowLogin = location.pathname === "/login" && (isNativeApp || location.state?.loginIntent === true);
   const { t, lang, setLang } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -627,15 +628,18 @@ function AppLayout() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
 
+  if (isNativeApp && isRootPath && !hasSeenFirstLaunch) {
+    return (
+      <Routes>
+        <Route path="/" element={<FirstLaunchOnboarding onComplete={() => setHasSeenFirstLaunch(true)} />} />
+      </Routes>
+    );
+  }
+
   if (isLanding) {
     return (
       <Routes>
-        <Route
-          path="/"
-          element={isNativeApp && !hasSeenFirstLaunch
-            ? <FirstLaunchOnboarding onComplete={() => setHasSeenFirstLaunch(true)} />
-            : <Landing currentUser={currentUser} />}
-        />
+        <Route path="/" element={<Landing currentUser={currentUser} />} />
       </Routes>
     );
   }
@@ -662,7 +666,8 @@ function AppLayout() {
           element={canShowLogin ? <Login onLogin={setCurrentUser} /> : <Navigate to="/" replace />}
         />
         <Route path="/register" element={<Register onLogin={setCurrentUser} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/" element={isNativeApp ? <Navigate to="/login" replace /> : <Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={isNativeApp ? "/login" : "/"} replace />} />
       </Routes>
     );
   }
@@ -699,7 +704,7 @@ function AppLayout() {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <NavLink 
-            to="/" 
+            to={isNativeApp ? "/dashboard" : "/"} 
             style={{ textDecoration: 'none' }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
@@ -963,7 +968,7 @@ function AppLayout() {
 
         <main className={`main-content ${isLanding ? 'main-content--landing' : ''}`}>
           <Routes>
-            <Route path="/" element={<Landing currentUser={currentUser} />} />
+            <Route path="/" element={isNativeApp ? <Navigate to="/dashboard" replace /> : <Landing currentUser={currentUser} />} />
             <Route path="/dashboard" element={<Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} />} />
             <Route path="/workouts" element={<Workouts currentUser={currentUser} />} />
             <Route path="/start-workout" element={<WorkoutLogger currentUser={currentUser} />} />
