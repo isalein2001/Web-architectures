@@ -660,7 +660,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 2px 0 9px;
+  padding: 2px 0 15px;
 }
 
 .exercise-library-header h2 {
@@ -698,8 +698,8 @@
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
-  min-height: 48px;
-  padding: 0 13px;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 999px;
   background: #161616;
@@ -713,7 +713,7 @@
   background: transparent;
   color: #fff;
   font: inherit;
-  font-size: 0.94rem;
+  font-size: 0.9rem;
   font-weight: 650;
   outline: 0;
 }
@@ -727,8 +727,7 @@
   flex: 0 0 auto;
   gap: 7px;
   margin: 14px -2px 0;
-  padding: 0 2px 13px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 0 2px 5px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -1540,7 +1539,7 @@
 
   .exercise-library-header {
     gap: 8px;
-    padding-bottom: 8px;
+    padding-bottom: 14px;
   }
 
   .exercise-library-header h2 {
@@ -1553,18 +1552,18 @@
   }
 
   .exercise-library-search {
-    min-height: 46px;
-    padding: 0 12px;
+    min-height: 42px;
+    padding: 0 11px;
   }
 
   .exercise-library-search input {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
   }
 
   .exercise-library-filter-options {
     gap: 7px;
     margin-top: 14px;
-    padding-bottom: 13px;
+    padding-bottom: 5px;
   }
 
   .exercise-library-filter-options button {
