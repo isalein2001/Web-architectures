@@ -883,6 +883,14 @@
   border-radius: 12px;
   background: #000;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.075);
+  overflow: hidden;
+}
+
+.exercise-illustration img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .exercise-illustration-placeholder {

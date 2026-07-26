@@ -78,7 +78,15 @@ const getExerciseCategory = (exercise) => {
   return exercise.muscleGroup;
 };
 
-function ExerciseIllustration() {
+function ExerciseIllustration({ exercise }) {
+  if (exercise.image) {
+    return (
+      <div className="exercise-illustration" aria-hidden="true">
+        <img src={exercise.image} alt="" loading="lazy" />
+      </div>
+    );
+  }
+
   return (
     <div className="exercise-illustration exercise-illustration-placeholder" aria-hidden="true" />
   );
