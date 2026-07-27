@@ -4,6 +4,7 @@ const exerciseRows = [
   ['Ab Wheel Rollout', 'Core', 'Wheel', 'Gym', 'Anti-extension strength for abs and lats.', '3', '6-12', '75', 'core'],
   ['Adductor Machine', 'Legs', 'Machine', 'Gym', 'Inner-thigh strength and hip adduction.', '3', '12-15', '60', 'legs'],
   ['Arnold Press (Seated)', 'Shoulders', 'Dumbbells', 'Gym', 'Front delts, side delts and shoulder control.', '3', '8-12', '90', 'press', '/exercises/seated-arnold-press.png'],
+  ['Arnold Press (Standing)', 'Shoulders', 'Dumbbells', 'Gym', 'Front delts, side delts, core bracing and shoulder control.', '3', '8-12', '90', 'press', '/exercises/standing-arnold-press.png'],
   ['Assault Bike', 'Cardio', 'Bike', 'Gym', 'Conditioning, quads and total-body output.', '5', '30s', '60', 'conditioning'],
   ['Assisted Dip Machine', 'Chest', 'Machine', 'Gym', 'Chest and triceps pressing with assistance.', '3', '8-12', '90', 'press'],
   ['Assisted Pull-Up Machine', 'Back', 'Machine', 'Gym', 'Lats and upper-back pulling strength.', '3', '8-12', '90', 'pull'],
