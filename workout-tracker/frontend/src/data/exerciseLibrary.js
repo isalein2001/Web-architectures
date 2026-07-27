@@ -1,7 +1,7 @@
 const exerciseRows = [
-  ['Ab Coaster', 'Core', 'Machine', 'Gym', 'Lower abs and controlled spinal flexion.', '3', '12-15', '60', 'core'],
-  ['Ab Machine', 'Core', 'Machine', 'Gym', 'Loaded trunk flexion with stable hips.', '3', '10-15', '60', 'core'],
-  ['Ab Wheel Rollout', 'Core', 'Wheel', 'Gym', 'Anti-extension strength for abs and lats.', '3', '6-12', '75', 'core'],
+  ['Ab Coaster', 'Core', 'Machine', 'Gym', 'Lower abs and controlled spinal flexion.', '3', '12-15', '60', 'core', '/exercises/ab-coaster.png'],
+  ['Ab Machine', 'Core', 'Machine', 'Gym', 'Loaded trunk flexion with stable hips.', '3', '10-15', '60', 'core', '/exercises/ab-machine.png'],
+  ['Ab Wheel Rollout', 'Core', 'Wheel', 'Gym', 'Anti-extension strength for abs and lats.', '3', '6-12', '75', 'core', '/exercises/ab-wheel-rollout.png'],
   ['Adductor Machine', 'Legs', 'Machine', 'Gym', 'Inner-thigh strength and hip adduction.', '3', '12-15', '60', 'legs'],
   ['Arnold Press (Seated)', 'Shoulders', 'Dumbbells', 'Gym', 'Front delts, side delts and shoulder control.', '3', '8-12', '90', 'press', '/exercises/seated-arnold-press.png'],
   ['Arnold Press (Standing)', 'Shoulders', 'Dumbbells', 'Gym', 'Front delts, side delts, core bracing and shoulder control.', '3', '8-12', '90', 'press', '/exercises/standing-arnold-press.png'],
