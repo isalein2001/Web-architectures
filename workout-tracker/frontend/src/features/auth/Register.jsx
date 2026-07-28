@@ -52,9 +52,6 @@ export default function Register({ onLogin }) {
 
     try {
       const data = await api.register({ firstName, lastName, email, password });
-      if (data.verificationCode) {
-        window.sessionStorage.setItem('devVerificationCode', data.verificationCode);
-      }
       onLogin(data.user);
       navigate(data.user.emailVerified ? '/dashboard' : '/verify-email', { replace: true });
     } catch (requestError) {

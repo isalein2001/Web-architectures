@@ -145,7 +145,6 @@ function createAuthRouter() {
       res.status(201).json({
         user: userWithClaims(user),
         ...authPayload(token),
-        ...(process.env.NODE_ENV !== 'production' && verificationCode ? { verificationCode } : {}),
       });
     } catch (error) {
       return handleInternalError(res, 'register failed', error);
@@ -402,7 +401,6 @@ function createAuthRouter() {
 
       res.status(200).json({
         message: 'Verification code sent.',
-        ...(process.env.NODE_ENV !== 'production' ? { verificationCode } : {}),
       });
     } catch (error) {
       return handleInternalError(res, 'email change resend failed', error);
@@ -463,7 +461,6 @@ function createAuthRouter() {
 
       res.status(200).json({
         message: 'Verification code sent.',
-        ...(process.env.NODE_ENV !== 'production' ? { verificationCode } : {}),
       });
     } catch (error) {
       return handleInternalError(res, 'verification resend failed', error);

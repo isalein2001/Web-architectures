@@ -7,7 +7,6 @@ export default function VerifyEmail({ currentUser, onUserUpdate }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [devCode, setDevCode] = useState(() => window.sessionStorage.getItem('devVerificationCode') || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submitCode = async (event) => {
@@ -18,7 +17,6 @@ export default function VerifyEmail({ currentUser, onUserUpdate }) {
 
     try {
       const data = await api.verifyEmail(code);
-      window.sessionStorage.removeItem('devVerificationCode');
       onUserUpdate(data.user);
     } catch (requestError) {
       setError(requestError.message);
@@ -32,11 +30,7 @@ export default function VerifyEmail({ currentUser, onUserUpdate }) {
     setMessage('');
 
     try {
-      const data = await api.resendVerification();
-      if (data.verificationCode) {
-        window.sessionStorage.setItem('devVerificationCode', data.verificationCode);
-        setDevCode(data.verificationCode);
-      }
+      await api.resendVerification();
       setMessage('A new verification code was sent.');
     } catch (requestError) {
       setError(requestError.message);
@@ -68,11 +62,6 @@ export default function VerifyEmail({ currentUser, onUserUpdate }) {
               </span>
             </label>
 
-            {devCode && (
-              <div className="auth-dev-note">
-                Dev code: <strong>{devCode}</strong>
-              </div>
-            )}
             {message && <div className="auth-success">{message}</div>}
             {error && <div className="auth-error">{error}</div>}
 
