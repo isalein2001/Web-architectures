@@ -30,13 +30,25 @@ app.use(express.json({ limit: '15mb' }));
 app.use(cookieParser());
 
 const shouldForceHttps = process.env.NODE_ENV === 'production' && process.env.FORCE_HTTPS !== 'false';
+const getTrustedHttpsOrigin = () => {
+  const configuredHost = (process.env.APP_HOST || 'next-reps.de').trim();
+  const candidate = /^https?:\/\//i.test(configuredHost) ? configuredHost : `https://${configuredHost}`;
+
+  try {
+    const url = new URL(candidate);
+    return `https://${url.host}`;
+  } catch {
+    return 'https://next-reps.de';
+  }
+};
+const trustedHttpsOrigin = getTrustedHttpsOrigin();
 
 app.use((req, res, next) => {
   if (!shouldForceHttps || req.secure) {
     return next();
   }
 
-  return res.redirect(308, `https://${req.headers.host}${req.originalUrl}`);
+  return res.redirect(308, `${trustedHttpsOrigin}${req.originalUrl}`);
 });
 
 app.use((req, res, next) => {
