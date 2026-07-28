@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { AtSign, Lock, ShieldCheck, User, Zap } from 'lucide-react';
 import { api } from '../../api';
 import { readFirstLaunchOnboardingDraft } from '../../firstLaunchOnboardingStorage';

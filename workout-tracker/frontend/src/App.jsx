@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router";
 import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Droplets, X, Flame, User, PlayCircle, Target, BarChart3, Dumbbell } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";

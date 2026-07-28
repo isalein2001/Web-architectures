@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';

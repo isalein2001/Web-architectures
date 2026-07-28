@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { Activity, ArrowRight, BarChart3, Dumbbell, Globe, Instagram, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import './Landing.css';

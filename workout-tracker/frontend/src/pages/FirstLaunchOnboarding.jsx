@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router';
 import { ArrowRight, BarChart3, Check, Dumbbell, LineChart, NotebookPen, Sparkles, Target } from 'lucide-react';
 import {
   readFirstLaunchOnboardingDraft,
