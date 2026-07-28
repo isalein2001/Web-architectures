@@ -4,6 +4,13 @@ const jwt = require('jsonwebtoken');
 
 const AUTH_COOKIE_NAME = 'nextreps_token';
 
+const getAuthCookieOptions = () => ({
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+});
+
 function readToken(req) {
   const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];
   if (cookieToken) return cookieToken;
@@ -24,12 +31,13 @@ function authenticate(req, res, next) {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch {
-    res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+    res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
     return res.status(401).json({ error: 'Nicht autorisiert.' });
   }
 }
 
 module.exports = {
   AUTH_COOKIE_NAME,
+  getAuthCookieOptions,
   authenticate,
 };

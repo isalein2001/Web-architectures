@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prismaClient');
-const { AUTH_COOKIE_NAME, authenticate } = require('../middleware/authenticate');
+const { AUTH_COOKIE_NAME, authenticate, getAuthCookieOptions } = require('../middleware/authenticate');
 const { sendVerificationEmailLater } = require('../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
@@ -58,11 +58,8 @@ const createToken = (user) => jwt.sign(
 
 const setAuthCookie = (res, token) => {
   res.cookie(AUTH_COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    ...getAuthCookieOptions(),
     maxAge: TOKEN_MAX_AGE_MS,
-    path: '/',
   });
 };
 
@@ -497,7 +494,7 @@ function createAuthRouter() {
   });
 
   router.post('/logout', (req, res) => {
-    res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+    res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
     res.status(204).send();
   });
 

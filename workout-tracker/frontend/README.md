@@ -151,6 +151,56 @@ npm run start
 
 Hinweis: Ältere README-Abschnitte dokumentieren den Projektverlauf mit SQLite, Prisma-Baseline, SSE, Auth, Notifications und Lernentscheidungen. Der aktuelle Zielstand ist MySQL/MariaDB mit Prisma.
 
+## Cookies, Auth und Same-Origin-Architektur
+
+NEXT REPS wird produktiv als eine App unter derselben Domain ausgeliefert: Das React-Frontend kommt aus `backend/public`, die API hängt unter `/api`. Dadurch laufen Frontend und Backend auf derselben Origin, zum Beispiel:
+
+```text
+https://next-reps.de/dashboard
+https://next-reps.de/api/auth/login
+https://next-reps.de/api/plans
+```
+
+Deshalb braucht das Backend für die normale App-Kommunikation keine CORS-Middleware. CORS greift nur bei Cross-Origin-Anfragen, zum Beispiel wenn ein Frontend auf `https://app.example.com` eine API auf `https://api.example.com` aufruft. In der aktuellen Architektur ist das nicht der Fall. Auch lokal bleibt die Entwicklung einfach, weil Vite `/api` über den Dev-Server proxyt; der Browser spricht weiterhin same-origin mit `localhost:5173/api`.
+
+Die JWT-Auth verwendet den HttpOnly-Cookie `nextreps_token`. Beim Setzen des Cookies werden zentral diese Attribute verwendet:
+
+```js
+{
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+}
+```
+
+Warum diese Werte:
+
+- `httpOnly: true`: JavaScript kann den JWT nicht auslesen. Das reduziert das Risiko bei XSS.
+- `sameSite: 'lax'`: reicht aus, weil die App ihre API same-origin aufruft. `SameSite=None` ist nur für echte Cross-Site-Cookie-Flows nötig und wäre hier unnötig schwächer.
+- `secure: process.env.NODE_ENV === 'production'`: in Produktion wird der Cookie nur über HTTPS übertragen; lokal bleibt Login über HTTP nutzbar.
+- `path: '/'`: der Cookie gilt für die gesamte App und alle `/api`-Routen.
+
+Beim Logout und bei ungültigen Tokens wird der Cookie mit denselben Attributen wieder gelöscht. Das ist wichtig, weil Browser Cookies nur zuverlässig entfernen, wenn insbesondere `path`, `sameSite` und `secure` zum gesetzten Cookie passen.
+
+Das Backend setzt außerdem:
+
+```js
+app.set('trust proxy', 1);
+```
+
+Das ist sinnvoll, weil die Node-App hinter dem Apache-Reverse-Proxy auf dem Server läuft. Apache terminiert HTTPS und leitet die Anfrage an Express weiter. Mit `trust proxy` kann Express Proxy-Header korrekt auswerten, zum Beispiel falls später `req.secure`, HTTPS-Weiterleitungen oder secure-cookie-nahe Logik verwendet werden.
+
+Frontend-Hinweis: Bei same-origin-Fetches sendet der Browser Cookies standardmäßig mit (`credentials: 'same-origin'`). `authFetch()` nutzt weiterhin `credentials: 'include'`, weil das für die native App und ältere getrennte Setups nicht schadet. Für die aktuelle Web-Architektur ist es aber nicht mehr der kritische CORS-Schalter.
+
+Manueller Browser-Test:
+
+1. Registrieren oder einloggen.
+2. In DevTools unter `Application -> Cookies` prüfen, ob `nextreps_token` gesetzt wurde.
+3. Eine geschützte Route wie `/api/plans` oder die Workouts-Seite öffnen.
+4. Ausloggen.
+5. Prüfen, ob `nextreps_token` entfernt wurde und die App wieder zum Login führt.
+
 ## Datenmodell
 
 Historischer Hinweis: Die erste Entwicklungsdatenbank war eine lokale SQLite-Datenbank unter `backend/database.sqlite`. Das aktuelle Prisma-Schema nutzt inzwischen MySQL/MariaDB. Die folgende Skizze beschreibt die fachlichen Tabellen und Beziehungen aus der SQLite-/Prisma-Übergangsphase und bleibt als Architekturverlauf erhalten.
