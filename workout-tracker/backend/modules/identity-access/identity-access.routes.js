@@ -8,6 +8,7 @@ const { authEmailRateLimiter, loginRateLimiter, verificationRateLimiter } = requ
 const { sendVerificationEmailLater } = require('../../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
+const INTERNAL_ERROR_MESSAGE = 'Ein interner Fehler ist aufgetreten.';
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const PROFILE_IMAGE_MAX_BYTES = 500_000;
 
@@ -82,6 +83,11 @@ const userWithClaims = (user) => ({
   isDemo: isDemoAccount(user.email),
 });
 
+const handleInternalError = (res, context, error) => {
+  console.error('\n', new Date().toISOString(), context, error);
+  return res.status(500).json({ error: INTERNAL_ERROR_MESSAGE });
+};
+
 function createAuthRouter() {
   const router = express.Router();
 
@@ -142,9 +148,7 @@ function createAuthRouter() {
         ...(process.env.NODE_ENV !== 'production' && verificationCode ? { verificationCode } : {}),
       });
     } catch (error) {
-      console.log("\n", new Date().toISOString(), error)
-
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'register failed', error);
     }
   });
 
@@ -189,8 +193,7 @@ function createAuthRouter() {
         }),
       });
     } catch (error) {
-      console.log("\n", new Date().toISOString(), error)
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'login failed', error);
     }
   });
 
@@ -338,9 +341,7 @@ function createAuthRouter() {
 
       res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
-      console.log("\n", new Date().toISOString(), error)
-
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'profile update failed', error);
     }
   });
 
@@ -378,7 +379,7 @@ function createAuthRouter() {
       setAuthCookie(res, createToken(user));
       res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'email change verification failed', error);
     }
   });
 
@@ -404,7 +405,7 @@ function createAuthRouter() {
         ...(process.env.NODE_ENV !== 'production' ? { verificationCode } : {}),
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'email change resend failed', error);
     }
   });
 
@@ -436,7 +437,7 @@ function createAuthRouter() {
 
       res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'email verification failed', error);
     }
   });
 
@@ -465,7 +466,7 @@ function createAuthRouter() {
         ...(process.env.NODE_ENV !== 'production' ? { verificationCode } : {}),
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'verification resend failed', error);
     }
   });
 
@@ -516,7 +517,7 @@ function createAuthRouter() {
 
       res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return handleInternalError(res, 'onboarding failed', error);
     }
   });
 
