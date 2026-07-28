@@ -23,6 +23,7 @@ const app = express();
 // The app runs behind the Apache reverse proxy on konsoleH.
 // Trust the first proxy so Express can read HTTPS/IP headers correctly.
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 app.use(express.json({ limit: '15mb' }));
 app.use(cookieParser());
@@ -35,6 +36,37 @@ app.use((req, res, next) => {
   }
 
   return res.redirect(308, `https://${req.headers.host}${req.originalUrl}`);
+});
+
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.secure) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "manifest-src 'self'",
+      "worker-src 'self'",
+      "media-src 'self'",
+    ].join('; '),
+  );
+
+  next();
 });
 
 const PORT = process.env.PORT || 3000;

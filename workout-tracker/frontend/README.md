@@ -530,6 +530,31 @@ Manueller Browser-Test:
 4. Ausloggen.
 5. Prüfen, ob `nextreps_token` entfernt wurde und die App wieder zum Login führt.
 
+## Studio-Session 12: Polish vor dem Launch
+
+### Automatisierter Sicherheits-Scan und Header-Quick-Wins
+
+Der externe Scan durch den Dozenten muss noch mit der echten Deployment-URL durchgeführt werden. Die drei wichtigsten Findings werden nach dem Scan hier eingetragen. Falls keine kritischen Fehler gefunden werden, wird das ebenfalls dokumentiert.
+
+Vorbereitend wurden bereits diese Header-Quick-Wins direkt in Express umgesetzt:
+
+- `app.disable('x-powered-by')`: entfernt den Express-Fingerprint aus den Antworten.
+- `Strict-Transport-Security`: wird in Produktion bei HTTPS gesetzt, damit Browser HTTPS für die Domain bevorzugen.
+- `Content-Security-Policy`: erlaubt standardmäßig nur eigene Quellen, blockiert Einbettung per `frame-ancestors 'none'` und verbietet Plugin-/Object-Inhalte.
+- `X-Content-Type-Options: nosniff`: verhindert MIME-Sniffing.
+- `X-Frame-Options: DENY`: reduziert Clickjacking-Risiko.
+- `Referrer-Policy: strict-origin-when-cross-origin`: begrenzt Referrer-Leaks.
+- `Permissions-Policy`: deaktiviert nicht benötigte Browser-APIs wie Kamera, Mikrofon, Geolocation und Payment.
+- `Cross-Origin-Opener-Policy: same-origin`: verbessert Isolation zwischen Browser-Kontexten.
+
+Scan-Dokumentation:
+
+| Finding | Bewertung | Maßnahme |
+| --- | --- | --- |
+| Ausstehend: externer Dozenten-Scan | Noch nicht bewertet | Scan mit echter URL durchführen lassen. |
+| Ausstehend: Header-/TLS-Befund | Noch nicht bewertet | Mit den gesetzten Security-Headern gegenprüfen. |
+| Ausstehend: Auth-/Cookie-Befund | Noch nicht bewertet | Login-Flow im Browser testen: Cookie gesetzt, geschützte Routen erreichbar, Logout löscht Cookie. |
+
 ## Datenmodell
 
 Historischer Hinweis: Die erste Entwicklungsdatenbank war eine lokale SQLite-Datenbank unter `backend/database.sqlite`. Das aktuelle Prisma-Schema nutzt inzwischen MySQL/MariaDB. Die folgende Skizze beschreibt die fachlichen Tabellen und Beziehungen aus der SQLite-/Prisma-Übergangsphase und bleibt als Architekturverlauf erhalten.
