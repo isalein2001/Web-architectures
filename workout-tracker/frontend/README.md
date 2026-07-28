@@ -391,6 +391,15 @@ npm run check:modules
 
 Der Check scannt aktuell alle `*.service.js` Dateien unter `backend/modules/` und schlägt fehl, wenn ein Service direkt auf ein Prisma-Model zugreift, das nicht zu seinem Kontext gehört. Route-Dateien werden noch nicht blockiert, weil sie im laufenden Refactor erst schrittweise ausgedünnt werden.
 
+### Architektur-Review nach dem Modulumbau
+
+Review-Ergebnis nach Prüfung des kompletten `backend/modules/` Ordners:
+
+- Ja, es gibt noch Route-Handler mit Geschäftslogik. Besonders `identity-access.routes.js`, `sessions.routes.js`, `daily-activity.routes.js` und `coach.routes.js` enthalten noch Validierung, Prisma-Abfragen, Berechnungen und Normalisierung direkt im Handler.
+- Nein, in Service-Dateien gibt es aktuell keinen direkten Zugriff auf Prisma-Modelle eines fremden Moduls. Der Boundary-Check bestätigt das.
+- Das Modul mit den meisten fachlichen eingehenden Abhängigkeiten ist `training`, weil Stats, Progress und Coach-Auswertungen Trainingspläne, Sessions und Logs benötigen. Das ist als Kernmodul erwartbar, aber ein Warnsignal dafür, dass `training.service.js` stabile Query-Funktionen anbieten sollte, damit andere Kontexte nicht direkt in Training-Tabellen lesen.
+- Am einfachsten extrahierbar wäre langfristig `notifications`. Das Modul hat eine schmale Aufgabe, wenige Endpunkte und braucht fachlich fast nur `userId`, Push-Subscription und ein Benachrichtigungs-Payload. Als eigener Service könnte es später über Events wie `plan.changed` oder `verification.requested` angesprochen werden, ohne Training, Daily Activity oder Identity als Datenmodell mitzunehmen.
+
 ## Backend und Deployment
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
