@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Info, LifeBuoy, Droplets, X, Flame, User, PlayCircle, Target, BarChart3, Dumbbell } from "lucide-react";
+import { Activity, LayoutDashboard, NotebookPen, LineChart, Search, Globe, Bell, Droplets, X, Flame, User, PlayCircle, Target, BarChart3, Dumbbell } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Workouts from "./pages/Workouts";
 import Analytics from "./pages/Analytics";
@@ -167,8 +167,6 @@ function AppLayout() {
     { type: 'Page', label: 'Analytics', description: 'Strength progress and training insights', path: '/analytics', Icon: LineChart },
     { type: 'Page', label: 'Settings', description: 'Account and preferences', path: '/settings', Icon: Activity },
     { type: 'Page', label: 'Profile', description: 'Body metrics and advanced biometrics', path: '/profile', Icon: User },
-    { type: 'Page', label: 'Support', description: 'Help center and ticket form', path: '/support', Icon: LifeBuoy },
-    { type: 'Page', label: 'About Us', description: 'Founders and NEXT REPS philosophy', path: '/about', Icon: Info },
     { type: 'Action', label: 'Start Workout', description: 'Open workout launcher', path: '/start-workout', Icon: PlayCircle },
     { type: 'Action', label: 'Log Water', description: 'Open quick hydration log', action: () => openQuickLog('water'), Icon: Droplets },
     { type: 'Action', label: 'Log Steps', description: 'Open quick steps log', action: () => openQuickLog('steps'), Icon: Activity },
@@ -256,7 +254,7 @@ function AppLayout() {
       className={`search-bar global-search ${className} ${searchOpen ? 'search-open' : ''}`}
       onClick={() => setSearchOpen(true)}
     >
-      <Search size={18} color="#ADAAAA" />
+      <Search size={18} color="var(--color-text-muted)" />
       <input
         type="text"
         value={searchQuery}
@@ -587,6 +585,8 @@ function AppLayout() {
     let mouseY = window.innerHeight / 2;
     let cursorX = mouseX;
     let cursorY = mouseY;
+    const tokenStyles = getComputedStyle(document.documentElement);
+    const cursorCenterOffset = Number.parseFloat(tokenStyles.getPropertyValue('--size-10')) || 10;
     
     const animate = () => {
       cursorX += (mouseX - cursorX) * 0.2;
@@ -595,8 +595,7 @@ function AppLayout() {
       const isHovering = cursor.classList.contains('hover-active');
       const scale = isHovering ? 'scale(0.85)' : 'scale(1)';
       
-      // Offset by 10px to perfectly center the 20x20 div on the mouse
-      cursor.style.transform = `translate3d(${cursorX - 10}px, ${cursorY - 10}px, 0) ${scale}`;
+      cursor.style.transform = `translate3d(${cursorX - cursorCenterOffset}px, ${cursorY - cursorCenterOffset}px, 0) ${scale}`;
       requestAnimationFrame(animate);
     };
     animate();
@@ -737,14 +736,6 @@ function AppLayout() {
             <Activity size={20} /> {t('Settings')}
           </NavLink>
 
-          <div className="nav-secondary-links">
-            <NavLink to="/about" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-              <Info size={20} /> {t('About Us')}
-            </NavLink>
-            <NavLink to="/support" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-              <LifeBuoy size={20} /> {t('Support')}
-            </NavLink>
-          </div>
         </nav>
 
         <div className="sidebar-footer">
@@ -766,7 +757,7 @@ function AppLayout() {
             
             <div className="topbar-actions">
               <div className="lang-selector" ref={langRef} onClick={() => setLangOpen(!langOpen)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <Globe size={18} /> {lang.toUpperCase()}
                 </div>
                 <div className={`lang-dropdown ${langOpen ? 'open' : ''}`}>
@@ -981,23 +972,6 @@ function AppLayout() {
             <Route path="/support" element={<Support />} />
             <Route path="/about" element={<About />} />
           </Routes>
-          
-          {/* Global Footer */}
-          <footer className="global-footer">
-            <div className="footer-links">
-              <div className="footer-link-row">
-                <NavLink to="/impressum" className="footer-link">{t('IMPRESSUM')}</NavLink>
-                <NavLink to="/datenschutz" className="footer-link">{t('DATENSCHUTZ')}</NavLink>
-              </div>
-              <div className="footer-link-row">
-                <NavLink to="/about" className="footer-link">{t('About Us')}</NavLink>
-                <NavLink to="/support" className="footer-link">{t('Support')}</NavLink>
-              </div>
-            </div>
-            <div className="footer-copyright">
-              © 2026 NEXT REPS PERFORMANCE SYSTEMS. ALL RIGHTS RESERVED.
-            </div>
-          </footer>
         </main>
       </div>
       {activeReminder && (

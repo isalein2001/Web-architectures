@@ -1362,21 +1362,21 @@ export default function Analytics({ currentUser }) {
             <svg viewBox="0 0 400 280" className="mock-chart" preserveAspectRatio="xMidYMid slice">
               <defs>
                 <linearGradient id="strengthAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C5FE00" stopOpacity="0.18" />
-                  <stop offset="22%" stopColor="#A8D900" stopOpacity="0.09" />
-                  <stop offset="55%" stopColor="#5D6E18" stopOpacity="0.04" />
-                  <stop offset="100%" stopColor="#121212" stopOpacity="0" />
+                  <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.18" />
+                  <stop offset="22%" stopColor="var(--palette-a8d900)" stopOpacity="0.09" />
+                  <stop offset="55%" stopColor="var(--palette-5d6e18)" stopOpacity="0.04" />
+                  <stop offset="100%" stopColor="var(--color-surface)" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="strengthRightBlackFade" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#121212" stopOpacity="0" />
-                  <stop offset="100%" stopColor="#121212" stopOpacity="0.98" />
+                  <stop offset="0%" stopColor="var(--color-surface)" stopOpacity="0" />
+                  <stop offset="100%" stopColor="var(--color-surface)" stopOpacity="0.98" />
                 </linearGradient>
                 <linearGradient id="strengthBottomBlackFade" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#121212" stopOpacity="0" />
-                  <stop offset="100%" stopColor="#121212" stopOpacity="0.99" />
+                  <stop offset="0%" stopColor="var(--color-surface)" stopOpacity="0" />
+                  <stop offset="100%" stopColor="var(--color-surface)" stopOpacity="0.99" />
                 </linearGradient>
               </defs>
-              <line x1="0" y1="279" x2="400" y2="279" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+              <line x1="0" y1="279" x2="400" y2="279" stroke="rgb(var(--color-white-rgb) / var(--opacity-0-04))" strokeWidth="1" />
               <MotionG
                 key={`area-${activeRange}`}
                 initial={{ clipPath: 'inset(0 100% 0 0)', opacity: 0 }}
@@ -1394,7 +1394,7 @@ export default function Analytics({ currentUser }) {
                 key={`line-${activeRange}`}
                 d={chartLinePath}
                 fill="none"
-                stroke="#C5FE00"
+                stroke="var(--color-primary)"
                 strokeWidth="4.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1407,7 +1407,7 @@ export default function Analytics({ currentUser }) {
                 cx={endPoint.x}
                 cy={endPoint.y}
                 r="6"
-                fill="#C5FE00"
+                fill="var(--color-primary)"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={isChartInView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
                 transition={{ duration: 0.18, delay: 1.4, ease: 'easeOut' }}

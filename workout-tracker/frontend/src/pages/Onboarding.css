@@ -2,32 +2,32 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 40px 22px;
-  color: #fff;
+  padding: var(--size-40) var(--size-22);
+  color: var(--palette-fff);
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.62)),
+    linear-gradient(90deg, rgb(var(--rgb-0-0-0) / var(--opacity-0-92)), rgb(var(--rgb-0-0-0) / var(--opacity-0-62))),
     url('/auth-gym-bg.jpg') center / cover;
 }
 
 .onboarding-shell {
-  width: min(1180px, 100%);
+  width: min(var(--size-1180), 100%);
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 520px);
-  gap: 48px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(var(--size-360), var(--size-520));
+  gap: var(--size-48);
   align-items: center;
 }
 
 .onboarding-hero > span {
   color: var(--color-primary);
-  font-size: 0.72rem;
+  font-size: var(--font-size-screen-16);
   font-weight: 950;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .onboarding-hero h1 {
-  margin: 12px 0 20px;
-  font-size: clamp(3rem, 6vw, 5.6rem);
+  margin: var(--size-12) 0 var(--size-20);
+  font-size: var(--font-size-screen-124);
   line-height: 0.92;
   text-transform: uppercase;
 }
@@ -35,12 +35,12 @@
 .onboarding-title span {
   display: block;
   opacity: 0;
-  color: #fff;
+  color: var(--palette-fff);
   font-size: inherit;
   font-weight: inherit;
   letter-spacing: 0;
   line-height: inherit;
-  transform: translateX(-64px);
+  transform: translateX(var(--size-neg-64));
   animation: onboardingTitleIn 1120ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
@@ -61,25 +61,25 @@
 }
 
 .onboarding-hero p {
-  max-width: 560px;
-  color: #aaa;
-  font-size: 1rem;
+  max-width: var(--size-560);
+  color: var(--palette-aaa);
+  font-size: var(--font-size-screen-64);
   line-height: 1.7;
 }
 
 .onboarding-card {
   display: grid;
-  gap: 16px;
-  padding: 24px;
-  border: 1px solid rgba(197, 254, 0, 0.16);
-  border-radius: 24px;
-  background: rgba(18, 18, 18, 0.86);
-  box-shadow: 0 0 26px rgba(197, 254, 0, 0.14);
+  gap: var(--size-16);
+  padding: var(--size-24);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-16));
+  border-radius: var(--radius-screen-15);
+  background: rgb(var(--rgb-18-18-18) / var(--opacity-0-86));
+  box-shadow: 0 0 var(--size-26) rgb(var(--rgb-197-254-0) / var(--opacity-0-14));
 }
 
 .onboarding-fields {
   display: grid;
-  gap: 12px 16px;
+  gap: var(--size-12) var(--size-16);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -95,18 +95,18 @@
 .onboarding-step-indicator {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: var(--size-8);
 }
 
 .onboarding-step-indicator span {
   display: grid;
   place-items: center;
-  min-height: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  color: #8e8e8e;
-  background: rgba(255, 255, 255, 0.025);
-  font-size: 0.62rem;
+  min-height: var(--size-32);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
+  border-radius: var(--radius-screen-28);
+  color: var(--palette-8e8e8e);
+  background: rgb(var(--rgb-255-255-255) / var(--opacity-0-025));
+  font-size: var(--font-size-screen-10);
   font-weight: 950;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -114,23 +114,23 @@
 
 .onboarding-step-indicator span.active {
   color: var(--color-primary);
-  border-color: rgba(197, 254, 0, 0.34);
-  background: rgba(197, 254, 0, 0.08);
+  border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-34));
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-08));
 }
 
 .onboarding-fields label,
 .onboarding-goals {
   display: grid;
-  gap: 8px;
+  gap: var(--size-8);
 }
 
 .onboarding-fields span,
 .onboarding-goals > span {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: #aaa;
-  font-size: 0.72rem;
+  gap: var(--size-8);
+  color: var(--palette-aaa);
+  font-size: var(--font-size-screen-16);
   font-weight: 950;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -144,25 +144,25 @@
 .onboarding-fields select {
   width: 100%;
   min-width: 0;
-  height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
-  padding: 0 74px 0 18px;
-  color: #fff;
-  background: #0b0b0b;
+  height: var(--size-46);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-05));
+  border-radius: var(--radius-screen-8);
+  padding: 0 var(--size-74) 0 var(--size-18);
+  color: var(--palette-fff);
+  background: var(--palette-0b0b0b);
   font: inherit;
 }
 
 .onboarding-fields select {
-  padding-right: 18px;
+  padding-right: var(--size-18);
 }
 
 .onboarding-fields input.field-error,
 .onboarding-fields select.field-error,
 .onboarding-goals button.field-error {
-  border-color: #ff4f5f;
-  background-color: rgba(255, 79, 95, 0.07);
-  box-shadow: 0 0 18px rgba(255, 79, 95, 0.14);
+  border-color: var(--palette-ff4f5f);
+  background-color: rgb(var(--rgb-255-79-95) / var(--opacity-0-07));
+  box-shadow: 0 0 var(--size-18) rgb(var(--rgb-255-79-95) / var(--opacity-0-14));
 }
 
 .onboarding-unit-field input::-webkit-outer-spin-button,
@@ -172,14 +172,14 @@
 
 .onboarding-unit-field small {
   position: absolute;
-  right: 16px;
+  right: var(--size-16);
   top: 50%;
   color: var(--color-primary);
-  max-width: 58px;
+  max-width: var(--size-58);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.68rem;
+  font-size: var(--font-size-screen-14);
   font-weight: 950;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -190,24 +190,24 @@
 .onboarding-goals > div {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--size-10);
 }
 
 .onboarding-suggestion-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--size-6);
 }
 
 .onboarding-suggestion-row button {
   min-width: 0;
-  min-height: 30px;
-  padding: 0 8px;
-  border: 1px solid rgba(197, 254, 0, 0.14);
-  border-radius: 999px;
-  color: #aaa;
-  background: rgba(197, 254, 0, 0.035);
-  font-size: 0.5rem;
+  min-height: var(--size-30);
+  padding: 0 var(--size-8);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-14));
+  border-radius: var(--radius-screen-28);
+  color: var(--palette-aaa);
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-035));
+  font-size: var(--font-size-screen-9);
   font-weight: 850;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -216,75 +216,75 @@
 
 .onboarding-suggestion-row button:hover {
   color: var(--color-primary);
-  border-color: rgba(197, 254, 0, 0.38);
-  background: rgba(197, 254, 0, 0.08);
+  border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-38));
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-08));
 }
 
 .onboarding-suggestion-row strong {
   display: block;
-  margin-top: 1px;
-  color: #fff;
-  font-size: 0.58rem;
+  margin-top: var(--size-1);
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-8);
 }
 
 .onboarding-edit-note {
-  margin: -4px 0 0;
-  padding: 9px 12px;
-  border: 1px solid rgba(197, 254, 0, 0.12);
-  border-radius: 14px;
-  color: #aaa;
-  background: rgba(197, 254, 0, 0.035);
-  font-size: 0.7rem;
+  margin: var(--size-neg-4) 0 0;
+  padding: var(--size-9) var(--size-12);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-12));
+  border-radius: var(--radius-screen-8);
+  color: var(--palette-aaa);
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-035));
+  font-size: var(--font-size-screen-21);
   line-height: 1.35;
 }
 
 .onboarding-goals button {
   display: grid;
-  gap: 3px;
+  gap: var(--size-3);
   min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.025);
+  padding: var(--size-10) var(--size-12);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
+  border-radius: var(--radius-screen-8);
+  color: var(--palette-fff);
+  background: rgb(var(--rgb-255-255-255) / var(--opacity-0-025));
   text-align: left;
   cursor: pointer;
 }
 
 .onboarding-goals button.active,
 .onboarding-goals button:hover {
-  border-color: rgba(197, 254, 0, 0.36);
+  border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-36));
   color: var(--color-primary);
 }
 
 .onboarding-goals small {
-  color: #8e8e8e;
-  font-size: 0.72rem;
+  color: var(--palette-8e8e8e);
+  font-size: var(--font-size-screen-16);
   line-height: 1.32;
 }
 
 .onboarding-error {
-  padding: 12px 14px;
-  border-radius: 12px;
-  color: #ff7a5f;
-  background: rgba(108, 53, 42, 0.22);
-  font-size: 0.8rem;
+  padding: var(--size-12) var(--size-14);
+  border-radius: var(--radius-screen-6);
+  color: var(--palette-ff7a5f);
+  background: rgb(var(--rgb-108-53-42) / var(--opacity-0-22));
+  font-size: var(--font-size-screen-28);
   font-weight: 850;
 }
 
 .onboarding-actions {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 10px;
+  gap: var(--size-10);
   align-items: center;
 }
 
 .onboarding-back,
 .onboarding-submit {
-  min-height: 48px;
+  min-height: var(--size-48);
   border: 0;
-  border-radius: 999px;
-  font-size: 0.76rem;
+  border-radius: var(--radius-screen-28);
+  font-size: var(--font-size-screen-19);
   font-weight: 950;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -292,13 +292,13 @@
 }
 
 .onboarding-back {
-  min-width: 130px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.06);
+  min-width: var(--size-130);
+  color: var(--palette-fff);
+  background: rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
 }
 
 .onboarding-submit {
-  color: #050505;
+  color: var(--palette-050505);
   background: var(--color-primary);
 }
 
@@ -341,8 +341,8 @@
 @keyframes onboardingTitleIn {
   from {
     opacity: 0;
-    filter: blur(5px);
-    transform: translateX(-64px);
+    filter: blur(var(--size-5));
+    transform: translateX(var(--size-neg-64));
   }
 
   to {

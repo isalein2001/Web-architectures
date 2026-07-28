@@ -5,14 +5,14 @@ import styles from "./FigmaEmbed.module.css";
 /**
  * Props
  *   src        – the full embed URL (required)
- *   width      – CSS width (default "800px")
- *   height     – CSS height (default "450px")
+ *   width      - CSS width
+ *   height     - CSS height
  *   className  – optional extra class names
  */
 export const FigmaEmbed = ({
   src,
-  width = "800px",
-  height = "450px",
+  width = "var(--size-800)",
+  height = "var(--size-450)",
   className,
 }) => {
   return (
@@ -20,7 +20,7 @@ export const FigmaEmbed = ({
       <iframe
         src={src}
         style={{
-          border: "1px solid rgba(0, 0, 0, 0.1)",
+          border: "var(--size-1) solid rgb(var(--color-black-rgb) / var(--opacity-0-1))",
           width,
           height,
         }}

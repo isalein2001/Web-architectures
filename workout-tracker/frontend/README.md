@@ -1,19 +1,159 @@
-# Workout Tracker
+# NEXT REPS Workout Tracker
 
-React/Vite frontend with an Express.js + SQLite backend.
+NEXT REPS ist eine dunkle, mobile-first Fitness-App für Workout-Planung, Trainingstracking, tägliche Aktivitätsziele, Hydration und Trainingsanalyse. Das Frontend läuft als React/Vite-App und ist zusätzlich mit Capacitor als iOS-App verpackt. Das Backend ist eine Express-API mit Prisma ORM; das aktuelle Prisma-Schema ist auf MySQL/MariaDB ausgelegt.
 
 The project keeps frontend and backend separate:
 
 - `frontend/`: React + Vite UI
-- `backend/`: Express API with SQLite persistence
-- `backend/database.sqlite`: local SQLite database
-- `backend/database.js`: database initialization and schema creation
+- `frontend/ios/`: Capacitor-iOS-Projekt für die native App
+- `frontend/public/exercises/`: Übungsbilder für den Katalog
+- `frontend/src/data/exerciseLibrary.js`: lokaler Übungskatalog mit 148 Gym-Übungen
+- `backend/`: Express API mit Prisma, Auth, Mail und Push
+- `backend/prisma/schema.prisma`: aktuelles MySQL/MariaDB Prisma-Datenmodell
 - `backend/server.js`: Express app setup and route mounting
 - `backend/routes/`: resource-specific API route modules
 
+## Aktueller App-Stand
+
+Die App ist inzwischen deutlich mehr als ein einfacher Workout-Tracker. Der aktuelle Stand umfasst:
+
+- Website-Landingpage für Besucher, während die installierte iOS-App direkt in die App-Oberfläche startet.
+- Login, Registrierung, E-Mail-Verifikation, Onboarding und geschützte App-Routen.
+- Mobile Dashboard im kompakten NEXT-REPS-Stil mit dunkler Oberfläche, Neon-Lime-Akzent und kleinerer Bottom-Navigation.
+- Kombiniertes Daily-Goal-Widget mit Fortschrittsring, Steps, Calories und Active Minutes in einer Karte.
+- Quick Log für Wasser und Schritte direkt aus dem Headerbereich.
+- Hydration-Widget mit Tagesziel, Fortschritt, Info-Modal und einstellbarem Trinkziel.
+- Kalender-Widget mit Wochenansicht, ausklappbarer Monatsansicht, Montag als Wochenstart und Swipe-/Pfeil-Navigation zwischen Monaten.
+- Workout-Planung mit Tagesplanung, Plan-Auswahl und geloggten Sessions.
+- Übungsauswahl im Workout-Flow als kompaktes mobiles Modal mit Suche, horizontalen Filtern, Selected-Exercises-Bereich und eigener Übungserstellung.
+- Übungskatalog mit 148 Übungen, Muskelgruppe, Equipment, Ort, Fokusbeschreibung, Standard-Sätzen, Standard-Wiederholungen, Pausenempfehlung und optionalem Bild.
+- Erste hinterlegte Übungsbilder, unter anderem für Arnold Press, Ab Machine, Ab Coaster, Ab Wheel Rollout, Assisted-Machine-Übungen, Back Extensions und mehrere Barbell-Übungen.
+- Analytics-Screen mit Trainingsqualität, Kalender-/Planungsdaten, Most-Trained-Übungen, Übungsdiversität und Fortschrittsauswertungen.
+- Profil- und Settings-Bereiche für Nutzerprofil, Ziele, Hydration, biometrische Werte und App-Einstellungen.
+- Globale Suche für App-Seiten, Aktionen, Workout-Pläne und Übungen.
+- Mehrsprachigkeit über `LanguageContext.jsx` mit deutschen und englischen UI-Labels.
+- Web Push als Lern-/Testfunktion für Planänderungen.
+- Transactional E-Mail-Flow für Verifikationscodes.
+- iOS-Integration über Capacitor inklusive nativer Build-/Sync-Skripte.
+
+## UI- und Design-System
+
+Das Frontend nutzt zentrale Design Tokens in `frontend/src/styles/designTokens.css`. Dort liegen Farben, Abstände, Größen, Radien und mobile Kompaktwerte. Die App nutzt weiterhin die NEXT-REPS-Identität:
+
+- sehr dunkle Flächen und Karten
+- weißer Haupttext
+- gedämpfte Grautöne für sekundäre Informationen
+- Neon-Lime nur für aktive States, wichtige Aktionen und Progress
+- abgerundete Karten und dezente Borders
+- reduzierte Glow-Effekte statt dauerhaft greller Akzente
+
+Für mobile Viewports wurden zusätzliche Tokens ergänzt, damit Dashboard, Karten, Header, Buttons und Bottom-Navigation kompakter wirken. Ziel ist eine native Fitness-App-Anmutung statt einer Desktop-Webseite auf dem Handy.
+
+Wichtige mobile UI-Elemente:
+
+- kompakte Topbar mit kleinerem Logo
+- Bottom-Navigation mit kleineren Labels und Icons
+- zentrale Start-Workout-Aktion
+- offene Begrüßung ohne große Hero-Karte
+- Daily-Goal-Karte als kombinierter Fortschrittsbereich
+- Kalender als Wochenstrip mit ausklappbarem Monatsmodus
+
+## Mobile Dashboard
+
+Die Dashboard-Struktur wurde auf eine klarere mobile Hierarchie umgebaut:
+
+1. Kompakte Topbar
+2. Begrüßung mit Nutzername und Quick Log
+3. Primäre Workout-Karte für das heutige Training
+4. Daily Goal mit Steps, Calories und Active Minutes
+5. Hydration-Karte
+6. Wochen-/Monatskalender
+7. Milestone-/Insight-Karte
+
+Redundante Karten wurden entfernt oder zusammengeführt. Werte wie Active Flow, Burn Rate und Time in Zone werden nicht mehr als leere Vollkarten angezeigt, solange keine sinnvollen Trainingsdaten vorhanden sind. `Today Workout` und `Next Training` wurden fachlich zu einer primären Workout-Karte zusammengeführt.
+
+Das Daily-Goal-Widget berechnet den kombinierten Fortschritt aus drei gecappten Teilzielen:
+
+```text
+stepsRatio = min(currentSteps / stepGoal, 1)
+caloriesRatio = min(currentCalories / calorieGoal, 1)
+minutesRatio = min(currentMinutes / minuteGoal, 1)
+combinedProgress = ((stepsRatio + caloriesRatio + minutesRatio) / 3) * 100
+```
+
+Bei 0 Prozent zeigt die App einen ruhigen Startzustand. Ab Fortschritt wird der Status aktiver, und bei 100 Prozent kann eine kleine Konfetti-Animation erscheinen.
+
+## Workouts und Übungskatalog
+
+Die Workouts-Seite nutzt einen lokalen Katalog in `frontend/src/data/exerciseLibrary.js`. Aktuell enthält er 148 Übungen. Jede Übung kann folgende Daten besitzen:
+
+- `name`
+- `muscleGroup`
+- `equipment`
+- `location`
+- `focus`
+- `defaultSets`
+- `defaultReps`
+- `defaultRest`
+- `pattern`
+- `image`
+
+Die Übungsauswahl im Workout-Planer wurde für Mobile stark überarbeitet:
+
+- kompakter Header
+- Suchfeld
+- horizontal scrollbare Filter-Chips
+- kompakte Listenzeilen statt großer Karten
+- Plus-/Check-Auswahlzustand
+- sichtbarer Bereich für bereits ausgewählte Übungen
+- Verhindern doppelter Übungen im Workout
+- sekundäre Zeile für `Create custom exercise`
+- Animationen für Filterwechsel und Auswahlzustände
+
+Neue oder präzisierte Übungen im Katalog sind unter anderem:
+
+- `Arnold Press (Seated)`
+- `Arnold Press (Standing)`
+- `Back Extension Machine`
+- `Back Extension Bench`
+- mehrere Ab-/Core-Maschinen
+- Assisted Dip / Pull-Up Machine
+- Barbell Back Squat, Front Squat, Hip Thrust, Good Morning, Romanian Deadlift, Overhead Press, Upright Row und weitere
+
+Für noch nicht bebilderte Übungen kann der Katalog weiterhin ohne Bild arbeiten. Vorübergehend wurden viele Platzhalter neutralisiert, damit später echte Übungsbilder pro Bewegung ergänzt werden können.
+
+## iOS-App
+
+Die App ist über Capacitor als iOS-App vorbereitet. In der nativen App wird die Landingpage übersprungen; `/` leitet auf `/dashboard` weiter. Die Landingpage bleibt damit primär für die Website.
+
+Wichtige Befehle:
+
+```bash
+cd workout-tracker/frontend
+npm run build
+npm run cap:sync:ios
+```
+
+Für das lokale Installieren auf einem angeschlossenen iPhone wurde zusätzlich mit `xcodebuild` und `xcrun devicectl` gebaut und installiert.
+
+## Backend und Deployment
+
+Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
+
+Wichtige Backend-Befehle:
+
+```bash
+cd workout-tracker/backend
+npm run prisma:generate
+npm run prisma:migrate
+npm run start
+```
+
+Hinweis: Ältere README-Abschnitte dokumentieren den Projektverlauf mit SQLite, Prisma-Baseline, SSE, Auth, Notifications und Lernentscheidungen. Der aktuelle Zielstand ist MySQL/MariaDB mit Prisma.
+
 ## Datenmodell
 
-Die Entwicklungsdatenbank ist eine lokale SQLite-Datenbank unter `backend/database.sqlite`. Das aktuelle Backend initialisiert das Schema in `backend/database.js`. Inhaltlich passt das Modell auch zu einer Umsetzung mit `better-sqlite3`; aktuell nutzt der Code noch das Paket `sqlite` mit `sqlite3` als Treiber.
+Historischer Hinweis: Die erste Entwicklungsdatenbank war eine lokale SQLite-Datenbank unter `backend/database.sqlite`. Das aktuelle Prisma-Schema nutzt inzwischen MySQL/MariaDB. Die folgende Skizze beschreibt die fachlichen Tabellen und Beziehungen aus der SQLite-/Prisma-Übergangsphase und bleibt als Architekturverlauf erhalten.
 
 Tabellen-Skizze:
 
@@ -392,7 +532,7 @@ Socket.io wurde bewusst nicht integriert, weil die Architekturentscheidung für 
 | Zwei-Tab-Test: Änderung in Tab 1 erscheint live in Tab 2 | ✅ Für Backend-Workout-Pläne über SSE; Kalenderdaten werden wegen `localStorage` über den Browser-`storage`-Event synchronisiert |
 | SSE vs. WebSockets Vergleich in README ausgefüllt und begründet | ✅ Erledigt |
 | Zwei Prompt-Iterationen dokumentiert | ✅ Erledigt |
-| Git-Commit vorhanden | ⬜ Noch lokal zu committen |
+| Git-Commit vorhanden | ✅ Wird mit diesem README-Update und den aktuellen App-Änderungen erledigt |
 | Verbindungsabbruch getestet: Was passiert beim Server-Restart? | ✅ Verhalten dokumentiert |
 
 Empfohlener Commit:
@@ -889,7 +1029,7 @@ Workout plans are the main persisted workout resource. The route implementation 
 - `/api/plans` for backward compatibility with the existing frontend
 - `/api/workouts` as a clearer resource alias
 
-SQLite persistence is unchanged. The schema still uses:
+Historically, the first persistence layer used SQLite tables with the following names. The current Prisma schema now targets MySQL/MariaDB, but these resource names and relationships are still the conceptual API model:
 
 - `plans`
 - `plan_exercises`

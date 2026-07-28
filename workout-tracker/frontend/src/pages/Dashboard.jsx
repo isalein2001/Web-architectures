@@ -230,16 +230,18 @@ function AnimatedNumber({ value, useComma }) {
   return <span ref={ref}>{useComma ? visibleValue.toLocaleString('en-US') : visibleValue}</span>;
 }
 
-function CircularProgress({ percentage }) {
+function CircularProgress({ percentage, label }) {
   const { t } = useLanguage();
-  const radius = 90;
+  const radius = 88;
+  const strokeWidth = 14;
   const circumference = 2 * Math.PI * radius;
   
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.5 });
   
   const displayPercentage = isInView ? percentage : 0;
-  const strokeDashoffset = circumference - (displayPercentage / 100) * circumference;
+  const visualPercentage = displayPercentage > 0 ? displayPercentage : 1.25;
+  const strokeDashoffset = circumference - (visualPercentage / 100) * circumference;
 
   return (
     <div className="circular-progress-container" ref={ref}>
@@ -247,12 +249,12 @@ function CircularProgress({ percentage }) {
         <circle 
           className="circular-progress-bg" 
           cx="100" cy="100" r={radius} 
-          strokeWidth="12" fill="none" 
+          strokeWidth={strokeWidth} fill="none"
         />
         <circle 
           className="circular-progress-fill" 
           cx="100" cy="100" r={radius} 
-          strokeWidth="12" fill="none" 
+          strokeWidth={strokeWidth} fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
@@ -263,7 +265,7 @@ function CircularProgress({ percentage }) {
         <span className="circular-progress-value">
           <AnimatedNumber value={percentage} useComma={false} />%
         </span>
-        <span className="circular-progress-label">{t('COMPLETED')}</span>
+        <span className="circular-progress-label">{label || t('COMPLETED')}</span>
       </div>
     </div>
   );
@@ -464,7 +466,7 @@ const buildPersonalInsight = ({
   return candidates[(userSeed + dateSeed) % candidates.length];
 };
 
-function AnimatedMedal({ Icon = Award }) {
+function AnimatedMedal({ Icon: MedalIcon = Award }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.5 });
 
@@ -481,7 +483,7 @@ function AnimatedMedal({ Icon = Award }) {
           ease: "easeInOut" 
         }}
       >
-        <Icon size={40} color="#000" />
+        {React.createElement(MedalIcon, { size: 40, color: 'currentColor' })}
       </MotionDiv>
     </div>
   );
@@ -501,6 +503,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   const [stats, setStats] = useState({ totalSessions: 0, sessionDates: [] });
   const [sessions, setSessions] = useState(() => loadStoredWorkoutSessions(currentUser));
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
+  const calendarSwipeStartX = useRef(null);
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
   const [customWorkouts, setCustomWorkouts] = useState([]);
   const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
@@ -541,6 +545,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       sessionDates: DEMO_DASHBOARD_SESSIONS.map((session) => session.date),
     }
     : stats;
+  const currentWorkoutStreak = getCurrentWorkoutStreak(displayStats.sessionDates || displaySessions.map((session) => session.date));
   const displayActivity = shouldUseDemoValues
     ? {
       water_intake_ml: 2400,
@@ -549,15 +554,13 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       step_goal: dailyGoals.steps || 10000,
     }
     : todayActivity;
-  const hasWorkoutData = displayStats.totalSessions > 0;
   const waterIntakeMl = displayActivity?.water_intake_ml || 0;
-  const waterGoalMl = displayActivity?.water_goal_ml || Math.round(hydrationGoal * 1000);
   const stepGoal = dailyGoals.steps || displayActivity?.step_goal || 10000;
   const currentHydration = waterIntakeMl / 1000;
   const remainingHydration = Math.max(hydrationGoal - currentHydration, 0);
+  const hydrationProgress = Math.min(100, Math.round((currentHydration / Math.max(hydrationGoal, 0.1)) * 100));
   const healthSteps = Number(appleHealthMetrics?.steps) || 0;
   const stepsValue = healthSteps || displayActivity?.steps || 0;
-  const waterProgress = Math.min(100, Math.round((waterIntakeMl / Math.max(waterGoalMl, 1)) * 100));
   const healthCalories = Number(appleHealthMetrics?.activeEnergyKcal) || Number(displayActivity?.active_energy_kcal) || 0;
   const healthMinutes = Number(appleHealthMetrics?.exerciseMinutes) || Number(displayActivity?.exercise_minutes) || 0;
   const todayDateKey = getSessionDateKey(new Date());
@@ -579,6 +582,11 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       : dailyGoalCompletion >= 25
         ? 'BUILDING MOMENTUM'
         : 'GETTING STARTED';
+  const dailyGoalStatusDisplay = dailyGoalCompletion >= 100
+    ? 'GOAL FINISHED'
+    : dailyGoalCompletion <= 0
+      ? 'NOT STARTED YET'
+      : dailyGoalStatus;
   const personalInsight = useMemo(() => buildPersonalInsight({
     sessions: displaySessions,
     stats: displayStats,
@@ -645,7 +653,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       setSessions(mergedSessions);
       setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, mergedSessions));
       return mergedSessions;
-    } catch (error) {
+    } catch {
       const fallbackSessions = mergeSessionsWithStorage([], storedSessions);
       saveStoredWorkoutSessions(currentUser, fallbackSessions);
       setStats(buildStatsFromSessions(fallbackSessions));
@@ -1087,10 +1095,21 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+  const handleCalendarTouchStart = (event) => {
+    calendarSwipeStartX.current = event.touches[0]?.clientX ?? null;
+  };
+  const handleCalendarTouchEnd = (event) => {
+    if (calendarSwipeStartX.current === null) return;
+    const swipeDelta = (event.changedTouches[0]?.clientX ?? calendarSwipeStartX.current) - calendarSwipeStartX.current;
+    calendarSwipeStartX.current = null;
+    if (Math.abs(swipeDelta) < 44) return;
+    if (swipeDelta < 0) nextMonth();
+    else prevMonth();
+  };
 
   const renderCalendarDays = () => {
     const monthStart = startOfMonth(currentMonth);
-    const startDate = startOfWeek(monthStart);
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
 
     const dateFormat = "dd";
     const days = [];
@@ -1128,6 +1147,35 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     return days;
   };
 
+  const renderWeekPreviewDays = () => {
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+
+    return Array.from({ length: 7 }, (_, index) => {
+      const calendarDay = addDays(weekStart, index);
+      const dateKey = format(calendarDay, 'yyyy-MM-dd');
+      const isToday = isSameDay(calendarDay, new Date());
+      const scheduledWorkout = workoutSchedule[dateKey];
+      const isWorkoutCompleted = completedWorkoutDates.has(dateKey);
+      let className = "week-day";
+      if (isToday) className += " active";
+      if (scheduledWorkout) className += " scheduled";
+      if (isWorkoutCompleted) className += " trained";
+
+      return (
+        <button
+          type="button"
+          className={className}
+          key={dateKey}
+          onClick={() => openWorkoutPlanner(calendarDay)}
+          aria-label={`${format(calendarDay, 'EEEE dd MMMM', { locale: lang === 'de' ? de : undefined })}${scheduledWorkout ? `, ${scheduledWorkout.title}` : ''}${isWorkoutCompleted ? `, ${t('WORKOUT COMPLETED')}` : ''}`}
+        >
+          <span>{format(calendarDay, 'EEE', { locale: lang === 'de' ? de : undefined })}</span>
+          <strong>{format(calendarDay, 'd')}</strong>
+        </button>
+      );
+    });
+  };
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const slides = [
     '/slideshow-1.jpg',
@@ -1148,15 +1196,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     return () => clearInterval(interval);
   }, [slides.length]);
 
-  const getGreetingData = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 11) return { text: t("GOOD MORNING") };
-    if (hour >= 11 && hour < 18) return { text: t("HELLO") };
-    if (hour >= 18 && hour < 22) return { text: t("GOOD EVENING") };
-    return { text: t("HELLO") };
-  };
-
-  const greeting = getGreetingData();
   const availableWorkouts = customWorkouts.length > 0
     ? customWorkouts
     : (showReadyMadeOptions ? readyMadeCalendarWorkouts : []);
@@ -1169,6 +1208,42 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     ? displaySessions.filter((session) => getSessionDateKey(session.date) === selectedDateKey)
     : [];
   const hasWorkoutDetails = selectedDateSessions.length > 0;
+  const todaysScheduledWorkout = workoutSchedule[todayDateKey];
+  const todaysSessions = displaySessions.filter((session) => getSessionDateKey(session.date) === todayDateKey);
+  const hasCompletedToday = todaysSessions.length > 0;
+  const hasDashboardWorkoutData = displayStats.totalSessions > 0;
+  const todayPrimaryWorkoutTitle = hasCompletedToday
+    ? (todaysSessions[0]?.plan_name || t('WORKOUT COMPLETED'))
+    : (todaysScheduledWorkout?.title || t('No workout planned yet.'));
+  const todaySummaryCopy = hasCompletedToday
+    ? t('Your workout is logged. Keep the recovery basics tight.')
+    : (todaysScheduledWorkout
+      ? t('Your session is ready for today.')
+      : t('Plan today’s workout or log a past session from the calendar.'));
+  const todayDate = new Date();
+  const dailyProgressRows = [
+    {
+      key: 'steps',
+      label: t('STEPS'),
+      value: `${stepsValue.toLocaleString()} / ${stepGoal.toLocaleString()}`,
+      progress: stepsProgress,
+      icon: Activity,
+    },
+    {
+      key: 'calories',
+      label: t('CALORIES'),
+      value: `${caloriesValue.toLocaleString()} / ${dailyGoals.calories.toLocaleString()} kcal`,
+      progress: caloriesProgress,
+      icon: Flame,
+    },
+    {
+      key: 'minutes',
+      label: t('ACTIVE MINUTES'),
+      value: `${minutesValue} / ${dailyGoals.trainingMinutes} min`,
+      progress: minutesProgress,
+      icon: Clock,
+    },
+  ];
 
   return (
     <div className="dashboard-container">
@@ -1189,9 +1264,16 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         <div className="hero-gradient-overlay" />
 
         <div className="hero-content">
-          <h1>{greeting.text}, <span>{firstName.toUpperCase()}</span></h1>
-          <p>{t('WELCOME BACK, ATHLETE. YOUR DAILY TARGET IS SYNCHRONIZED.')}</p>
+          <h1>{t('HELLO')}, <span>{firstName}</span></h1>
+          <p>{t("Let's hit your goals today.")}</p>
         </div>
+        <button className="hero-log-card" type="button" onClick={() => onOpenQuickLog?.('water')}>
+          <span className="hero-log-icon">
+            <PlusCircle size={16} />
+          </span>
+          <strong>{t('QUICK LOG')}</strong>
+          <small>{t('WATER & STEPS')}</small>
+        </button>
         <button className="hero-quick-log-button" type="button" onClick={() => onOpenQuickLog?.('water')}>
           <span className="hero-quick-log-icon">
             <PlusCircle size={20} />
@@ -1203,160 +1285,195 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         </button>
       </div>
 
-      {/* Top Grid: Daily Goal & Widgets */}
-      <div className="top-grid">
-        {/* Daily Goal */}
-        <div className="card daily-goal-card">
-          <div className="card-header-flex">
-            <h2>{t('DAILY GOAL')}</h2>
-            <div className="goal-badges">
-              <span className="badge badge-outline">{t(dailyGoalStatus)}</span>
-              <span className="badge badge-solid">{t('DAILY BALANCE')}</span>
-            </div>
-          </div>
-          
-          <div className="daily-goal-chart">
-            <CircularProgress percentage={dailyGoalCompletion} />
-          </div>
+      <section className="today-section" aria-label={t('TODAY OVERVIEW')}>
+        <h2 className="today-section-title">
+          {t('TODAY')}, {format(todayDate, 'EEEE dd MMMM', { locale: lang === 'de' ? de : undefined })}
+        </h2>
 
-          <div className="daily-goal-actions">
-            <button type="button" onClick={openDailyGoalsModal}>{t('EDIT GOALS')}</button>
+        <div className="card today-main-task">
+          {slides.map((slide, index) => (
+            <div
+              key={`today-${slide}`}
+              className="today-workout-bg-slide"
+              style={{
+                backgroundImage: `url('${slide}')`,
+                opacity: index === currentSlide ? 1 : 0,
+                transition: 'opacity 2.5s ease-in-out'
+              }}
+            />
+          ))}
+          <div className="today-workout-overlay" />
+          <div className="today-main-icon">
+            <Dumbbell size={28} />
+          </div>
+          <div className="today-main-content">
+            <div>
+              <span>{t("TODAY'S WORKOUT")}</span>
+              <h3>{todayPrimaryWorkoutTitle}</h3>
+              <p>{todaySummaryCopy}</p>
+            </div>
+            <button className="today-plan-action" type="button" onClick={() => openWorkoutPlanner(new Date())}>
+              <PlusCircle size={16} />
+              {todaysScheduledWorkout || hasCompletedToday ? t('EDIT DAY') : t('PLAN DAY')}
+            </button>
+          </div>
+          <div className="today-date-overlay" aria-hidden="true">
+            <span>{format(todayDate, 'EEEE', { locale: lang === 'de' ? de : undefined })}</span>
+            <strong>{format(todayDate, 'dd')}</strong>
+            <small>{format(todayDate, 'MMMM yyyy', { locale: lang === 'de' ? de : undefined })}</small>
+          </div>
+        </div>
+      </section>
+
+      <section className="daily-goal-section" aria-label={t('DAILY GOAL')}>
+        <div className="card daily-goal-card">
+          {dailyGoalCompletion >= 100 && (
+            <div className="daily-goal-confetti" aria-hidden="true">
+              {Array.from({ length: 14 }, (_, index) => (
+                <span key={`daily-goal-confetti-${index}`} />
+              ))}
+            </div>
+          )}
+          <div className="daily-goal-chart">
+            <div className={`daily-goal-status-kicker ${dailyGoalCompletion >= 100 ? 'is-complete' : dailyGoalCompletion > 1 ? 'is-active' : 'is-idle'}`}>
+              <span aria-hidden="true" />
+              {t(dailyGoalStatusDisplay)}
+            </div>
+            <CircularProgress percentage={dailyGoalCompletion} label={t('DAILY GOAL')} />
           </div>
 
           <div className="daily-goal-breakdown">
-            <div>
-              <span>{t('STEPS')}</span>
-              <strong>{stepsValue.toLocaleString()} / {stepGoal.toLocaleString()}</strong>
-              <small>{stepsProgress}%</small>
-            </div>
-            <div>
-              <span>{t('CALORIES')}</span>
-              <strong>{caloriesValue.toLocaleString()} / {dailyGoals.calories.toLocaleString()} kcal</strong>
-              <small>{caloriesProgress}%</small>
-            </div>
-            <div>
-              <span>{t('MINUTES')}</span>
-              <strong>{minutesValue} / {dailyGoals.trainingMinutes} min</strong>
-              <small>{minutesProgress}%</small>
+            {dailyProgressRows.map(({ key, label, value, icon: MetricIcon }, index) => (
+              <div className={`daily-goal-row${index === dailyProgressRows.length - 1 ? ' is-last' : ''}`} key={key}>
+                <span className="daily-goal-row-icon">{React.createElement(MetricIcon, { size: 18 })}</span>
+                <span className="daily-goal-row-copy">
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </span>
+              </div>
+            ))}
+            <div className="daily-goal-actions">
+              <button type="button" onClick={openDailyGoalsModal}>{t('EDIT GOALS')}</button>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Right Stack */}
-        <div className="top-grid-right-stack">
-          {/* Hydration */}
-          <button
-            className="card hydration-card"
-            type="button"
-            onClick={() => setIsHydrationModalOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={isHydrationModalOpen}
+      <button
+        className="card hydration-card"
+        type="button"
+        onClick={() => setIsHydrationModalOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={isHydrationModalOpen}
+      >
+        <div className="hydration-content">
+          <div className="icon-circle solid-green">
+            <Droplets size={24} color="currentColor" />
+          </div>
+          <div className="hydration-text">
+            <h3>{t('HYDRATION')}</h3>
+            <p>{t('{amount}L more for peak efficiency.', { amount: remainingHydration.toFixed(1) })}</p>
+          </div>
+        </div>
+        <div className="hydration-progress" aria-hidden="true">
+          <span style={{ width: `${hydrationProgress}%` }} />
+        </div>
+        <div className="hydration-goal">
+          <Droplets size={16} /> {(currentHydration).toFixed(2)}L / {hydrationGoal.toFixed(1)}L
+        </div>
+        <Droplets className="bg-icon-drop" size={120} />
+      </button>
+
+      <div className={`card week-preview-card ${isCalendarExpanded ? 'is-expanded' : ''}`}>
+        <div className="week-preview-header">
+          <div className="week-preview-toggle">
+            <small>{t('Tap a day')}</small>
+            <div className="week-preview-month-row">
+              <button
+                className="week-preview-month-button"
+                type="button"
+                onClick={() => setIsCalendarExpanded((current) => !current)}
+                aria-expanded={isCalendarExpanded}
+              >
+                <h3>{format(isCalendarExpanded ? currentMonth : new Date(), "MMMM yyyy", { locale: lang === 'de' ? de : undefined })}</h3>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+          <div className="week-preview-actions">
+            <div className={`week-preview-copy ${isCalendarExpanded ? 'is-faded' : ''}`} aria-hidden={isCalendarExpanded}>
+              <span>{t('THIS WEEK')}</span>
+            </div>
+            <span className={`calendar-month-controls ${isCalendarExpanded ? 'is-visible' : ''}`} aria-hidden={!isCalendarExpanded}>
+              <button type="button" onClick={prevMonth} aria-label={t('Previous month')}>
+                <ChevronLeft size={14} />
+              </button>
+              <button type="button" onClick={nextMonth} aria-label={t('Next month')}>
+                <ChevronRight size={14} />
+              </button>
+            </span>
+          </div>
+        </div>
+        <div className={`week-preview-grid ${isCalendarExpanded ? 'is-collapsed' : ''}`} aria-hidden={isCalendarExpanded}>
+          {renderWeekPreviewDays()}
+        </div>
+        <div className={`week-expanded-shell ${isCalendarExpanded ? 'is-open' : ''}`} aria-hidden={!isCalendarExpanded}>
+          <div
+            className="week-expanded-calendar"
+            onTouchStart={handleCalendarTouchStart}
+            onTouchEnd={handleCalendarTouchEnd}
           >
-            <div className="hydration-content">
-              <div className="icon-circle solid-green">
-                <Droplets size={24} color="#000" />
-              </div>
-              <div className="hydration-text">
-                <h3>{t('STAY HYDRATED')}</h3>
-                <p>{t('{amount}L more for peak efficiency.', { amount: remainingHydration.toFixed(1) })}</p>
-              </div>
-            </div>
-            <div className="hydration-goal">
-              <Droplets size={16} /> {(currentHydration).toFixed(2)}L / {hydrationGoal.toFixed(1)}L
-            </div>
-            {/* Background decorative drop */}
-            <Droplets className="bg-icon-drop" size={120} />
-          </button>
-
-          {/* Calendar */}
-          <div className="card calendar-card">
-            <div className="calendar-header">
-              <h3>{format(currentMonth, "MMMM yyyy", { locale: lang === 'de' ? de : undefined }).toUpperCase()}</h3>
-              <div className="calendar-nav">
-                <ChevronLeft size={16} onClick={prevMonth} />
-                <ChevronRight size={16} onClick={nextMonth} />
-              </div>
-            </div>
             <div className="calendar-grid">
-              <div className="cal-day-name">{t('SUN')}</div>
               <div className="cal-day-name">{t('MON')}</div>
               <div className="cal-day-name">{t('TUE')}</div>
               <div className="cal-day-name">{t('WED')}</div>
               <div className="cal-day-name">{t('THU')}</div>
               <div className="cal-day-name">{t('FRI')}</div>
               <div className="cal-day-name">{t('SAT')}</div>
-              
+              <div className="cal-day-name">{t('SUN')}</div>
+
               {renderCalendarDays()}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        {/* Steps */}
-        <div className="stat-card horizontal">
-          <div className="icon-circle glow-green">
-            <Activity size={24} />
+      <div className="card calendar-card monthly-calendar-card">
+        <div className="calendar-header">
+          <h3>{format(currentMonth, "MMMM yyyy", { locale: lang === 'de' ? de : undefined }).toUpperCase()}</h3>
+          <div className="calendar-nav">
+            <ChevronLeft size={16} onClick={prevMonth} />
+            <ChevronRight size={16} onClick={nextMonth} />
           </div>
-          <div className="stat-info">
-            <div className="stat-value">
-              <AnimatedNumber value={stepsValue} useComma={true} />
-            </div>
-            <div className="stat-details">
-              <span>{t('ACTIVE FLOW')}</span>
-              <span className="stat-badge">{stepsProgress}%</span>
-            </div>
-          </div>
-          <div className="stat-title-side">{t('STEPS')}</div>
         </div>
+        <div className="calendar-grid">
+          <div className="cal-day-name">{t('MON')}</div>
+          <div className="cal-day-name">{t('TUE')}</div>
+          <div className="cal-day-name">{t('WED')}</div>
+          <div className="cal-day-name">{t('THU')}</div>
+          <div className="cal-day-name">{t('FRI')}</div>
+          <div className="cal-day-name">{t('SAT')}</div>
+          <div className="cal-day-name">{t('SUN')}</div>
 
-        {/* Calories */}
-        <div className="stat-card horizontal">
-          <div className="icon-circle glow-green">
-            <Flame size={24} />
-          </div>
-          <div className="stat-info">
-            <div className="stat-value">
-              <AnimatedNumber value={caloriesValue} useComma={true} />
-            </div>
-            <div className="stat-details">
-              <span>{t('BURN RATE')}</span>
-              <span className="stat-badge">{hasWorkoutData ? t('OPTIMAL') : t('NEW')}</span>
-            </div>
-          </div>
-          <div className="stat-title-side">{t('CALORIES')}</div>
-        </div>
-
-        {/* Minutes */}
-        <div className="stat-card horizontal">
-          <div className="icon-circle glow-green">
-            <Clock size={24} />
-          </div>
-          <div className="stat-info">
-            <div className="stat-value">
-              <AnimatedNumber value={minutesValue} useComma={false} />
-            </div>
-            <div className="stat-details">
-              <span>{t('TIME IN ZONE')}</span>
-              <span className="stat-badge">{t('MIN')}</span>
-            </div>
-          </div>
-          <div className="stat-title-side">{t('MINUTES')}</div>
+          {renderCalendarDays()}
         </div>
       </div>
 
       {/* Personal Insight Card */}
-      <div className="card achievements-card">
+      <div className={`card achievements-card ${hasDashboardWorkoutData ? '' : 'is-locked'}`}>
         <div className="achievements-content">
           <div className="achievements-text-area">
-            <div className="achievements-label">{t(personalInsight.type)}</div>
-            <h2>{t(personalInsight.title)}</h2>
+            <div className="achievements-label">
+              {hasDashboardWorkoutData ? t(personalInsight.type) : t('MILESTONE')}
+            </div>
+            <h2>{hasDashboardWorkoutData ? t(personalInsight.title) : t('First milestone waiting')}</h2>
             <p className="achievements-desc">
-              {t(personalInsight.description)}
+              {hasDashboardWorkoutData
+                ? t(personalInsight.description)
+                : t('Log your first workout to unlock personalized trends and stronger weekly insights.')}
             </p>
             
-            <div className="lifts-grid">
+            {hasDashboardWorkoutData ? <div className="lifts-grid">
               {personalInsight.metrics.map((metric, index) => (
                 <div className="lift-item" key={`${metric.label}-${metric.value}`}>
                   <span className="lift-name">{t(metric.label)}</span>
@@ -1366,7 +1483,12 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
                   </span>
                 </div>
               ))}
-            </div>
+            </div> : (
+              <button className="insight-unlock-button" type="button" onClick={() => navigate('/start-workout')}>
+                <Dumbbell size={16} />
+                {t('START WORKOUT')}
+              </button>
+            )}
           </div>
           
           <AnimatedMedal Icon={personalInsight.Icon} />
@@ -1396,7 +1518,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
             <div className="hydration-modal-hero">
               <div className="icon-circle solid-green">
-                <Droplets size={26} color="#000" />
+                <Droplets size={26} color="currentColor" />
               </div>
               <div>
                 <span className="hydration-kicker">{t('WATER FUELS PERFORMANCE')}</span>
@@ -1552,7 +1674,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
             <div className="workout-planner-header">
               <div className="icon-circle solid-green">
-                <CalendarDays size={24} color="#000" />
+                <CalendarDays size={24} color="currentColor" />
               </div>
               <div>
                 <span>{format(selectedCalendarDate, 'EEEE, dd MMMM yyyy', { locale: lang === 'de' ? de : undefined }).toUpperCase()}</span>

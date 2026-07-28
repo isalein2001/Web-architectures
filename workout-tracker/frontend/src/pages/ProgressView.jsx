@@ -50,8 +50,8 @@ export default function ProgressView() {
         </div>
       </header>
 
-      <div className="card" style={{marginBottom: '2rem'}}>
-        <div style={{display: 'flex', gap: '1rem'}}>
+      <div className="card" style={{marginBottom: 'var(--space-6)'}}>
+        <div style={{display: 'flex', gap: 'var(--space-4)'}}>
           <input 
             className="input" 
             style={{flex: 1}} 
@@ -65,24 +65,24 @@ export default function ProgressView() {
       </div>
 
       <div className="card">
-        <h3 style={{fontSize: '1.25rem', marginBottom: '1.5rem'}}>{t('Development over time')}</h3>
+        <h3 style={{fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-5)'}}>{t('Development over time')}</h3>
         
         {loading ? (
           <p style={{color: 'var(--text-secondary)'}}>{t('Loading data...')}</p>
         ) : data.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)'}}>
+          <div style={{textAlign: 'center', padding: 'var(--space-8)', color: 'var(--text-secondary)'}}>
             {t('No data found for')} "{exerciseQuery}". {t('Try logging some workouts first!')}
           </div>
         ) : (
-          <div style={{height: '400px', width: '100%'}}>
+          <div style={{height: 'var(--size-400)', width: '100%'}}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--color-white-rgb) / var(--opacity-0-1))" vertical={false} />
                 <XAxis dataKey="displayDate" stroke="var(--text-secondary)" />
                 <YAxis yAxisId="left" stroke="var(--text-secondary)" />
                 <YAxis yAxisId="right" orientation="right" stroke="var(--text-secondary)" />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: 'var(--size-1) solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
                 <Legend />

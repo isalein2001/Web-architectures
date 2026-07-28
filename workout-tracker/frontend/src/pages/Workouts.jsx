@@ -909,7 +909,7 @@ export default function Workouts({ currentUser }) {
               className={`workout-exercise-card ${exercise.name ? 'filled' : 'empty'} ${draggingExerciseId === exercise.id ? 'dragging' : ''} ${settlingExerciseId === exercise.id ? 'settling' : ''}`}
               key={exercise.id}
               style={{
-                '--drag-offset-y': draggingExerciseId === exercise.id ? `${dragOffsetY}px` : '0px',
+                '--drag-offset-y': draggingExerciseId === exercise.id ? `${dragOffsetY}px` : 'var(--size-0)',
               }}
               ref={(element) => {
                 if (element) {

@@ -6,21 +6,21 @@
 }
 
 .legal-header h1 {
-  font-size: 3.5rem;
+  font-size: var(--font-size-screen-79);
   margin: 0;
-  color: #FFF;
+  color: var(--palette-fff);
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: -1px;
+  letter-spacing: var(--size-neg-1);
 }
 
 .legal-header p {
   margin: 0;
-  max-width: 760px;
-  color: #AAA;
-  font-size: 0.85rem;
+  max-width: var(--size-760);
+  color: var(--palette-aaa);
+  font-size: var(--font-size-screen-24);
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: var(--size-2);
   line-height: 1.75;
 }
 
@@ -28,7 +28,7 @@
   display: grid;
   grid-template-columns: 1.8fr 1fr;
   grid-template-rows: 1fr 1fr auto;
-  gap: 24px;
+  gap: var(--size-24);
   align-items: stretch;
 }
 
@@ -50,7 +50,7 @@
 .legal-sidebar {
   display: grid;
   grid-template-rows: 1fr 1fr;
-  gap: 24px;
+  gap: var(--size-24);
 }
 
 .legal-sidebar .legal-card {
@@ -60,10 +60,10 @@
 }
 
 .legal-card {
-  background-color: #121212;
-  border: 1px solid rgba(255,255,255,0.03);
-  border-radius: 16px;
-  padding: 32px;
+  background-color: var(--palette-121212);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-03));
+  border-radius: var(--radius-screen-10);
+  padding: var(--size-32);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -83,8 +83,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.75rem;
-  letter-spacing: 1px;
+  font-size: var(--font-size-screen-18);
+  letter-spacing: var(--size-1);
   color: var(--color-primary);
   text-transform: uppercase;
   font-weight: 700;
@@ -94,10 +94,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background-color: rgba(197, 254, 0, 0.06);
+  width: var(--size-36);
+  height: var(--size-36);
+  border-radius: var(--radius-screen-6);
+  background-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-06));
   color: var(--color-primary);
 }
 
@@ -107,8 +107,8 @@
 
 .legal-card h2 {
   margin: 0 0 var(--spacing-md) 0;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
+  font-size: var(--font-size-screen-28);
+  letter-spacing: var(--size-1);
   font-weight: 700;
   text-transform: uppercase;
   color: var(--color-primary);
@@ -117,7 +117,7 @@
 .entity-card .entity-title,
 .representative-card .card-title,
 .contact-card .card-title {
-  font-size: 1.75rem;
+  font-size: var(--font-size-screen-58);
   font-weight: 900;
   line-height: 1.1;
   margin: 0 0 var(--spacing-lg) 0;
@@ -128,7 +128,7 @@
 .entity-grid {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  gap: 24px;
+  gap: var(--size-24);
 }
 
 .entity-details,
@@ -148,22 +148,22 @@
 }
 
 .card-label {
-  font-size: 0.75rem;
+  font-size: var(--font-size-screen-18);
   color: var(--color-text-muted);
-  letter-spacing: 1px;
+  letter-spacing: var(--size-1);
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .card-value {
   color: var(--color-text-main);
-  font-size: 1rem;
+  font-size: var(--font-size-screen-64);
   line-height: 1.8;
   font-weight: 600;
 }
 
 .card-value.strong {
-  font-size: 1.1rem;
+  font-size: var(--font-size-screen-43);
 }
 
 .contact-details .row {
@@ -181,34 +181,34 @@
 }
 
 .neon-border-card {
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(197, 254, 0, 0.65);
-  box-shadow: 0 0 24px rgba(197, 254, 0, 0.12);
+  background-color: rgb(var(--rgb-255-255-255) / var(--opacity-0-02));
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-65));
+  box-shadow: 0 0 var(--size-24) rgb(var(--rgb-197-254-0) / var(--opacity-0-12));
   color: var(--color-text-muted);
 }
 
 .neon-border-card .info-badge {
-  background-color: rgba(197, 254, 0, 0.08);
+  background-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-08));
   color: var(--color-primary);
 }
 
 .neon-border-card p {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.92rem;
+  font-size: var(--font-size-screen-29);
   line-height: 1.8;
 }
 
 .info-badge {
   display: inline-block;
   margin-bottom: var(--spacing-md);
-  padding: 8px 12px;
-  border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.08);
+  padding: var(--size-8) var(--size-12);
+  border-radius: var(--radius-screen-28);
+  background-color: rgb(var(--rgb-255-255-255) / var(--opacity-0-08));
   color: var(--color-primary);
-  font-size: 0.75rem;
+  font-size: var(--font-size-screen-18);
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: var(--size-1);
   text-transform: uppercase;
 }
 
@@ -226,15 +226,15 @@
 .privacy-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 24px;
+  gap: var(--size-24);
   align-items: start;
 }
 
 .privacy-card {
-  background-color: #121212;
-  border: 1px solid rgba(255,255,255,0.03);
-  border-radius: 16px;
-  padding: 32px;
+  background-color: var(--palette-121212);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-03));
+  border-radius: var(--radius-screen-10);
+  padding: var(--size-32);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -251,7 +251,7 @@
 }
 
 .privacy-number {
-  font-size: 2rem;
+  font-size: var(--font-size-screen-76);
   font-weight: 800;
   color: var(--color-primary);
   opacity: 0.3;
@@ -259,19 +259,19 @@
 }
 
 .privacy-card h3 {
-  font-size: 1.1rem;
+  font-size: var(--font-size-screen-43);
   font-weight: 700;
   margin: 0;
-  color: #FFF;
+  color: var(--palette-fff);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--size-1);
   line-height: 1.2;
 }
 
 .privacy-card p {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: var(--font-size-screen-26);
   line-height: 1.6;
 }
 
@@ -290,23 +290,23 @@
 
 @media (max-width: 640px) {
   .legal-header h1 {
-    font-size: clamp(2.25rem, 12vw, 2.85rem);
+    font-size: var(--font-size-screen-106);
     letter-spacing: 0;
   }
 
   .legal-header p {
-    font-size: 0.74rem;
+    font-size: var(--font-size-screen-17);
     letter-spacing: 0.12em;
   }
 
   .legal-card,
   .privacy-card {
-    padding: 22px;
-    border-radius: 22px;
-    border-color: rgba(255,255,255,0.06);
+    padding: var(--size-22);
+    border-radius: var(--radius-screen-14);
+    border-color: rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 100%),
-      #121212;
+      linear-gradient(180deg, rgb(var(--rgb-255-255-255) / var(--opacity-0-035)), transparent 100%),
+      var(--palette-121212);
   }
 
   .privacy-grid {

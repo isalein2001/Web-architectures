@@ -59,10 +59,10 @@ export default function PlansDirectory() {
       </header>
 
       {showCreate && (
-        <div className="card" style={{marginBottom: '2rem'}}>
-          <h2 style={{fontSize: '1.25rem', marginBottom: '1.5rem'}}>{t('Create New Plan')}</h2>
+        <div className="card" style={{marginBottom: 'var(--space-6)'}}>
+          <h2 style={{fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-5)'}}>{t('Create New Plan')}</h2>
           
-          <div className="grid grid-cols-2" style={{marginBottom: '1.5rem'}}>
+          <div className="grid grid-cols-2" style={{marginBottom: 'var(--space-5)'}}>
             <div>
               <label>{t('Plan Name')}</label>
               <input className="input" value={newPlan.name} onChange={e => setNewPlan({...newPlan, name: e.target.value})} placeholder={t('e.g. Push Day')} />
@@ -73,18 +73,18 @@ export default function PlansDirectory() {
             </div>
           </div>
 
-          <div style={{background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem'}}>
-            <h3 style={{fontSize: '1rem', marginBottom: '1rem'}}>{t('Exercises')}</h3>
+          <div style={{background: 'rgb(var(--color-black-rgb) / var(--opacity-0-2))', padding: 'var(--space-5)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-5)'}}>
+            <h3 style={{fontSize: 'var(--font-size-base)', marginBottom: 'var(--space-4)'}}>{t('Exercises')}</h3>
             
             {newPlan.exercises.map((ex, idx) => (
-              <div key={idx} style={{display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center'}}>
+              <div key={idx} style={{display: 'flex', gap: 'var(--space-4)', marginBottom: 'var(--space-2)', alignItems: 'center'}}>
                 <Dumbbell size={16} color="var(--text-secondary)" />
                 <span style={{flex: 1}}>{ex.exercise_name}</span>
                 <span style={{color: 'var(--text-secondary)'}}>{ex.target_sets} {t('sets x')} {ex.target_reps} {t('reps')}</span>
               </div>
             ))}
 
-            <div style={{display: 'flex', gap: '1rem', marginTop: '1rem'}}>
+            <div style={{display: 'flex', gap: 'var(--space-4)', marginTop: 'var(--space-4)'}}>
               <input className="input" style={{flex: 2}} placeholder={t('Exercise Name...')} value={exerciseInput.exercise_name} onChange={e => setExerciseInput({...exerciseInput, exercise_name: e.target.value})} />
               <input className="input" style={{flex: 1}} type="number" placeholder={t('Sets')} value={exerciseInput.target_sets} onChange={e => setExerciseInput({...exerciseInput, target_sets: Number(e.target.value)})} />
               <input className="input" style={{flex: 1}} placeholder={t('Reps (e.g. 8-12)')} value={exerciseInput.target_reps} onChange={e => setExerciseInput({...exerciseInput, target_reps: e.target.value})} />
@@ -92,7 +92,7 @@ export default function PlansDirectory() {
             </div>
           </div>
 
-          <div style={{display: 'flex', gap: '1rem', justifyContent: 'flex-end'}}>
+          <div style={{display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end'}}>
             <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>{t('Cancel')}</button>
             <button className="btn btn-primary" onClick={savePlan}><Save size={18} /> {t('Save Plan')}</button>
           </div>
@@ -102,14 +102,14 @@ export default function PlansDirectory() {
       <div className="grid grid-cols-2">
         {plans.map(plan => (
           <div key={plan.id} className="card">
-            <h3 style={{fontSize: '1.25rem', fontWeight: 'bold'}}>{plan.name}</h3>
-            {plan.description && <p style={{color: 'var(--text-secondary)', marginBottom: '1rem'}}>{plan.description}</p>}
+            <h3 style={{fontSize: 'var(--font-size-xl)', fontWeight: 'bold'}}>{plan.name}</h3>
+            {plan.description && <p style={{color: 'var(--text-secondary)', marginBottom: 'var(--space-4)'}}>{plan.description}</p>}
             
-            <div style={{marginTop: '1.5rem'}}>
-              <h4 style={{fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em'}}>{t('Exercises')}</h4>
+            <div style={{marginTop: 'var(--space-5)'}}>
+              <h4 style={{fontSize: 'var(--font-size-md)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)', textTransform: 'uppercase', letterSpacing: '0.05em'}}>{t('Exercises')}</h4>
               <ul style={{listStyle: 'none', padding: 0}}>
                 {plan.exercises?.map(ex => (
-                  <li key={ex.id} style={{display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)'}}>
+                  <li key={ex.id} style={{display: 'flex', justifyContent: 'space-between', padding: 'var(--space-2) 0', borderBottom: 'var(--size-1) solid var(--border-color)'}}>
                     <span>{ex.exercise_name}</span>
                     <span style={{color: 'var(--text-secondary)'}}>{ex.target_sets}x{ex.target_reps}</span>
                   </li>
