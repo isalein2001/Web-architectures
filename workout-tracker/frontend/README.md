@@ -431,6 +431,44 @@ frontend/src/
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
 
+### Zielstruktur für Hetzner Single-App-Deployment
+
+Der aktuelle Produktivansatz ist eine einzelne Node.js-App: Express liefert sowohl die API unter `/api` als auch den gebauten React-Client aus `backend/public`. Dadurch gibt es keine getrennte Frontend-/Backend-Origin und keine `.htaccess`-Frontend-Weiterleitung mehr.
+
+```text
+workout-tracker/
+├── frontend/
+│   ├── src/
+│   ├── dist/                  # Production-Build, wird nach backend/public kopiert
+│   ├── vite.config.js          # Dev-Proxy: /api -> http://localhost:3000
+│   └── package.json
+└── backend/
+    ├── server.js               # API, express.static, SPA-Fallback, process.env.PORT
+    ├── public/                 # ausgelieferter React-Build
+    │   ├── index.html
+    │   └── assets/
+    ├── .env                    # echte Secrets nur auf Server/lokal, nicht im Git
+    ├── .env.example
+    ├── prisma/
+    │   └── schema.prisma       # provider = "mysql"
+    ├── modules/                # modularer Monolith aus Session 09
+    └── middleware/
+        └── authenticate.js
+```
+
+Wichtige Deploy-Checks:
+
+- Frontend-Build: GitHub Actions führt `npm run build` im Frontend aus.
+- Build-Kopie: `frontend/dist/*` wird nach `backend/public/` kopiert.
+- Express-Reihenfolge: API-Routen kommen zuerst, danach `express.static`, danach der SPA-Fallback.
+- SPA-Fallback: Direktaufrufe wie `/login`, `/dashboard` oder `/workouts` liefern `index.html` statt `404`.
+- Caching: `index.html` bekommt `Cache-Control: no-cache`, gehashte Assets unter `/assets/` bekommen `public, max-age=31536000, immutable`.
+- Datenbank: Prisma nutzt MySQL/MariaDB, der Deploy-Workflow führt `npx prisma migrate deploy --schema=prisma/schema.prisma` aus.
+- Secrets: `.env` ist ignoriert, `.env.example` enthält nur Beispielwerte.
+- Same-Origin Auth: Login nutzt HttpOnly-Cookie mit `sameSite: 'lax'`; keine CORS-Middleware ist für die normale App-Kommunikation nötig.
+- Reverse Proxy: `app.set('trust proxy', 1)` ist gesetzt.
+- HTTPS: In Produktion leitet Express HTTP-Anfragen per `308` auf HTTPS um. Für Sonderfälle kann `FORCE_HTTPS=false` gesetzt werden.
+
 Wichtige Backend-Befehle:
 
 ```bash

@@ -27,6 +27,16 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '15mb' }));
 app.use(cookieParser());
 
+const shouldForceHttps = process.env.NODE_ENV === 'production' && process.env.FORCE_HTTPS !== 'false';
+
+app.use((req, res, next) => {
+  if (!shouldForceHttps || req.secure) {
+    return next();
+  }
+
+  return res.redirect(308, `https://${req.headers.host}${req.originalUrl}`);
+});
+
 const PORT = process.env.PORT || 3000;
 
 const workoutsRouter = createWorkoutsRouter();
