@@ -77,6 +77,10 @@ const setAuthCookie = (res, token) => {
 };
 
 const authPayload = (token) => ({ token });
+const userWithClaims = (user) => ({
+  ...user,
+  isDemo: isDemoAccount(user.email),
+});
 
 function createAuthRouter() {
   const router = express.Router();
@@ -133,7 +137,7 @@ function createAuthRouter() {
       setAuthCookie(res, token);
 
       res.status(201).json({
-        user,
+        user: userWithClaims(user),
         ...authPayload(token),
         ...(process.env.NODE_ENV !== 'production' && verificationCode ? { verificationCode } : {}),
       });
@@ -168,7 +172,7 @@ function createAuthRouter() {
 
       res.status(200).json({
         ...authPayload(token),
-        user: {
+        user: userWithClaims({
           id: user.id,
           email: user.email,
           pendingEmail: user.pendingEmail,
@@ -182,7 +186,7 @@ function createAuthRouter() {
           gender: user.gender,
           hydrationGoalLiters: user.hydrationGoalLiters,
           fitnessGoal: user.fitnessGoal,
-        },
+        }),
       });
     } catch (error) {
       console.log("\n", new Date().toISOString(), error)
@@ -198,7 +202,7 @@ function createAuthRouter() {
 
     if (!user) return res.status(401).json({ error: 'Nicht autorisiert.' });
 
-    res.status(200).json({ user });
+    res.status(200).json({ user: userWithClaims(user) });
   });
 
   router.get('/me/profile-image', authenticate, async (req, res) => {
@@ -332,7 +336,7 @@ function createAuthRouter() {
         setAuthCookie(res, createToken(user));
       }
 
-      res.status(200).json({ user });
+      res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
       console.log("\n", new Date().toISOString(), error)
 
@@ -372,7 +376,7 @@ function createAuthRouter() {
       });
 
       setAuthCookie(res, createToken(user));
-      res.status(200).json({ user });
+      res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -417,7 +421,7 @@ function createAuthRouter() {
           data: { emailVerified: true, verificationCode: null },
           select: selectPublicUser,
         });
-        return res.status(200).json({ user });
+        return res.status(200).json({ user: userWithClaims(user) });
       }
 
       if (!code || code !== currentUser.verificationCode) {
@@ -430,7 +434,7 @@ function createAuthRouter() {
         select: selectPublicUser,
       });
 
-      res.status(200).json({ user });
+      res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -510,7 +514,7 @@ function createAuthRouter() {
         select: selectPublicUser,
       });
 
-      res.status(200).json({ user });
+      res.status(200).json({ user: userWithClaims(user) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

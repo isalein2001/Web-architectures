@@ -33,7 +33,7 @@ import {
 import { de } from 'date-fns/locale';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
-import { getUserDisplayName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
+import { getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import './Analytics.css';
 
 const MotionG = motion.g;
@@ -134,12 +134,6 @@ const getStableImageIndex = (value = '') => {
 const getMostTrainedExerciseImage = (exerciseName) => (
   MOST_TRAINED_IMAGES[getStableImageIndex(exerciseName)]
 );
-
-const isJonasArnoldAccount = (user) => {
-  const displayName = getUserDisplayName(user).toLowerCase();
-  const email = user?.email?.toLowerCase() || '';
-  return displayName.includes('jonas arnold') || email.includes('jonas');
-};
 
 const createDemoAnalyticsSessions = () => {
   const today = new Date();
@@ -1016,7 +1010,7 @@ export default function Analytics({ currentUser }) {
   const [confirmingSessionId, setConfirmingSessionId] = useState(null);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [activeInsightInfo, setActiveInsightInfo] = useState(null);
-  const shouldUseDemoAnalytics = isJonasArnoldAccount(currentUser);
+  const shouldUseDemoAnalytics = currentUser?.isDemo === true;
   const displaySessions = shouldUseDemoAnalytics ? DEMO_ANALYTICS_SESSIONS : sessions;
   const displayStats = shouldUseDemoAnalytics
     ? {

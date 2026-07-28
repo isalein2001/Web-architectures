@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
-import { getUserDisplayName, getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
+import { getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -24,11 +24,6 @@ const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
 const DAILY_STEP_GOAL_STORAGE_KEY = 'dailyStepGoal';
 const DAILY_CALORIE_GOAL_STORAGE_KEY = 'dailyCalorieGoal';
 const DAILY_TRAINING_MINUTES_GOAL_STORAGE_KEY = 'dailyTrainingMinutesGoal';
-const isJonasArnoldAccount = (user) => {
-  const displayName = getUserDisplayName(user).toLowerCase();
-  const email = user?.email?.toLowerCase() || '';
-  return displayName.includes('jonas arnold') || email.includes('jonas');
-};
 const createDemoDashboardSessions = () => {
   const today = new Date();
   today.setHours(20, 0, 0, 0);
@@ -537,7 +532,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
     trainingMinutes: Number(window.localStorage.getItem(dailyTrainingMinutesGoalStorageKey)) || 45,
   }));
   const [draftDailyGoals, setDraftDailyGoals] = useState(dailyGoals);
-  const shouldUseDemoValues = isJonasArnoldAccount(currentUser);
+  const shouldUseDemoValues = currentUser?.isDemo === true;
   const displaySessions = shouldUseDemoValues ? DEMO_DASHBOARD_SESSIONS : sessions;
   const displayStats = shouldUseDemoValues
     ? {
