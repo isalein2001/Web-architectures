@@ -39,12 +39,23 @@ async function upsertUser({ email, firstName, lastName, password, demo = false }
   });
 }
 
+function readRequiredSeedSecret(key) {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required seed secret: ${key}`);
+  }
+  return value;
+}
+
 async function main() {
+  const demoPassword = readRequiredSeedSecret('SEED_DEMO_PASSWORD');
+  const testPassword = readRequiredSeedSecret('SEED_TEST_PASSWORD');
+
   const demoUser = await upsertUser({
     email: 'jonasarnold@gmail.com',
     firstName: 'Jonas',
     lastName: 'Arnold',
-    password: '123',
+    password: demoPassword,
     demo: true,
   });
 
@@ -52,12 +63,12 @@ async function main() {
     email: 'test.user@example.com',
     firstName: 'Test',
     lastName: 'User',
-    password: 'Test12345',
+    password: testPassword,
   });
 
   console.log('Seed users ready:');
-  console.log(`- Jonas demo: ${demoUser.email} / 123`);
-  console.log(`- Test user: ${testUser.email} / Test12345`);
+  console.log(`- Jonas demo: ${demoUser.email}`);
+  console.log(`- Test user: ${testUser.email}`);
 }
 
 main()
