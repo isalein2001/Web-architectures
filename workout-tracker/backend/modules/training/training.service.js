@@ -38,18 +38,29 @@ const serializePlan = (plan) => ({
   exercises: (plan.exercises || []).map(serializeExercise),
 });
 
+const MAX_PLAN_IMAGE_DATA_URL_LENGTH = 2_000_000;
+const MAX_PLAN_IMAGE_PATH_LENGTH = 512;
+const PLAN_IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/;
+
+const isValidPlanImagePath = (image) => (
+  typeof image === 'string'
+  && image.length <= MAX_PLAN_IMAGE_PATH_LENGTH
+  && image.startsWith('/')
+  && !image.startsWith('//')
+);
+
+const isValidPlanImageDataUrl = (image) => (
+  typeof image === 'string'
+  && image.length <= MAX_PLAN_IMAGE_DATA_URL_LENGTH
+  && PLAN_IMAGE_DATA_URL_PATTERN.test(image)
+);
+
 const isValidPlanImage = (image) => (
   image === undefined
   || image === null
   || image === ''
-  || (
-    typeof image === 'string'
-    && image.length <= 15_000_000
-    && (
-      image.startsWith('/')
-      || /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(image)
-    )
-  )
+  || isValidPlanImagePath(image)
+  || isValidPlanImageDataUrl(image)
 );
 
 const normalizePlanImage = (image) => (image ? image : null);
