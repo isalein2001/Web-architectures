@@ -100,8 +100,19 @@ const COVER_IMAGE_QUALITY = 0.68;
 const MIN_COVER_IMAGE_QUALITY = 0.38;
 const MAX_COVER_DATA_URL_LENGTH = 52000;
 
+const createClientId = (prefix, parts = []) => {
+  if (globalThis.crypto?.randomUUID) {
+    return [prefix, ...parts, globalThis.crypto.randomUUID()].filter(Boolean).join('-');
+  }
+
+  const values = new Uint32Array(2);
+  globalThis.crypto?.getRandomValues?.(values);
+  const randomPart = Array.from(values).map((value) => value.toString(36)).join('');
+  return [prefix, ...parts, Date.now(), randomPart || 'fallback'].filter(Boolean).join('-');
+};
+
 const emptyExercise = () => ({
-  id: Date.now() + Math.random(),
+  id: createClientId('exercise'),
   name: '',
   sets: '',
   reps: '',
@@ -136,7 +147,7 @@ const mapBackendPlanToSavedPlan = (plan) => {
     image: plan.image || '/hero-bg.jpg',
     iconKey: plan.icon_key || 'dumbbell',
     builderExercises: (plan.exercises || []).map((exercise) => ({
-      id: exercise.id || Date.now() + Math.random(),
+      id: exercise.id || createClientId('backend-exercise'),
       name: exercise.exercise_name,
       sets: String(exercise.target_sets || 1),
       reps: exercise.target_reps || '',
@@ -708,7 +719,7 @@ export default function Workouts({ currentUser }) {
     setExercises(plan.builderExercises.map((exercise) => ({
       ...exercise,
       setReps: normalizeSetReps(exercise),
-      id: Date.now() + Math.random(),
+      id: createClientId('editable-exercise'),
     })));
     setValidationErrors({ workoutName: false, noExercises: false, exercises: {} });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -726,7 +737,7 @@ export default function Workouts({ currentUser }) {
       const targetReps = String(exercise.target_reps || '10');
 
       return {
-        id: Date.now() + Math.random(),
+        id: createClientId('coach-exercise'),
         name: exercise.exercise_name || '',
         sets: String(setCount),
         reps: targetReps,
