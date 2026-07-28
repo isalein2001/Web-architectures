@@ -12,6 +12,7 @@ const {
 const createDailyActivityRouter = require('./modules/daily-activity/daily-activity.routes');
 const createPushRouter = require('./modules/notifications/notifications.routes');
 const { authenticate } = require('./middleware/authenticate');
+const { authRateLimiter } = require('./middleware/rateLimiters');
 const { createEventsRouter } = require('./events');
 
 if (!process.env.JWT_SECRET) {
@@ -73,7 +74,7 @@ const PORT = process.env.PORT || 3000;
 
 const workoutsRouter = createWorkoutsRouter();
 
-app.use('/api/auth', createAuthRouter());
+app.use('/api/auth', authRateLimiter, createAuthRouter());
 app.use('/api/events', authenticate, createEventsRouter());
 app.use('/api/plans', authenticate, workoutsRouter);
 app.use('/api/workouts', authenticate, workoutsRouter);

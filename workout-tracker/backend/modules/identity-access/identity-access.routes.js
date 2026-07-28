@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../../prismaClient');
 const { AUTH_COOKIE_NAME, authenticate, getAuthCookieOptions } = require('../../middleware/authenticate');
+const { authEmailRateLimiter, loginRateLimiter } = require('../../middleware/rateLimiters');
 const { sendVerificationEmailLater } = require('../../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
@@ -68,7 +69,7 @@ const authPayload = (token) => ({ token });
 function createAuthRouter() {
   const router = express.Router();
 
-  router.post('/register', async (req, res) => {
+  router.post('/register', authEmailRateLimiter, async (req, res) => {
     const email = normalizeEmail(req.body.email);
     const { password } = req.body;
     const firstName = normalizeText(req.body.firstName);
@@ -131,7 +132,7 @@ function createAuthRouter() {
     }
   });
 
-  router.post('/login', async (req, res) => {
+  router.post('/login', loginRateLimiter, async (req, res) => {
     const email = normalizeEmail(req.body.email);
     const { password } = req.body;
 
@@ -355,7 +356,7 @@ function createAuthRouter() {
     }
   });
 
-  router.post('/resend-email-change', authenticate, async (req, res) => {
+  router.post('/resend-email-change', authenticate, authEmailRateLimiter, async (req, res) => {
     try {
       const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
@@ -413,7 +414,7 @@ function createAuthRouter() {
     }
   });
 
-  router.post('/resend-verification', authenticate, async (req, res) => {
+  router.post('/resend-verification', authenticate, authEmailRateLimiter, async (req, res) => {
     try {
       const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
