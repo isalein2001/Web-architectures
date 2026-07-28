@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = rateLimit;
 
 const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 
@@ -34,8 +35,19 @@ const authEmailRateLimiter = rateLimit({
   message: { error: 'Zu viele E-Mail-Anfragen. Bitte versuche es später erneut.' },
 });
 
+const verificationRateLimiter = rateLimit({
+  windowMs,
+  limit: toPositiveNumber(process.env.AUTH_VERIFICATION_RATE_LIMIT_MAX, 5),
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => `${req.user?.userId || ipKeyGenerator(req.ip)}:${req.path}`,
+  message: { error: 'Zu viele Verifizierungsversuche. Bitte versuche es später erneut.' },
+});
+
 module.exports = {
   authEmailRateLimiter,
   authRateLimiter,
   loginRateLimiter,
+  verificationRateLimiter,
 };

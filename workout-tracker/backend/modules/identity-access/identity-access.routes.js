@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../../prismaClient');
 const { AUTH_COOKIE_NAME, authenticate, getAuthCookieOptions } = require('../../middleware/authenticate');
-const { authEmailRateLimiter, loginRateLimiter } = require('../../middleware/rateLimiters');
+const { authEmailRateLimiter, loginRateLimiter, verificationRateLimiter } = require('../../middleware/rateLimiters');
 const { sendVerificationEmailLater } = require('../../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
@@ -340,7 +340,7 @@ function createAuthRouter() {
     }
   });
 
-  router.post('/verify-email-change', authenticate, async (req, res) => {
+  router.post('/verify-email-change', authenticate, verificationRateLimiter, async (req, res) => {
     const code = normalizeText(req.body.code);
 
     try {
@@ -404,7 +404,7 @@ function createAuthRouter() {
     }
   });
 
-  router.post('/verify-email', authenticate, async (req, res) => {
+  router.post('/verify-email', authenticate, verificationRateLimiter, async (req, res) => {
     const code = normalizeText(req.body.code);
 
     try {
