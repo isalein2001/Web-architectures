@@ -2,6 +2,17 @@
 import React from "react";
 import styles from "./FigmaEmbed.module.css";
 
+const isSafeFigmaEmbedUrl = (urlString) => {
+  try {
+    const url = new URL(urlString);
+    const isTrustedHost = url.hostname === "figma.com" || url.hostname === "www.figma.com";
+
+    return url.protocol === "https:" && isTrustedHost && url.pathname.startsWith("/embed");
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Props
  *   src        – the full embed URL (required)
@@ -15,6 +26,10 @@ export const FigmaEmbed = ({
   height = "var(--size-450)",
   className,
 }) => {
+  if (!isSafeFigmaEmbedUrl(src)) {
+    return null;
+  }
+
   return (
     <div className={`${styles.wrapper} ${className ?? ""}`}>
       <iframe
