@@ -136,6 +136,64 @@ npm run cap:sync:ios
 
 Für das lokale Installieren auf einem angeschlossenen iPhone wurde zusätzlich mit `xcodebuild` und `xcrun devicectl` gebaut und installiert.
 
+## Studio-Session 09: Modularer Monolith
+
+Ziel dieser Bestandsaufnahme ist nicht, NEXT REPS in Microservices aufzuteilen. Das Backend bleibt bewusst ein Monolith, soll aber klarere Modulgrenzen bekommen: HTTP-Routen sollen langfristig weniger Geschäftslogik und weniger direkte Datenbankdetails enthalten. Fachliche Logik gehört eher in Services, Repository-Funktionen oder kleine Domain-Module.
+
+### Bestandsaufnahme Backend
+
+| Datei | Wofür ist sie verantwortlich? | Greift sie auf Daten anderer Bereiche zu? |
+| --- | --- | --- |
+| `backend/server.js` | Startet Express, aktiviert `trust proxy`, JSON-Parser und Cookie-Parser, mountet alle API-Router, liefert `backend/public` aus und stellt den SPA-Fallback bereit. | Nein. Die Datei greift nicht selbst auf Prisma zu, kennt aber alle Module und ist aktuell der zentrale Composition Root. |
+| `backend/routes/auth.js` | Registrierung, Login, Logout, aktuelle Nutzerdaten, Profiländerung, E-Mail-Änderung, Verifikationscodes und Onboarding-Abschluss. | Ja. Hauptbereich ist `users`, aber die Route enthält auch Profilbild-Validierung, Onboarding-Logik, Passwortlogik, Mailversand und Cookie-Ausstellung. |
+| `backend/routes/workouts.js` | CRUD für Workout-Pläne und Plan-Übungen, inklusive `/api/plans` und `/api/workouts` Alias. Sendet SSE- und Push-Signale bei Planänderungen. | Ja. Hauptbereich sind `plans` und `plan_exercises`. Zusätzlich greift die Datei auf Realtime/Push-Infrastruktur zu und enthält Ownership-Prüfung, Bildvalidierung und Serialisierung. |
+| `backend/routes/sessions.js` | Speichern, Lesen und Löschen abgeschlossener Workout-Sessions inklusive Satz-Logs. | Ja. Hauptbereich sind `workout_sessions` und `workout_logs`. Beim Speichern prüft die Route zusätzlich `plans`, damit Sessions nur auf eigene Pläne zeigen. |
+| `backend/routes/progress.js` | Liefert Fortschritt für eine konkrete Übung anhand geloggter Sätze. | Ja. Hauptbereich ist Progress/Analytics, technisch liest die Route `workout_logs` und die zugehörige `workout_sessions` Relation für Datum und User-Ownership. |
+| `backend/routes/stats.js` | Liefert einfache Dashboard-Stats wie Anzahl Sessions und Session-Daten. | Ja. Liest `workout_sessions`; fachlich gehört das eher zum Reporting-/Analytics-Modul als zum Session-Schreibmodul. |
+| `backend/routes/dailyActivity.js` | Tagesaktivität lesen und aktualisieren: Wasser, Schritte, Ziele, aktive Kalorien und Trainingsminuten. Enthält Quick-Log-Endpunkte für Wasser und Schritte. | Ja. Hauptbereich ist `daily_activities`, aber für Standard-Trinkziel wird zusätzlich `users.hydrationGoalLiters` gelesen. |
+| `backend/routes/push.js` | Gibt den VAPID Public Key aus und speichert Push-Subscriptions. | Ja, indirekt. Die Route selbst delegiert an `push.js`, aber die Subscription ist an `req.user.userId` gebunden und gehört fachlich zum Notification-Modul. |
+| `backend/routes/coach.js` | Baut eine regelbasierte Coach-Analyse mit Score, Empfehlungen, Muskelgruppen-Balance, Top-Übungen und vorgeschlagener Woche. | Ja, stark. Die Route liest `users`, `plans`, `workout_sessions`, `workout_logs` und `daily_activities`, kombiniert diese Daten und enthält viel Geschäftslogik direkt in der Route-Datei. |
+
+### Agenten-Analyse des Backend-Codes
+
+Konkrete Route-Handler mit Geschäftslogik, die besser in eigene Funktionen oder Module gehört:
+
+- `routes/auth.js`: Registrierung und Profiländerung mischen HTTP-Handling, Passwortvalidierung, bcrypt, JWT-Erstellung, Cookie-Setzen, Demo-Account-Ausnahmen, E-Mail-Verifikation und Prisma-Zugriffe. Sinnvoll wären getrennte Module wie `authService`, `userService`, `verificationService` und `authCookie`.
+- `routes/workouts.js`: Planerstellung und Planupdate enthalten Validierung, Normalisierung, nested Prisma-Writes, Serialisierung sowie Push-/SSE-Nebenwirkungen. Sinnvoll wären `planService`, `planRepository`, `planSerializer` und ein kleines Domain-Event wie `planChanged`.
+- `routes/sessions.js`: `POST /api/sessions` ist ein zentraler Mischpunkt aus Request-Validierung, Idempotenz über `client_session_id`, Plan-Ownership-Prüfung, Session-Erstellung und Log-Erstellung. Das gehört langfristig in einen `sessionService`.
+- `routes/dailyActivity.js`: `getOrCreateActivity`, Standardziele, Quick-Log-Addition und Grenzwerte sind fachliche Daily-Activity-Logik. Diese sollte in ein `dailyActivityService` wandern.
+- `routes/coach.js`: Die komplette Analyse-Engine liegt in der Route-Datei. Klassifikation von Übungen, Score-Berechnung, Muskelbalance, Empfehlungen und Wochenvorschläge sollten in ein eigenes `coachService` oder `coachEngine` Modul ausgelagert werden.
+- `routes/progress.js` und `routes/stats.js`: Die Dateien sind klein, enthalten aber Reporting-Queries. Langfristig könnten sie in einem gemeinsamen `analytics` oder `reporting` Modul gebündelt werden.
+
+Stellen, an denen Route-Dateien auf Daten anderer Bereiche zugreifen:
+
+- `routes/sessions.js` liest `plans`, um sicherzustellen, dass eine Session nur mit einem eigenen Plan verknüpft wird. Das ist fachlich korrekt, sollte aber über eine Plan-Ownership-Funktion statt direkt in der Session-Route laufen.
+- `routes/dailyActivity.js` liest `users.hydrationGoalLiters`, um das Standard-Wasserziel für neue Tagesdatensätze zu setzen. Das ist eine Grenze zwischen User-Profil und Daily Activity.
+- `routes/coach.js` liest fast alle fachlichen Tabellen. Das ist für einen Analysebereich normal, sollte aber bewusst als Read-/Reporting-Modul verstanden werden.
+- `routes/progress.js` liest `workout_logs` plus `workout_sessions`, weil Fortschritt ohne Session-Datum und User-Filter nicht korrekt berechnet werden kann.
+- `routes/workouts.js` triggert Push und SSE direkt nach Planänderungen. Das ist eine Infrastruktur-Nebenwirkung im Workout-Modul und sollte später über Domain-Events entkoppelt werden.
+
+### Vorgeschlagene Modulgrenzen
+
+Für einen modularen Monolithen wären diese Grenzen passend:
+
+- `auth`: Login, Registrierung, JWT, Cookies, Passwortprüfung, E-Mail-Verifikation.
+- `users`: Profil, Onboarding, Profilbild, persönliche Zielwerte.
+- `workouts`: Workout-Pläne und Plan-Übungen.
+- `sessions`: abgeschlossene Trainingssessions und Satz-Logs.
+- `dailyActivity`: Wasser, Schritte, tägliche Ziele, aktive Kalorien, Trainingsminuten.
+- `analytics`: Stats, Progress, Reporting-Queries.
+- `coach`: regelbasierte Analyse, Empfehlungen und vorgeschlagene Trainingswoche.
+- `notifications`: Push, SSE, Reminder, Mail-Nebenwirkungen.
+- `shared`: Serializer, Validatoren, ID-Parsing, Datums-Helfer, Fehlerantworten.
+
+Priorität für spätere Refactors:
+
+1. `coach.js` in `services/coachService.js` auslagern, weil dort die meiste Geschäftslogik konzentriert ist.
+2. `auth.js` in Auth-/User-/Verification-Funktionen trennen, weil die Datei mit 500 Zeilen aktuell mehrere Verantwortlichkeiten trägt.
+3. `sessions.js` und `workouts.js` in Services + Repositories aufteilen, weil dort Schreiblogik und Ownership-Regeln besonders wichtig sind.
+4. `dailyActivity.js` in einen Daily-Activity-Service auslagern, damit Quick Log, Ziele und Grenzwerte nicht in HTTP-Handlern leben.
+
 ## Backend und Deployment
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
