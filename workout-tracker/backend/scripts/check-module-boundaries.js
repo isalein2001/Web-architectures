@@ -13,9 +13,24 @@ const moduleModelAllowlist = {
 };
 
 const prismaAccessPattern = /\bprisma\.([A-Za-z][A-Za-z0-9_]*)/g;
+const safeModuleNamePattern = /^[a-z][a-z0-9-]*$/;
+
+function resolveModuleDir(moduleName) {
+  if (!safeModuleNamePattern.test(moduleName)) {
+    throw new Error(`Invalid module name: ${moduleName}`);
+  }
+
+  const moduleDir = path.resolve(modulesRoot, moduleName);
+  const modulesRootWithSeparator = `${path.resolve(modulesRoot)}${path.sep}`;
+  if (!moduleDir.startsWith(modulesRootWithSeparator)) {
+    throw new Error(`Module path escapes modules root: ${moduleName}`);
+  }
+
+  return moduleDir;
+}
 
 function readServiceFiles(moduleName) {
-  const moduleDir = path.join(modulesRoot, moduleName);
+  const moduleDir = resolveModuleDir(moduleName);
   if (!fs.existsSync(moduleDir)) return [];
 
   return fs
