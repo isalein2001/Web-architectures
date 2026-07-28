@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Code
@@ -32,33 +32,27 @@ jobs:
           mkdir -p workout-tracker/backend/public
           cp -r workout-tracker/frontend/dist/* workout-tracker/backend/public/
 
-      # --- AB HIER FÜR SSH-PASSWORT OPTIMIERT ---
-      
-      # Installiert sshpass auf dem GitHub-Runner, um Passwörter automatisieren zu können
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-
-      # Host-Schlüssel hinzufügen, damit SSH nicht fragt: "Are you sure you want to continue connecting?"
-      - name: Adding Known Hosts
+      # SSH-Key aus GitHub Secrets einrichten und Host-Schlüssel pinnen.
+      - name: Configure SSH key
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p 222 -H ${{ secrets.HETZNER_SSH_HOST }} >> ~/.ssh/known_hosts
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 222 -H "${{ secrets.HETZNER_SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      # rsync nutzt sshpass, um das Passwort sicher zu übergeben
       - name: Deploy files via rsync
         run: |
-          sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" rsync -avz --delete \
-            -e "ssh -p 222" \
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p 222 -o IdentitiesOnly=yes" \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.git' \
             --exclude='.prisma/client' \
             workout-tracker/backend/ ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }}:~/workout-tracker
 
-      # Der finale SSH-Befehl nutzt ebenfalls sshpass
       - name: Execute Server Tasks via SSH
         run: |
-          sshpass -p "${{ secrets.HETZNER_SSH_PASSWORD }}" ssh -p 222 ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key -p 222 -o IdentitiesOnly=yes ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
             cd ~/workout-tracker
 
            
