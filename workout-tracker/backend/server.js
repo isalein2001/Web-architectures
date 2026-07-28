@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const path = require('path');
 const createAuthRouter = require('./modules/identity-access/identity-access.routes');
 const createWorkoutsRouter = require('./modules/training/training.routes');
@@ -42,6 +43,20 @@ const getTrustedHttpsOrigin = () => {
   }
 };
 const trustedHttpsOrigin = getTrustedHttpsOrigin();
+const contentSecurityPolicyDirectives = {
+  defaultSrc: ["'self'"],
+  baseUri: ["'self'"],
+  objectSrc: ["'none'"],
+  frameAncestors: ["'none'"],
+  scriptSrc: ["'self'"],
+  styleSrc: ["'self'", "'unsafe-inline'"],
+  imgSrc: ["'self'", 'data:', 'blob:'],
+  fontSrc: ["'self'", 'data:'],
+  connectSrc: ["'self'"],
+  manifestSrc: ["'self'"],
+  workerSrc: ["'self'"],
+  mediaSrc: ["'self'"],
+};
 
 app.use((req, res, next) => {
   if (!shouldForceHttps || req.secure) {
@@ -51,34 +66,19 @@ app.use((req, res, next) => {
   return res.redirect(308, `${trustedHttpsOrigin}${req.originalUrl}`);
 });
 
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: contentSecurityPolicyDirectives,
+  },
+  hsts: process.env.NODE_ENV === 'production'
+    ? { maxAge: 31536000, includeSubDomains: true }
+    : false,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  frameguard: { action: 'deny' },
+}));
+
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && req.secure) {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  }
-
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "object-src 'none'",
-      "frame-ancestors 'none'",
-      "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "manifest-src 'self'",
-      "worker-src 'self'",
-      "media-src 'self'",
-    ].join('; '),
-  );
-
   next();
 });
 

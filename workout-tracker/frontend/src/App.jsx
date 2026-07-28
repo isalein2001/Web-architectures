@@ -362,22 +362,36 @@ function AppLayout() {
   };
 
   useEffect(() => {
-    api.getCurrentUser()
-      .then(async (data) => {
+    let isCancelled = false;
+
+    const loadCurrentUser = async () => {
+      try {
+        const data = await api.getCurrentUser();
         const user = data.user;
         if (!user?.id) {
-          setCurrentUser(user);
+          if (!isCancelled) setCurrentUser(user);
           return;
         }
 
         const profileImageData = await api.getCurrentUserProfileImage().catch(() => null);
+        if (isCancelled) return;
+
         setCurrentUser({
           ...user,
           profileImage: profileImageData?.profileImage || null,
         });
-      })
-      .catch(() => setCurrentUser(null))
-      .finally(() => setIsAuthLoading(false));
+      } catch {
+        if (!isCancelled) setCurrentUser(null);
+      } finally {
+        if (!isCancelled) setIsAuthLoading(false);
+      }
+    };
+
+    void loadCurrentUser();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {

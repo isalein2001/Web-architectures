@@ -147,23 +147,23 @@ export const autoSyncAppleHealthActivity = async (currentUser, reason = 'auto') 
 
   if (autoSyncPromise) return autoSyncPromise;
 
-  autoSyncPromise = syncPendingAppleHealthActivity(currentUser)
-    .then(() => syncAppleHealthActivity(currentUser))
-    .then((result) => {
+  autoSyncPromise = (async () => {
+    try {
+      await syncPendingAppleHealthActivity(currentUser);
+      const result = await syncAppleHealthActivity(currentUser);
       window.dispatchEvent(new CustomEvent('apple-health-auto-sync', {
         detail: { reason, ...result },
       }));
       return result;
-    })
-    .catch((error) => {
+    } catch (error) {
       window.dispatchEvent(new CustomEvent('apple-health-auto-sync-failed', {
         detail: { reason, message: error.message || 'APPLE HEALTH AUTO SYNC FAILED' },
       }));
-      throw error;
-    })
-    .finally(() => {
+      return null;
+    } finally {
       autoSyncPromise = null;
-    });
+    }
+  })();
 
   return autoSyncPromise;
 };
