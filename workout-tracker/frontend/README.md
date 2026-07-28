@@ -194,6 +194,29 @@ Priorität für spätere Refactors:
 3. `sessions.js` und `workouts.js` in Services + Repositories aufteilen, weil dort Schreiblogik und Ownership-Regeln besonders wichtig sind.
 4. `dailyActivity.js` in einen Daily-Activity-Service auslagern, damit Quick Log, Ziele und Grenzwerte nicht in HTTP-Handlern leben.
 
+### Bounded Contexts
+
+Für NEXT REPS ergeben sich aktuell vier fachliche Bounded Contexts. Sie sind bewusst größer geschnitten als die spätere technische Modulstruktur, damit jeder Kontext eine klare Sprache und Verantwortung hat.
+
+```text
+Identity & Access Context       Training Context              Daily Activity Context        Insights & Coaching Context
+─────────────────────────       ────────────────              ──────────────────────        ───────────────────────────
+User                            WorkoutPlan                   DailyActivity                 TrainingStats
+Session / JWT                   PlanExercise                  HydrationGoal                 ExerciseProgress
+VerificationCode                WorkoutSession                StepGoal                      CoachScore
+OnboardingProfile               WorkoutLog                    WaterIntake                   MuscleBalance
+ProfileImage                    ExerciseCatalog               ActiveEnergy                  SuggestedWeek
+```
+
+| Kontext | Einheitliche Bedeutung der wichtigsten Begriffe | Eigene Daten und Logik |
+| --- | --- | --- |
+| Identity & Access | Ein `User` ist hier eine authentifizierte Person mit Login, Passwort, E-Mail-Verifikation, Profilbasisdaten und Onboarding-Status. | `users`, JWT-Cookie, Passwort-Hashing, Verifikationscodes, Profilbild-Validierung, Onboarding-Abschluss. |
+| Training | Ein `Workout` ist hier ein geplanter oder gespeicherter Trainingsinhalt. Ein `Plan` beschreibt Soll-Übungen, eine `Session` beschreibt ein tatsächlich geloggtes Training. | `plans`, `plan_exercises`, `workout_sessions`, `workout_logs`, Plan-CRUD, Session-Logging, Exercise-Katalog-Anbindung. |
+| Daily Activity | Ein `Goal` bedeutet hier Tagesziel, nicht Trainingsplan. Schritte, Wasser, aktive Kalorien und Minuten beschreiben den Alltag eines Datums. | `daily_activities`, Wasser-/Schritt-Quick-Log, Tagesziele, Standardwerte aus dem Nutzerprofil. |
+| Insights & Coaching | Ein `Score` ist hier eine abgeleitete Bewertung aus Trainings- und Aktivitätsdaten, nicht ein direkt gespeicherter Nutzerwert. | Progress-Queries, Stats, Coach-Analyse, Muskelgruppen-Balance, Empfehlungen, vorgeschlagene Woche. |
+
+Die Kontexte kommunizieren bewusst über wenige, konkrete Daten: Training übergibt abgeschlossene Sessions und Logs an Insights & Coaching, damit Progress, Stats und Empfehlungen berechnet werden können; Daily Activity übergibt Tageswerte wie Schritte, Wasser, aktive Kalorien und Minuten an Dashboard und Coach. Identity & Access stellt allen anderen Kontexten nur die `userId` und wenige Profilwerte wie `hydrationGoalLiters` oder `fitnessGoal` bereit, aber keine Passwort- oder Token-Details.
+
 ## Backend und Deployment
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
