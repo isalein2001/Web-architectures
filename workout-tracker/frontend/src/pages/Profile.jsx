@@ -22,6 +22,8 @@ import { api } from '../api';
 import { isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
 import './Profile.css';
 
+const PROFILE_IMAGE_MAX_BYTES = 500_000;
+
 export default function Profile({ currentUser, onLogout, onUserUpdate }) {
   const { t } = useContext(LanguageContext);
   const userDisplayName = getUserDisplayName(currentUser);
@@ -290,8 +292,8 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
       return;
     }
 
-    if (file.size > 10_000_000) {
-      setAccountStatus({ type: 'error', message: t('Please choose an image under 10 MB.') });
+    if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+      setAccountStatus({ type: 'error', message: t('Please choose an image under 500 KB.') });
       return;
     }
 

@@ -375,6 +375,9 @@ export const api = {
   getCurrentUser: async () => requestJson(`${API_URL}/auth/me`, {
     redirectOnUnauthorized: false,
   }),
+  getCurrentUserProfileImage: async () => requestJson(`${API_URL}/auth/me/profile-image`, {
+    redirectOnUnauthorized: false,
+  }),
   updateCurrentUser: async (profileData) => requestJson(`${API_URL}/auth/me`, {
     method: 'PUT',
     body: JSON.stringify(profileData),

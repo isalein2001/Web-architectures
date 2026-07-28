@@ -204,7 +204,13 @@ function AppLayout() {
   };
 
   const handleUserUpdate = (nextUser) => {
-    setCurrentUser(nextUser);
+    setCurrentUser((current) => ({
+      ...(current || {}),
+      ...nextUser,
+      profileImage: Object.prototype.hasOwnProperty.call(nextUser, 'profileImage')
+        ? nextUser.profileImage
+        : current?.profileImage,
+    }));
   };
 
   const handlePushTest = async () => {
@@ -357,10 +363,49 @@ function AppLayout() {
 
   useEffect(() => {
     api.getCurrentUser()
-      .then((data) => setCurrentUser(data.user))
+      .then(async (data) => {
+        const user = data.user;
+        if (!user?.id) {
+          setCurrentUser(user);
+          return;
+        }
+
+        const profileImageData = await api.getCurrentUserProfileImage().catch(() => null);
+        setCurrentUser({
+          ...user,
+          profileImage: profileImageData?.profileImage || null,
+        });
+      })
       .catch(() => setCurrentUser(null))
       .finally(() => setIsAuthLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!currentUser?.id || Object.prototype.hasOwnProperty.call(currentUser, 'profileImage')) return undefined;
+
+    let isCancelled = false;
+    api.getCurrentUserProfileImage()
+      .then((data) => {
+        if (isCancelled) return;
+        setCurrentUser((user) => (
+          user?.id === currentUser.id
+            ? { ...user, profileImage: data.profileImage || null }
+            : user
+        ));
+      })
+      .catch(() => {
+        if (isCancelled) return;
+        setCurrentUser((user) => (
+          user?.id === currentUser.id
+            ? { ...user, profileImage: null }
+            : user
+        ));
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUser]);
 
   useEffect(() => {
     initSyncManager(currentUser?.id ? currentUser : null);

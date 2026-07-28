@@ -9,6 +9,7 @@ const { sendVerificationEmailLater } = require('../../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const PROFILE_IMAGE_MAX_BYTES = 500_000;
 
 const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
 const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
@@ -26,12 +27,20 @@ const isStrongPassword = (password) => (
   && /\d/.test(password)
 );
 
+const getProfileImageByteLength = (profileImage) => {
+  if (typeof profileImage !== 'string') return Number.POSITIVE_INFINITY;
+  const match = profileImage.match(/^data:image\/(?:png|jpe?g|webp);base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) return Number.POSITIVE_INFINITY;
+
+  const base64 = match[1];
+  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+};
+
 const isAllowedProfileImage = (profileImage) => (
   profileImage === null
   || profileImage === ''
-  || (typeof profileImage === 'string'
-    && /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(profileImage)
-    && profileImage.length <= 15_000_000)
+  || getProfileImageByteLength(profileImage) <= PROFILE_IMAGE_MAX_BYTES
 );
 
 const selectPublicUser = {
@@ -48,6 +57,9 @@ const selectPublicUser = {
   gender: true,
   hydrationGoalLiters: true,
   fitnessGoal: true,
+};
+
+const selectProfileImage = {
   profileImage: true,
 };
 
@@ -170,7 +182,6 @@ function createAuthRouter() {
           gender: user.gender,
           hydrationGoalLiters: user.hydrationGoalLiters,
           fitnessGoal: user.fitnessGoal,
-          profileImage: user.profileImage,
         },
       });
     } catch (error) {
@@ -188,6 +199,17 @@ function createAuthRouter() {
     if (!user) return res.status(401).json({ error: 'Nicht autorisiert.' });
 
     res.status(200).json({ user });
+  });
+
+  router.get('/me/profile-image', authenticate, async (req, res) => {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: selectProfileImage,
+    });
+
+    if (!user) return res.status(401).json({ error: 'Nicht autorisiert.' });
+
+    res.status(200).json({ profileImage: user.profileImage });
   });
 
   router.put('/me', authenticate, async (req, res) => {
@@ -254,7 +276,7 @@ function createAuthRouter() {
       if (hasProfileImageUpdate) {
         const { profileImage } = req.body;
         if (!isAllowedProfileImage(profileImage)) {
-          return res.status(400).json({ error: 'Profilbild muss ein Bild unter ca. 10 MB sein.' });
+          return res.status(400).json({ error: 'Profilbild muss ein PNG, JPG oder WebP unter 500 KB sein.' });
         }
 
         updateData.profileImage = profileImage || null;
@@ -303,7 +325,7 @@ function createAuthRouter() {
       const user = await prisma.user.update({
         where: { id: currentUser.id },
         data: updateData,
-        select: selectPublicUser,
+        select: hasProfileImageUpdate ? { ...selectPublicUser, ...selectProfileImage } : selectPublicUser,
       });
 
       if (user.email !== req.user.email) {
