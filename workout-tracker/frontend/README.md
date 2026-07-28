@@ -400,6 +400,33 @@ Review-Ergebnis nach Prüfung des kompletten `backend/modules/` Ordners:
 - Das Modul mit den meisten fachlichen eingehenden Abhängigkeiten ist `training`, weil Stats, Progress und Coach-Auswertungen Trainingspläne, Sessions und Logs benötigen. Das ist als Kernmodul erwartbar, aber ein Warnsignal dafür, dass `training.service.js` stabile Query-Funktionen anbieten sollte, damit andere Kontexte nicht direkt in Training-Tabellen lesen.
 - Am einfachsten extrahierbar wäre langfristig `notifications`. Das Modul hat eine schmale Aufgabe, wenige Endpunkte und braucht fachlich fast nur `userId`, Push-Subscription und ein Benachrichtigungs-Payload. Als eigener Service könnte es später über Events wie `plan.changed` oder `verification.requested` angesprochen werden, ohne Training, Daily Activity oder Identity als Datenmodell mitzunehmen.
 
+### Bonus: Frontend-Feature-Struktur
+
+Auch im Frontend wird die Struktur schrittweise von technischen Ordnern hin zu Feature-Modulen verschoben. Als erstes Feature wurde `auth` modularisiert, weil Login, Registrierung, E-Mail-Verifikation und Onboarding fachlich zusammengehören und dieselbe Auth-Gestaltung nutzen.
+
+Aktueller erster Schritt:
+
+```text
+frontend/src/
+├── features/
+│   └── auth/
+│       ├── Auth.css
+│       ├── Login.jsx
+│       ├── Onboarding.css
+│       ├── Onboarding.jsx
+│       ├── Register.jsx
+│       ├── VerifyEmail.jsx
+│       └── index.js
+├── pages/
+│   ├── Dashboard.jsx
+│   ├── Workouts.jsx
+│   ├── Analytics.jsx
+│   └── ...
+└── shared/                    # geplant für generische UI und Lib-Helfer
+```
+
+`App.jsx` importiert Auth-Screens jetzt über `features/auth`, statt direkt aus `pages/`. Die bestehenden Routen `/login`, `/register`, `/verify-email` und `/onboarding` bleiben unverändert. Weitere sinnvolle Feature-Module wären danach `dashboard`, `workouts`, `analytics` und `profile`; diese sollten ebenfalls nacheinander verschoben werden, nicht als großer Alles-auf-einmal-Refactor.
+
 ## Backend und Deployment
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.

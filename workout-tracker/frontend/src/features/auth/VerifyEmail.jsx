@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MailCheck, RotateCcw } from 'lucide-react';
-import { api } from '../api';
+import { api } from '../../api';
 import './Auth.css';
 
 export default function VerifyEmail({ currentUser, onUserUpdate }) {

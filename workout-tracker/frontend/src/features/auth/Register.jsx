@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AtSign, Lock, ShieldCheck, User, Zap } from 'lucide-react';
-import { api } from '../api';
-import { readFirstLaunchOnboardingDraft } from '../firstLaunchOnboardingStorage';
+import { api } from '../../api';
+import { readFirstLaunchOnboardingDraft } from '../../firstLaunchOnboardingStorage';
 import './Auth.css';
 
 const splitName = (value = '') => {

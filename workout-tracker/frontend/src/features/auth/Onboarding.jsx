@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Activity, Clock, Droplets, Flame, Goal, Ruler, Scale, UserRound } from 'lucide-react';
-import { api } from '../api';
-import { getUserFirstName } from '../userStorage';
+import { api } from '../../api';
+import { getUserFirstName } from '../../userStorage';
 import './Onboarding.css';
 
 const goals = [
