@@ -165,9 +165,20 @@ const normalizePlan = (plan, source = 'custom') => {
   };
 };
 
+const createClientId = (prefix, parts = []) => {
+  if (globalThis.crypto?.randomUUID) {
+    return [prefix, ...parts, globalThis.crypto.randomUUID()].filter(Boolean).join('-');
+  }
+
+  const values = new Uint32Array(2);
+  globalThis.crypto?.getRandomValues?.(values);
+  const randomPart = Array.from(values).map((value) => value.toString(36)).join('');
+  return [prefix, ...parts, Date.now(), randomPart || 'fallback'].filter(Boolean).join('-');
+};
+
 const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
   Array.from({ length: exercise.sets || 1 }, (_, index) => ({
-    id: `${exercise.name}-${index}-${Date.now()}-${Math.random()}`,
+    id: createClientId('plan-log', [exercise.name, index]),
     exercise_name: exercise.name,
     set_number: index + 1,
     target_reps: exercise.repsBySet[index] || exercise.repsBySet[0] || '',
@@ -358,7 +369,7 @@ export default function WorkoutLogger({ currentUser }) {
       return [
         ...currentLogs,
         {
-          id: `freestyle-${Date.now()}-${Math.random()}`,
+          id: createClientId('freestyle'),
           exercise_name: currentExercise.trim(),
           set_number: existingSets + 1,
           target_reps: '',
@@ -397,7 +408,7 @@ export default function WorkoutLogger({ currentUser }) {
   const saveWorkoutSession = async () => {
     if (!activePlan || !currentUser?.id) return;
     const sessionDate = new Date().toISOString();
-    const clientSessionId = `client-${currentUser.id}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const clientSessionId = createClientId('client', [currentUser.id]);
 
     const sessionData = {
       date: sessionDate,
@@ -421,7 +432,7 @@ export default function WorkoutLogger({ currentUser }) {
     };
 
     const persistedSession = {
-      id: `local-${Date.now()}`,
+      id: createClientId('local'),
       date: sessionDate,
       client_session_id: clientSessionId,
       plan_id: activePlan.planId ?? activePlan.id,
