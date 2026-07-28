@@ -8,6 +8,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "node scripts/seed.js",
+    "check:modules": "node scripts/check-module-boundaries.js",
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

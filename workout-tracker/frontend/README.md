@@ -294,6 +294,103 @@ Aktuelles Mounting in `server.js`:
 
 Die Service-Dateien markieren die interne Grenze pro Kontext. Vollständig produktive Geschäftslogik liegt aktuell bereits im Training-Service; die übrigen Service-Dateien sind bewusst als nächste Refactor-Ziele angelegt, damit spätere Schritte ohne erneute Strukturänderung erfolgen können.
 
+### Modulschnittstellen und Grenzschutz
+
+Regel für den modularen Monolithen: Ein Modul darf seine eigenen Tabellen direkt über Prisma lesen und schreiben. Daten aus einem anderen Bounded Context sollen langfristig über dessen Service-Funktionen angefordert werden, nicht über direkte `prisma.<model>`-Zugriffe auf fremde Tabellen.
+
+Aktuelle Prüfung:
+
+- In Service-Dateien gibt es aktuell keinen Cross-Context-Prisma-Verstoß.
+- `modules/training/training.service.js` greift nur auf `plan` und `planExercise` zu. Das gehört zum Training Context.
+- Die übrigen Service-Dateien sind aktuell Schnittstellen-Platzhalter und greifen noch nicht auf Prisma zu.
+- Es gibt aber noch direkte Cross-Context-Zugriffe in Route-Dateien. Diese sind als nächste Refactor-Ziele dokumentiert, weil noch nicht alle Geschäftslogik aus den Routen herausgezogen wurde.
+
+Gefundene Grenzverletzungen in Route-Dateien:
+
+| Datei | Direkter Zugriff | Warum ist das eine Modulgrenze? | Ziel-Lösung |
+| --- | --- | --- | --- |
+| `modules/insights-coaching/stats.routes.js` | `prisma.workoutSession.findMany` | Stats liest Training-Daten direkt. | `training.service.js` sollte z. B. `getSessionsForUser(userId)` bereitstellen. |
+| `modules/insights-coaching/progress.routes.js` | `prisma.workoutLog.findMany` inklusive Session-Filter | Progress liest Training-Logs direkt. | `training.service.js` sollte z. B. `getExerciseLogsForUser(userId, exerciseName)` kapseln. |
+| `modules/insights-coaching/coach.routes.js` | `prisma.user`, `prisma.plan`, `prisma.workoutSession`, `prisma.dailyActivity` | Coach kombiniert Daten aus Identity, Training und Daily Activity direkt. | Coach sollte nur öffentliche Query-Funktionen aus den anderen Kontexten verwenden. |
+| `modules/daily-activity/daily-activity.routes.js` | `prisma.user.findUnique` für `hydrationGoalLiters` | Daily Activity liest Profil-/User-Daten direkt. | `identity-access.service.js` sollte z. B. `getHydrationGoalForUser(userId)` bereitstellen. |
+| `modules/training/sessions.routes.js` | `prisma.plan.findFirst` zur Ownership-Prüfung | Innerhalb Training ist das fachlich okay, aber die Ownership-Regel sollte trotzdem in den Training-Service wandern. | `training.service.js` sollte z. B. `assertPlanBelongsToUser(planId, userId)` bereitstellen. |
+
+Definierte Modul-Schnittstellen:
+
+```text
+identity-access.service.js
+  öffentlich:
+    getHydrationGoalForUser(userId)              # geplant
+    getCoachProfileForUser(userId)               # geplant
+  intern:
+    normalizeEmail()
+    validatePasswordStrength()
+    createVerificationCode()
+    setAuthCookie()
+
+training.service.js
+  öffentlich:
+    createWorkoutPlan(data, userId)
+    updateWorkoutPlan(planId, data, userId)
+    getSessionsForUser(userId)                   # geplant
+    getExerciseLogsForUser(userId, exerciseName) # geplant
+    getPlansForUser(userId)                      # geplant
+    assertPlanBelongsToUser(planId, userId)      # geplant
+  technisch aktuell noch exportiert, fachlich aber intern:
+    validateExerciseInput()
+    serializePlan()
+    serializeExercise()
+    toNumberId()
+  intern:
+    validatePlanInput()
+    mapExerciseInput()
+    normalizePlanImage()
+    normalizeIconKey()
+
+daily-activity.service.js
+  öffentlich:
+    getActivityForDate(userId, date)             # geplant
+    getActivitiesForPeriod(userId, from, to)     # geplant
+    updateTodayActivity(userId, data)            # geplant
+    logWater(userId, amountLiters)               # geplant
+    logSteps(userId, steps)                      # geplant
+  intern:
+    getTodayKey()
+    clampDailyActivityValues()
+    applyDefaultGoals()
+
+insights-coaching.service.js
+  öffentlich:
+    getDashboardStats(userId)                    # geplant
+    getExerciseProgress(userId, exerciseName)    # geplant
+    getCoachOverview(userId)                     # geplant
+  intern:
+    calculateCoachScore()
+    classifyExercise()
+    calculateMuscleBalance()
+    buildSuggestedWeek()
+
+notifications.service.js
+  öffentlich:
+    getPublicVapidConfig()
+    saveSubscription(userId, subscription)
+    notifyPlanChanged(userId, payload)           # geplant
+  intern:
+    validatePushSubscription()
+    buildNotificationPayload()
+```
+
+Wichtig: Die mit `geplant` markierten Funktionen beschreiben die gewünschte Modul-Schnittstelle. Sie sind noch nicht alle implementiert, weil der aktuelle Schritt zuerst die Grenzen dokumentiert und absichert. Der nächste sinnvolle Code-Refactor wäre, `stats.routes.js` und `progress.routes.js` auf öffentliche Training-Service-Funktionen umzubauen.
+
+Zur technischen Absicherung gibt es zusätzlich einen einfachen Boundary-Check:
+
+```bash
+cd workout-tracker/backend
+npm run check:modules
+```
+
+Der Check scannt aktuell alle `*.service.js` Dateien unter `backend/modules/` und schlägt fehl, wenn ein Service direkt auf ein Prisma-Model zugreift, das nicht zu seinem Kontext gehört. Route-Dateien werden noch nicht blockiert, weil sie im laufenden Refactor erst schrittweise ausgedünnt werden.
+
 ## Backend und Deployment
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
