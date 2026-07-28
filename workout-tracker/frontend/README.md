@@ -217,6 +217,31 @@ ProfileImage                    ExerciseCatalog               ActiveEnergy      
 
 Die Kontexte kommunizieren bewusst über wenige, konkrete Daten: Training übergibt abgeschlossene Sessions und Logs an Insights & Coaching, damit Progress, Stats und Empfehlungen berechnet werden können; Daily Activity übergibt Tageswerte wie Schritte, Wasser, aktive Kalorien und Minuten an Dashboard und Coach. Identity & Access stellt allen anderen Kontexten nur die `userId` und wenige Profilwerte wie `hydrationGoalLiters` oder `fitnessGoal` bereit, aber keine Passwort- oder Token-Details.
 
+### Service Layer im Training Context
+
+Als erster konkreter Refactor wurde im Training Context ein Service Layer eingeführt. Die beiden wichtigsten Plan-Handler wurden ausgelagert:
+
+- `POST /api/plans`: erstellt einen neuen Workout-Plan mit optionalen Übungen.
+- `PUT /api/plans/:id`: aktualisiert einen bestehenden Workout-Plan und ersetzt dessen Übungsliste transaktional.
+
+Die Route-Datei `backend/routes/workouts.js` enthält für diese beiden Endpunkte jetzt nur noch HTTP-Logik: Request-Daten entgegennehmen, Service-Funktion aufrufen, Ergebnis zurückgeben und fachliche Fehler auf HTTP-Statuscodes mappen. Die Geschäftslogik liegt in `backend/services/workouts.service.js`.
+
+Neue Service-Funktionen:
+
+- `createWorkoutPlan(data, userId)`: validiert Name, Bild und Übungen, normalisiert Eingaben, erstellt Plan und Plan-Übungen, serialisiert das Ergebnis und löst Push/SSE-Benachrichtigungen aus.
+- `updateWorkoutPlan(planId, data, userId)`: validiert Eingaben, prüft Ownership, ersetzt die Übungsliste innerhalb einer Prisma-Transaktion, serialisiert das Ergebnis und löst Push/SSE-Benachrichtigungen aus.
+
+Fehler werden fachlich benannt und in der Route übersetzt:
+
+- `ValidationError` wird zu HTTP `400`.
+- `NotFoundError` wird zu HTTP `404`.
+- Unerwartete Fehler bleiben HTTP `500`.
+
+Dokumentierte Prompt-Iterationen:
+
+1. Erste Iteration: „Refactore die Workout-Routen und lagere die Logik in einen Service aus.“ Das war zu allgemein, weil unklar blieb, welche Handler zuerst refactored werden, ob Response-Formate gleich bleiben müssen und wohin Nebenwirkungen wie Push und SSE gehören.
+2. Zweite Iteration: „Refactore im Training Context nur `POST /api/plans` und `PUT /api/plans/:id`. Lege `backend/services/workouts.service.js` an. Die Service-Funktionen heißen `createWorkoutPlan(data, userId)` und `updateWorkoutPlan(planId, data, userId)`. Behalte die bisherigen JSON-Felder, Prisma-Transaktion, Validierungen, Ownership-Prüfung sowie Push/SSE-Signale bei. Die Route mappt `ValidationError` auf `400` und `NotFoundError` auf `404`.“ Dadurch war der Umbau klein, testbar und ohne Änderung am API-Vertrag möglich.
+
 ## Backend und Deployment
 
 Das aktuelle Prisma-Schema nutzt `provider = "mysql"`. Für lokale oder produktive Umgebungen muss `DATABASE_URL` auf eine MySQL/MariaDB-Datenbank zeigen. Der Deploy-Workflow baut das Frontend und kopiert die gebauten Assets in `backend/public`, damit das Express-Backend die aktuelle Website/App ausliefern kann.
