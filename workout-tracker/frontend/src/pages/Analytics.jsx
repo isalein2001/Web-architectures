@@ -858,6 +858,27 @@ function buildSmoothLinePath(points) {
   return path;
 }
 
+function getCryptoRandomUnit() {
+  const values = new Uint32Array(1);
+
+  if (!globalThis.crypto?.getRandomValues) {
+    return 0.5;
+  }
+
+  globalThis.crypto.getRandomValues(values);
+  return values[0] / 0xffffffff;
+}
+
+function createFireworkId(burstIndex) {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const values = new Uint32Array(1);
+  globalThis.crypto?.getRandomValues?.(values);
+  return `firework-${burstIndex}-${values[0]}`;
+}
+
 function MilestoneCard({ milestone }) {
   const { t } = useLanguage();
   const [fireworks, setFireworks] = useState([]);
@@ -882,15 +903,15 @@ function MilestoneCard({ milestone }) {
     window.clearTimeout(fireworksTimer.current);
 
     const nextFireworks = Array.from({ length: 5 }, (_, burstIndex) => ({
-      id: `${Date.now()}-${burstIndex}`,
-      left: 16 + Math.random() * 68,
-      top: 18 + Math.random() * 52,
+      id: createFireworkId(burstIndex),
+      left: 16 + getCryptoRandomUnit() * 68,
+      top: 18 + getCryptoRandomUnit() * 52,
       delay: burstIndex * 0.12,
       sparks: Array.from({ length: 16 }, (_, sparkIndex) => ({
         id: sparkIndex,
-        angle: (360 / 16) * sparkIndex + Math.random() * 10,
-        distance: 34 + Math.random() * 34,
-        size: 3 + Math.random() * 3,
+        angle: (360 / 16) * sparkIndex + getCryptoRandomUnit() * 10,
+        distance: 34 + getCryptoRandomUnit() * 34,
+        size: 3 + getCryptoRandomUnit() * 3,
       })),
     }));
 
