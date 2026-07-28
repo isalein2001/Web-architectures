@@ -12,7 +12,7 @@ const {
 } = require('./modules/insights-coaching/insights-coaching.routes');
 const createDailyActivityRouter = require('./modules/daily-activity/daily-activity.routes');
 const createPushRouter = require('./modules/notifications/notifications.routes');
-const { authenticate } = require('./middleware/authenticate');
+const { authenticate, ensureEmailVerified } = require('./middleware/authenticate');
 const { authRateLimiter } = require('./middleware/rateLimiters');
 const { createEventsRouter } = require('./events');
 
@@ -85,17 +85,18 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT || 3000;
 
 const workoutsRouter = createWorkoutsRouter();
+const verifiedUser = [authenticate, ensureEmailVerified];
 
 app.use('/api/auth', authRateLimiter, createAuthRouter());
-app.use('/api/events', authenticate, createEventsRouter());
-app.use('/api/plans', authenticate, workoutsRouter);
-app.use('/api/workouts', authenticate, workoutsRouter);
-app.use('/api/sessions', authenticate, createSessionsRouter());
-app.use('/api/progress', authenticate, createProgressRouter());
-app.use('/api/stats', authenticate, createStatsRouter());
-app.use('/api/daily-activity', authenticate, createDailyActivityRouter());
-app.use('/api/push', authenticate, createPushRouter());
-app.use('/api/coach', authenticate, createCoachRouter());
+app.use('/api/events', verifiedUser, createEventsRouter());
+app.use('/api/plans', verifiedUser, workoutsRouter);
+app.use('/api/workouts', verifiedUser, workoutsRouter);
+app.use('/api/sessions', verifiedUser, createSessionsRouter());
+app.use('/api/progress', verifiedUser, createProgressRouter());
+app.use('/api/stats', verifiedUser, createStatsRouter());
+app.use('/api/daily-activity', verifiedUser, createDailyActivityRouter());
+app.use('/api/push', verifiedUser, createPushRouter());
+app.use('/api/coach', verifiedUser, createCoachRouter());
 
 // Unknown API paths should stay JSON responses and must not fall through
 // to the React SPA fallback.
