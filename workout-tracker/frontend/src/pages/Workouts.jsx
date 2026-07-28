@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
 import {
@@ -316,46 +316,59 @@ export default function Workouts({ currentUser }) {
     });
   }, [filteredLibraryExercises, pendingExerciseNames, selectedExerciseNames]);
 
-  const refreshBackendPlans = () => {
-    return api.getPlans()
-      .then((plans) => {
-        setSavedPlans((Array.isArray(plans) ? plans : []).map(mapBackendPlanToSavedPlan));
-      })
-      .catch((error) => {
-        setWorkoutSaveStatus(t(error.message || 'Could not load workouts from the backend.'));
-      });
-  };
+  const refreshBackendPlans = useCallback(async () => {
+    try {
+      const plans = await api.getPlans();
+      setSavedPlans((Array.isArray(plans) ? plans : []).map(mapBackendPlanToSavedPlan));
+      return plans;
+    } catch (error) {
+      setWorkoutSaveStatus(t(error.message || 'Could not load workouts from the backend.'));
+      return [];
+    }
+  }, [t]);
 
   useEffect(() => {
-    refreshBackendPlans();
-  }, [currentUser?.id]);
+    void refreshBackendPlans();
+  }, [currentUser?.id, refreshBackendPlans]);
 
   useEffect(() => {
     if (!currentUser?.id) return undefined;
+    let isCancelled = false;
+
+    const loadCoachAnalysis = async () => {
+      setIsCoachLoading(true);
+      try {
+        const analysis = await api.getCoachAnalysis();
+        if (!isCancelled) setCoachAnalysis(analysis);
+      } catch {
+        if (!isCancelled) setCoachAnalysis(null);
+      } finally {
+        if (!isCancelled) setIsCoachLoading(false);
+      }
+    };
 
     const timer = window.setTimeout(() => {
-      setIsCoachLoading(true);
-      api.getCoachAnalysis()
-        .then((analysis) => setCoachAnalysis(analysis))
-        .catch(() => setCoachAnalysis(null))
-        .finally(() => setIsCoachLoading(false));
+      void loadCoachAnalysis();
     }, 0);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [currentUser?.id]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !currentUser) return undefined;
+    if (typeof window === 'undefined' || !currentUser?.id) return undefined;
 
     const events = new EventSource(`${API_URL}/events`, { withCredentials: true });
     events.addEventListener('plans:changed', () => {
-      refreshBackendPlans();
+      void refreshBackendPlans();
     });
 
     return () => {
       events.close();
     };
-  }, [currentUser?.id]);
+  }, [currentUser?.id, refreshBackendPlans]);
 
   useEffect(() => {
     if (!isExerciseLibraryOpen) return undefined;

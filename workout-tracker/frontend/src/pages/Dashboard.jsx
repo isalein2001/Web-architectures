@@ -672,9 +672,25 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
 
   useEffect(() => {
     window.localStorage.setItem(hydrationGoalStorageKey, hydrationGoal.toString());
-    api.updateTodayActivity({ water_goal_ml: Math.round(hydrationGoal * 1000) })
-      .then(setTodayActivity)
-      .catch(() => null);
+
+    let isCancelled = false;
+
+    const persistHydrationGoal = async () => {
+      try {
+        const activity = await api.updateTodayActivity({
+          water_goal_ml: Math.round(hydrationGoal * 1000),
+        });
+        if (!isCancelled) setTodayActivity(activity);
+      } catch {
+        // Hydration goal is still stored locally; backend sync can retry on the next change.
+      }
+    };
+
+    void persistHydrationGoal();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [hydrationGoal, hydrationGoalStorageKey]);
 
   useEffect(() => {

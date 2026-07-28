@@ -279,8 +279,13 @@ export default function WorkoutLogger({ currentUser }) {
   }, [t]);
 
   useEffect(() => {
-    api.getPlans()
-      .then((backendPlans) => {
+    let isCancelled = false;
+
+    const loadPlans = async () => {
+      try {
+        const backendPlans = await api.getPlans();
+        if (isCancelled) return;
+
         const normalizedBackendPlans = backendPlans.map((plan) => normalizePlan({
           ...plan,
           id: plan.id,
@@ -295,12 +300,20 @@ export default function WorkoutLogger({ currentUser }) {
           ...normalizedBackendPlans,
           ...readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready')),
         ].filter(Boolean));
-      })
-      .catch(() => {
+      } catch {
+        if (isCancelled) return;
+
         setAvailablePlans([
           ...readyWorkoutPlans.map((plan) => normalizePlan(plan, 'ready')),
         ].filter(Boolean));
-      });
+      }
+    };
+
+    void loadPlans();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {
