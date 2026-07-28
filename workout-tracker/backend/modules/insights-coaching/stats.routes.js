@@ -1,5 +1,5 @@
 const express = require('express');
-const { prisma } = require('../prismaClient');
+const { prisma } = require('../../prismaClient');
 
 function createStatsRouter() {
   const router = express.Router();

@@ -1,5 +1,5 @@
 const express = require('express');
-const { getVapidConfig, savePushSubscription } = require('../push');
+const { getVapidConfig, savePushSubscription } = require('../../push');
 
 function createPushRouter() {
   const router = express.Router();

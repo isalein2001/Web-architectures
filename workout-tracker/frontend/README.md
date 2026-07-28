@@ -11,7 +11,7 @@ The project keeps frontend and backend separate:
 - `backend/`: Express API mit Prisma, Auth, Mail und Push
 - `backend/prisma/schema.prisma`: aktuelles MySQL/MariaDB Prisma-Datenmodell
 - `backend/server.js`: Express app setup and route mounting
-- `backend/routes/`: resource-specific API route modules
+- `backend/modules/`: modularer Monolith mit fachlichen Backend-Kontexten
 
 ## Aktueller App-Stand
 
@@ -224,7 +224,7 @@ Als erster konkreter Refactor wurde im Training Context ein Service Layer eingef
 - `POST /api/plans`: erstellt einen neuen Workout-Plan mit optionalen Übungen.
 - `PUT /api/plans/:id`: aktualisiert einen bestehenden Workout-Plan und ersetzt dessen Übungsliste transaktional.
 
-Die Route-Datei `backend/routes/workouts.js` enthält für diese beiden Endpunkte jetzt nur noch HTTP-Logik: Request-Daten entgegennehmen, Service-Funktion aufrufen, Ergebnis zurückgeben und fachliche Fehler auf HTTP-Statuscodes mappen. Die Geschäftslogik liegt in `backend/services/workouts.service.js`.
+Die Route-Datei `backend/modules/training/training.routes.js` enthält für diese beiden Endpunkte jetzt nur noch HTTP-Logik: Request-Daten entgegennehmen, Service-Funktion aufrufen, Ergebnis zurückgeben und fachliche Fehler auf HTTP-Statuscodes mappen. Die Geschäftslogik liegt in `backend/modules/training/training.service.js`.
 
 Neue Service-Funktionen:
 
@@ -240,7 +240,59 @@ Fehler werden fachlich benannt und in der Route übersetzt:
 Dokumentierte Prompt-Iterationen:
 
 1. Erste Iteration: „Refactore die Workout-Routen und lagere die Logik in einen Service aus.“ Das war zu allgemein, weil unklar blieb, welche Handler zuerst refactored werden, ob Response-Formate gleich bleiben müssen und wohin Nebenwirkungen wie Push und SSE gehören.
-2. Zweite Iteration: „Refactore im Training Context nur `POST /api/plans` und `PUT /api/plans/:id`. Lege `backend/services/workouts.service.js` an. Die Service-Funktionen heißen `createWorkoutPlan(data, userId)` und `updateWorkoutPlan(planId, data, userId)`. Behalte die bisherigen JSON-Felder, Prisma-Transaktion, Validierungen, Ownership-Prüfung sowie Push/SSE-Signale bei. Die Route mappt `ValidationError` auf `400` und `NotFoundError` auf `404`.“ Dadurch war der Umbau klein, testbar und ohne Änderung am API-Vertrag möglich.
+2. Zweite Iteration: „Refactore im Training Context nur `POST /api/plans` und `PUT /api/plans/:id`. Lege `backend/modules/training/training.service.js` an. Die Service-Funktionen heißen `createWorkoutPlan(data, userId)` und `updateWorkoutPlan(planId, data, userId)`. Behalte die bisherigen JSON-Felder, Prisma-Transaktion, Validierungen, Ownership-Prüfung sowie Push/SSE-Signale bei. Die Route mappt `ValidationError` auf `400` und `NotFoundError` auf `404`.“ Dadurch war der Umbau klein, testbar und ohne Änderung am API-Vertrag möglich.
+
+### Modulare Ordnerstruktur
+
+Die fachlichen Grenzen aus den Bounded Contexts wurden in die Backend-Ordnerstruktur übernommen. Die bestehenden Endpoints wurden dabei nicht umbenannt; `server.js` mountet weiterhin dieselben API-Pfade, lädt die Router aber aus `backend/modules/`.
+
+Aktuelle Struktur:
+
+```text
+backend/
+├── modules/
+│   ├── identity-access/
+│   │   ├── identity-access.routes.js
+│   │   └── identity-access.service.js
+│   ├── training/
+│   │   ├── training.routes.js
+│   │   ├── training.service.js
+│   │   └── sessions.routes.js
+│   ├── daily-activity/
+│   │   ├── daily-activity.routes.js
+│   │   └── daily-activity.service.js
+│   ├── insights-coaching/
+│   │   ├── insights-coaching.routes.js
+│   │   ├── insights-coaching.service.js
+│   │   ├── coach.routes.js
+│   │   ├── progress.routes.js
+│   │   └── stats.routes.js
+│   └── notifications/
+│       ├── notifications.routes.js
+│       └── notifications.service.js
+├── middleware/
+│   └── authenticate.js
+├── prisma/
+│   └── schema.prisma
+└── server.js
+```
+
+Warum einzelne Kontexte mehrere Route-Dateien enthalten: `Training` umfasst sowohl Planverwaltung als auch geloggte Sessions, diese bleiben wegen ihrer unterschiedlichen API-Pfade getrennt. `Insights & Coaching` bündelt Stats, Progress und Coach-Auswertung fachlich in einem Kontext, lässt die drei bestehenden Router aber aus Kompatibilitätsgründen getrennt.
+
+Aktuelles Mounting in `server.js`:
+
+| API-Pfad | Modul |
+| --- | --- |
+| `/api/auth` | `modules/identity-access/identity-access.routes.js` |
+| `/api/plans` und `/api/workouts` | `modules/training/training.routes.js` |
+| `/api/sessions` | `modules/training/sessions.routes.js` |
+| `/api/daily-activity` | `modules/daily-activity/daily-activity.routes.js` |
+| `/api/progress` | `modules/insights-coaching/progress.routes.js` |
+| `/api/stats` | `modules/insights-coaching/stats.routes.js` |
+| `/api/coach` | `modules/insights-coaching/coach.routes.js` |
+| `/api/push` | `modules/notifications/notifications.routes.js` |
+
+Die Service-Dateien markieren die interne Grenze pro Kontext. Vollständig produktive Geschäftslogik liegt aktuell bereits im Training-Service; die übrigen Service-Dateien sind bewusst als nächste Refactor-Ziele angelegt, damit spätere Schritte ohne erneute Strukturänderung erfolgen können.
 
 ## Backend und Deployment
 
@@ -434,20 +486,20 @@ Die Route-Dateien verwenden jetzt Prisma Client statt direkter SQL-Operationen. 
 
 Umgestellt wurden:
 
-- `backend/routes/workouts.js`
+- `backend/modules/training/training.routes.js`
   - `GET /api/plans`
   - `GET /api/plans/:id`
   - `POST /api/plans`
   - `PUT /api/plans/:id`
   - `DELETE /api/plans/:id`
   - nested `plan_exercises` routes
-- `backend/routes/sessions.js`
+- `backend/modules/training/sessions.routes.js`
   - `GET /api/sessions`
   - `POST /api/sessions`
   - `DELETE /api/sessions/:id`
-- `backend/routes/progress.js`
+- `backend/modules/insights-coaching/progress.routes.js`
   - `GET /api/progress/:exercise_name`
-- `backend/routes/stats.js`
+- `backend/modules/insights-coaching/stats.routes.js`
   - `GET /api/stats`
 
 Beispiel vorher:
@@ -607,7 +659,8 @@ Relevante Dateien:
 
 - `backend/events.js`
 - `backend/server.js`
-- `backend/routes/workouts.js`
+- `backend/modules/training/training.routes.js`
+- `backend/modules/training/training.service.js`
 - `frontend/src/pages/Workouts.jsx`
 - `frontend/src/api.js`
 
@@ -843,8 +896,8 @@ VAPID_SUBJECT="mailto:admin@example.com"
 Backend:
 
 - `backend/push.js`: konfiguriert `web-push`, speichert Subscriptions und verschickt Notifications.
-- `backend/routes/push.js`: stellt `GET /api/push/public-key` und `POST /api/push/subscribe` bereit.
-- `backend/routes/workouts.js`: triggert Push bei `POST`, `PUT` und `DELETE` von Workout-Plänen.
+- `backend/modules/notifications/notifications.routes.js`: stellt `GET /api/push/public-key` und `POST /api/push/subscribe` bereit.
+- `backend/modules/training/training.routes.js` und `backend/modules/training/training.service.js`: triggern Push bei `POST`, `PUT` und `DELETE` von Workout-Plänen.
 - `backend/prisma/schema.prisma`: enthält das Model `PushSubscription`.
 - `backend/prisma/migrations/20260603104500_add_push_subscriptions/migration.sql`: legt die Tabelle `push_subscriptions` an.
 
@@ -1180,7 +1233,7 @@ Hinweis: Die Authentifizierung ist jetzt vorhanden. Der nächste Security-Schrit
 
 The backend uses a small REST-style API under `/api`. Existing frontend behavior is preserved: the frontend still calls the established `/api/plans`, `/api/sessions`, `/api/progress/:exercise_name`, and `/api/stats` paths.
 
-Workout plans are the main persisted workout resource. The route implementation lives in `backend/routes/workouts.js` and is mounted at both:
+Workout plans are the main persisted workout resource. The route implementation now lives in `backend/modules/training/training.routes.js` and is mounted at both:
 
 - `/api/plans` for backward compatibility with the existing frontend
 - `/api/workouts` as a clearer resource alias
@@ -1316,10 +1369,10 @@ The API follows these status conventions:
 The backend was refactored minimally:
 
 - Route handlers were moved out of `server.js`.
-- Workout/plan handlers now live in `backend/routes/workouts.js`.
-- Session handlers now live in `backend/routes/sessions.js`.
-- Progress handlers now live in `backend/routes/progress.js`.
-- Stats handlers now live in `backend/routes/stats.js`.
+- Workout/plan handlers now live in `backend/modules/training/training.routes.js`.
+- Session handlers now live in `backend/modules/training/sessions.routes.js`.
+- Progress handlers now live in `backend/modules/insights-coaching/progress.routes.js`.
+- Stats handlers now live in `backend/modules/insights-coaching/stats.routes.js`.
 - Existing frontend API paths were preserved.
 - SQLite persistence and schema were preserved.
 - Input validation was added where missing.

@@ -2,9 +2,9 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const { prisma } = require('../prismaClient');
-const { AUTH_COOKIE_NAME, authenticate, getAuthCookieOptions } = require('../middleware/authenticate');
-const { sendVerificationEmailLater } = require('../mail');
+const { prisma } = require('../../prismaClient');
+const { AUTH_COOKIE_NAME, authenticate, getAuthCookieOptions } = require('../../middleware/authenticate');
+const { sendVerificationEmailLater } = require('../../mail');
 
 const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;

@@ -1,7 +1,7 @@
 const express = require('express');
-const { prisma } = require('../prismaClient');
-const { broadcastToUser } = require('../events');
-const { sendPushToUserLater } = require('../push');
+const { prisma } = require('../../prismaClient');
+const { broadcastToUser } = require('../../events');
+const { sendPushToUserLater } = require('../../push');
 const {
   NotFoundError,
   ValidationError,
@@ -11,7 +11,7 @@ const {
   toNumberId,
   updateWorkoutPlan,
   validateExerciseInput,
-} = require('../services/workouts.service');
+} = require('./training.service');
 
 function createWorkoutsRouter() {
   const router = express.Router();

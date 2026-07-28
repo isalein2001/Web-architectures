@@ -1,5 +1,5 @@
 const express = require('express');
-const { prisma } = require('../prismaClient');
+const { prisma } = require('../../prismaClient');
 
 const serializeProgressLog = (log) => ({
   id: log.id,

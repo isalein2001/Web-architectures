@@ -1,5 +1,5 @@
 const express = require('express');
-const { prisma } = require('../prismaClient');
+const { prisma } = require('../../prismaClient');
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

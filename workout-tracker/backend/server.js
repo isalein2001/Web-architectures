@@ -1,14 +1,16 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-const createAuthRouter = require('./routes/auth');
-const createWorkoutsRouter = require('./routes/workouts');
-const createSessionsRouter = require('./routes/sessions');
-const createProgressRouter = require('./routes/progress');
-const createStatsRouter = require('./routes/stats');
-const createDailyActivityRouter = require('./routes/dailyActivity');
-const createPushRouter = require('./routes/push');
-const createCoachRouter = require('./routes/coach');
+const createAuthRouter = require('./modules/identity-access/identity-access.routes');
+const createWorkoutsRouter = require('./modules/training/training.routes');
+const createSessionsRouter = require('./modules/training/sessions.routes');
+const {
+  createCoachRouter,
+  createProgressRouter,
+  createStatsRouter,
+} = require('./modules/insights-coaching/insights-coaching.routes');
+const createDailyActivityRouter = require('./modules/daily-activity/daily-activity.routes');
+const createPushRouter = require('./modules/notifications/notifications.routes');
 const { authenticate } = require('./middleware/authenticate');
 const { createEventsRouter } = require('./events');
 
