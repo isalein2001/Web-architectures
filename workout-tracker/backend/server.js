@@ -23,8 +23,17 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 
 // The app runs behind the Apache reverse proxy on konsoleH.
-// Trust the first proxy so Express can read HTTPS/IP headers correctly.
-app.set('trust proxy', 1);
+// Only known proxy addresses may supply forwarding headers. A numeric hop count
+// would also trust an attacker-controlled X-Forwarded-For value when a request
+// reaches the app through a shorter path.
+const trustedProxies = [
+  'loopback',
+  ...String(process.env.TRUSTED_PROXY_IPS || '')
+    .split(',')
+    .map((address) => address.trim())
+    .filter(Boolean),
+];
+app.set('trust proxy', trustedProxies);
 app.disable('x-powered-by');
 
 app.use(express.json({ limit: '15mb' }));
