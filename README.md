@@ -133,10 +133,9 @@ vor und werden nicht im Repository gespeichert.
 
 ## Dokumentation
 
-- [Qualitätssicherung und Feature-Nachweise](docs/QUALITY_ASSURANCE.md)
-- [UX und Designsprache](docs/UX_AND_DESIGN.md)
-- [aktuelle Systemarchitektur](docs/ARCHITECTURE.md)
+- [zentrale Abgabe- und Architekturdokumentation](DOKUMENTATION.md)
 - [ausführliche Entwicklungs- und Lernprozessdokumentation](workout-tracker/frontend/README.md)
 
-Architekturdokumentation, Testanleitung und Retrospektive werden für die finale
-Abgabe ebenfalls als kompakte Dokumente in `docs/` gepflegt.
+`DOKUMENTATION.md` ist die maßgebliche Beschreibung des aktuellen
+Abgabestands. Die Frontend-README bleibt als ausführliches historisches
+Arbeitsprotokoll erhalten.
