@@ -528,7 +528,34 @@ Der reproduzierbare HTML-Report liegt unter
 `workout-tracker/backend/coverage/index.html`; die maschinenlesbare
 Zusammenfassung liegt daneben als `coverage-summary.json`.
 
-### Noch ausstehend
+### Frontend: Cypress-E2E-Tests
 
-- mindestens ein Cypress-E2E-Test pro kritischem User-Pfad
-- ein gemeinsamer Root-Befehl für Backend- und Frontendtests
+Die Cypress-Suite startet mit `npm run test:e2e` automatisch den vollständigen
+lokalen Stack aus Docker-MySQL, Prisma, Express und Vite. Sie bildet drei
+kritische User-Pfade im Browser ab:
+
+1. Registrierung, E-Mail-Verifizierung, zweistufiges Onboarding und Weiterleitung
+   zum Dashboard,
+2. Login, Aufruf der Account-Einstellungen und Logout,
+3. Erstellung eines individuellen Workoutplans, Speicherung über das Backend
+   und erneuter Nachweis des Plans nach einem Browser-Reload.
+
+Die Tests verwenden stabile `data-cy`-Selektoren nur an kritischen
+Bedienelementen. Temporäre Accounts enden auf `@example.test`; Datenbank-Tasks
+akzeptieren ausschließlich diese Domain und löschen die Testdaten nach dem
+Lauf. Der echte SMTP- und Push-Versand ist während E2E-Läufen deaktiviert. So
+bleibt der Test realistisch, reproduzierbar und ohne Auswirkungen auf echte
+Nutzer oder externe Dienste.
+
+Stand vom 29. Juli 2026: **1 Spec-Datei, 3 Tests, 3 bestanden**.
+
+### Gesamter Testlauf mit einem Befehl
+
+```bash
+npm test
+```
+
+Dieser Root-Befehl führt zuerst die 42 Backend-Tests samt Coverage-Report und
+anschließend alle Cypress-E2E-Pfade aus. Voraussetzung ist lediglich ein
+laufendes Docker Desktop; alle weiteren Dienste, Migrationen und Testschritte
+werden automatisch gestartet.

@@ -99,6 +99,8 @@ npm run db:start   # nur die lokale MySQL-Datenbank
 npm run db:stop    # lokale Docker-Services stoppen
 npm run lint       # statische Codeprüfung
 npm run test:backend # Vitest inklusive Docker/Prisma und Coverage
+npm run test:e2e   # Cypress gegen den vollständigen lokalen Stack
+npm test           # alle Backend- und E2E-Tests mit einem Befehl
 npm run --workspace workout-tracker/frontend build
 ```
 

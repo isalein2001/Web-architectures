@@ -428,7 +428,7 @@ export default function Landing({ currentUser }) {
           {currentUser ? (
             <NavLink className="landing-nav-button" to="/dashboard">{copy.dashboard}</NavLink>
           ) : (
-            <NavLink className="landing-nav-button" to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
+            <NavLink data-cy="landing-login" className="landing-nav-button" to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
           )}
         </nav>
       </header>

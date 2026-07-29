@@ -40,6 +40,17 @@ export default defineConfig([
     },
   },
   {
+    files: ['cypress/e2e/**/*.js', 'cypress/support/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.mocha,
+        Cypress: 'readonly',
+        cy: 'readonly',
+      },
+    },
+  },
+  {
     files: ['src/context/LanguageContext.jsx'],
     rules: {
       // Context and its hook intentionally share one small module.

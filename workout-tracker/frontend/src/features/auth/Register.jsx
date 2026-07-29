@@ -107,14 +107,14 @@ export default function Register({ onLogin }) {
               <label>
                 First name
                 <span className="auth-input-wrap">
-                  <input type="text" value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
+                  <input data-cy="register-first-name" type="text" value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
                   <User size={15} strokeWidth={2.1} />
                 </span>
               </label>
               <label>
                 Last name
                 <span className="auth-input-wrap">
-                  <input type="text" value={lastName} onChange={(event) => setLastName(event.target.value)} required />
+                  <input data-cy="register-last-name" type="text" value={lastName} onChange={(event) => setLastName(event.target.value)} required />
                   <User size={15} strokeWidth={2.1} />
                 </span>
               </label>
@@ -122,7 +122,7 @@ export default function Register({ onLogin }) {
             <label>
               Email address
               <span className="auth-input-wrap">
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                <input data-cy="register-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
                 <AtSign size={15} strokeWidth={2.1} />
               </span>
             </label>
@@ -130,7 +130,7 @@ export default function Register({ onLogin }) {
               <label>
                 Password
                 <span className="auth-input-wrap">
-                  <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+                  <input data-cy="register-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
                   <Lock size={15} strokeWidth={2.1} />
                 </span>
               </label>
@@ -138,6 +138,7 @@ export default function Register({ onLogin }) {
                 Confirm password
                 <span className="auth-input-wrap">
                   <input
+                    data-cy="register-password-confirmation"
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
@@ -151,6 +152,7 @@ export default function Register({ onLogin }) {
             <div className="auth-inline auth-terms">
               <label className="auth-check">
                 <input
+                  data-cy="register-terms"
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(event) => setAcceptedTerms(event.target.checked)}
@@ -162,7 +164,7 @@ export default function Register({ onLogin }) {
             </div>
 
             {error && <div className="auth-error">{error}</div>}
-            <button className="auth-submit" type="submit" disabled={isSubmitting}>
+            <button data-cy="register-submit" className="auth-submit" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creating account' : 'Register'}
             </button>
           </form>

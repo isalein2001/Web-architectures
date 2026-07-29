@@ -355,7 +355,7 @@ export default function Profile({ currentUser, onLogout, onUserUpdate }) {
                   <Pencil size={14} />
                 </label>
                 <div className="account-avatar-actions">
-                  <button className="account-footer-button" type="button" onClick={onLogout}>
+                  <button data-cy="logout" className="account-footer-button" type="button" onClick={onLogout}>
                     <LogOut size={14} /> {t('LOG OUT')}
                   </button>
                   <button className="account-footer-button danger" type="button">

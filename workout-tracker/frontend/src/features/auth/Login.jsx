@@ -42,14 +42,14 @@ export default function Login({ onLogin }) {
             <label>
               Email address
               <span className="auth-input-wrap">
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                <input data-cy="login-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
                 <Mail size={15} strokeWidth={2.1} />
               </span>
             </label>
             <label>
               Password
               <span className="auth-input-wrap">
-                <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+                <input data-cy="login-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
                 <Lock size={15} strokeWidth={2.1} />
               </span>
             </label>
@@ -63,7 +63,7 @@ export default function Login({ onLogin }) {
             </div>
 
             {error && <div className="auth-error">{error}</div>}
-            <button className="auth-submit" type="submit" disabled={isSubmitting}>
+            <button data-cy="login-submit" className="auth-submit" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Signing in' : 'Login'}
             </button>
           </form>

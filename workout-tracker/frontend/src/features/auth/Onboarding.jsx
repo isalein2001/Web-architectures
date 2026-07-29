@@ -139,7 +139,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
             <div className="onboarding-fields onboarding-fields-basic">
               <label>
                 <span><UserRound size={16} /> Gender</span>
-                <select className={fieldErrors.gender ? 'field-error' : ''} value={gender} onChange={(event) => { setGender(event.target.value); clearFieldError('gender'); }} required>
+                <select data-cy="onboarding-gender" className={fieldErrors.gender ? 'field-error' : ''} value={gender} onChange={(event) => { setGender(event.target.value); clearFieldError('gender'); }} required>
                   <option value="Female">Female</option>
                   <option value="Male">Male</option>
                   <option value="Other">Other</option>
@@ -148,14 +148,14 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
               <label>
                 <span><Ruler size={16} /> Height</span>
                 <div className="onboarding-unit-field">
-                  <input className={fieldErrors.heightCm ? 'field-error' : ''} type="number" value={heightCm} onChange={(event) => { setHeightCm(event.target.value); clearFieldError('heightCm'); }} placeholder="160" required />
+                  <input data-cy="onboarding-height" className={fieldErrors.heightCm ? 'field-error' : ''} type="number" value={heightCm} onChange={(event) => { setHeightCm(event.target.value); clearFieldError('heightCm'); }} placeholder="160" required />
                   <small>cm</small>
                 </div>
               </label>
               <label>
                 <span><Scale size={16} /> Weight</span>
                 <div className="onboarding-unit-field">
-                  <input className={fieldErrors.weightKg ? 'field-error' : ''} type="number" value={weightKg} onChange={(event) => { setWeightKg(event.target.value); clearFieldError('weightKg'); }} placeholder="54" required />
+                  <input data-cy="onboarding-weight" className={fieldErrors.weightKg ? 'field-error' : ''} type="number" value={weightKg} onChange={(event) => { setWeightKg(event.target.value); clearFieldError('weightKg'); }} placeholder="54" required />
                   <small>kg</small>
                 </div>
               </label>
@@ -163,6 +163,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
                 <span><Droplets size={16} /> Daily water target</span>
                 <div className="onboarding-unit-field">
                   <input
+                    data-cy="onboarding-water"
                     type="number"
                     min="1.5"
                     max="7"
@@ -184,7 +185,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
                 <label>
                   <span><Activity size={16} /> Daily steps</span>
                   <div className="onboarding-unit-field">
-                    <input className={fieldErrors.dailyStepGoal ? 'field-error' : ''} type="number" min="1000" max="100000" step="500" value={dailyStepGoal} onChange={(event) => { setDailyStepGoal(event.target.value); clearFieldError('dailyStepGoal'); }} required />
+                    <input data-cy="onboarding-steps" className={fieldErrors.dailyStepGoal ? 'field-error' : ''} type="number" min="1000" max="100000" step="500" value={dailyStepGoal} onChange={(event) => { setDailyStepGoal(event.target.value); clearFieldError('dailyStepGoal'); }} required />
                     <small>steps</small>
                   </div>
                   <div className="onboarding-suggestion-row">
@@ -198,7 +199,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
                 <label>
                   <span><Flame size={16} /> Workout calories</span>
                   <div className="onboarding-unit-field">
-                    <input className={fieldErrors.dailyCalorieGoal ? 'field-error' : ''} type="number" min="500" max="8000" step="50" value={dailyCalorieGoal} onChange={(event) => { setDailyCalorieGoal(event.target.value); clearFieldError('dailyCalorieGoal'); }} required />
+                    <input data-cy="onboarding-calories" className={fieldErrors.dailyCalorieGoal ? 'field-error' : ''} type="number" min="500" max="8000" step="50" value={dailyCalorieGoal} onChange={(event) => { setDailyCalorieGoal(event.target.value); clearFieldError('dailyCalorieGoal'); }} required />
                     <small>kcal</small>
                   </div>
                   <div className="onboarding-suggestion-row">
@@ -212,7 +213,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
                 <label>
                   <span><Clock size={16} /> Training minutes</span>
                   <div className="onboarding-unit-field">
-                    <input className={fieldErrors.dailyTrainingMinutesGoal ? 'field-error' : ''} type="number" min="5" max="300" step="5" value={dailyTrainingMinutesGoal} onChange={(event) => { setDailyTrainingMinutesGoal(event.target.value); clearFieldError('dailyTrainingMinutesGoal'); }} required />
+                    <input data-cy="onboarding-minutes" className={fieldErrors.dailyTrainingMinutesGoal ? 'field-error' : ''} type="number" min="5" max="300" step="5" value={dailyTrainingMinutesGoal} onChange={(event) => { setDailyTrainingMinutesGoal(event.target.value); clearFieldError('dailyTrainingMinutesGoal'); }} required />
                     <small>min</small>
                   </div>
                   <div className="onboarding-suggestion-row">
@@ -233,7 +234,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
                 <span><Goal size={16} /> Training focus</span>
                 <div>
                   {goals.map((goal) => (
-                    <button key={goal.id} className={`${fitnessGoal === goal.id ? 'active' : ''} ${fieldErrors.fitnessGoal ? 'field-error' : ''}`} type="button" onClick={() => { setFitnessGoal(goal.id); clearFieldError('fitnessGoal'); }}>
+                    <button data-cy={`onboarding-goal-${goal.id}`} key={goal.id} className={`${fitnessGoal === goal.id ? 'active' : ''} ${fieldErrors.fitnessGoal ? 'field-error' : ''}`} type="button" onClick={() => { setFitnessGoal(goal.id); clearFieldError('fitnessGoal'); }}>
                       <strong>{goal.title}</strong>
                       <small>{goal.text}</small>
                     </button>
@@ -251,11 +252,11 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
               </button>
             )}
             {step === 1 ? (
-              <button className="onboarding-submit" type="button" onClick={continueToDailyGoals}>
+              <button data-cy="onboarding-continue" className="onboarding-submit" type="button" onClick={continueToDailyGoals}>
                 Continue
               </button>
             ) : (
-              <button className="onboarding-submit" type="button" onClick={submitOnboarding} disabled={isSubmitting}>
+              <button data-cy="onboarding-submit" className="onboarding-submit" type="button" onClick={submitOnboarding} disabled={isSubmitting}>
                 {isSubmitting ? 'Saving profile' : 'Enter dashboard'}
               </button>
             )}

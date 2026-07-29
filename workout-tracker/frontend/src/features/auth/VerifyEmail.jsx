@@ -52,6 +52,7 @@ export default function VerifyEmail({ currentUser, onUserUpdate }) {
               Verification code
               <span className="auth-input-wrap">
                 <input
+                  data-cy="verification-code"
                   inputMode="numeric"
                   value={code}
                   onChange={(event) => setCode(event.target.value)}
@@ -65,7 +66,7 @@ export default function VerifyEmail({ currentUser, onUserUpdate }) {
             {message && <div className="auth-success">{message}</div>}
             {error && <div className="auth-error">{error}</div>}
 
-            <button className="auth-submit" type="submit" disabled={isSubmitting}>
+            <button data-cy="verification-submit" className="auth-submit" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Verifying' : 'Verify account'}
             </button>
           </form>

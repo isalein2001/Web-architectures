@@ -878,6 +878,7 @@ export default function Workouts({ currentUser }) {
         </div>
 
         <input
+          data-cy="workout-name"
           className={`workout-name-input ${validationErrors.workoutName ? 'field-error' : ''}`}
           type="text"
           value={workoutName}
@@ -945,6 +946,7 @@ export default function Workouts({ currentUser }) {
             >
               <div className="exercise-card-header">
                 <input
+                  data-cy="exercise-name"
                   className={`exercise-title-input ${validationErrors.exercises[exercise.id]?.name ? 'field-error' : ''}`}
                   value={exercise.name}
                   onChange={(event) => updateExercise(exercise.id, 'name', event.target.value)}
@@ -989,6 +991,7 @@ export default function Workouts({ currentUser }) {
                 <label>
                   <span>{t('SETS')}</span>
                   <input
+                    data-cy="exercise-sets"
                     className={validationErrors.exercises[exercise.id]?.sets ? 'field-error' : ''}
                     value={exercise.sets}
                     onChange={(event) => updateExercise(exercise.id, 'sets', event.target.value)}
@@ -1000,6 +1003,7 @@ export default function Workouts({ currentUser }) {
                 <label>
                   <span>{t('REPS')}</span>
                   <input
+                    data-cy="exercise-reps"
                     className={validationErrors.exercises[exercise.id]?.reps ? 'field-error' : ''}
                     value={exercise.reps}
                     onChange={(event) => updateExercise(exercise.id, 'reps', event.target.value)}
@@ -1053,6 +1057,7 @@ export default function Workouts({ currentUser }) {
         <div className="workout-builder-actions">
           <div className="add-exercise-control">
             <button
+              data-cy="add-exercise"
               className={`add-exercise-button ${validationErrors.noExercises ? 'field-error' : ''}`}
               type="button"
               onClick={() => setIsExerciseLibraryOpen(true)}
@@ -1065,7 +1070,7 @@ export default function Workouts({ currentUser }) {
               </div>
             )}
           </div>
-          <button className="save-workout-button" type="button" onClick={saveWorkout} disabled={isCoverProcessing}>
+          <button data-cy="save-workout" className="save-workout-button" type="button" onClick={saveWorkout} disabled={isCoverProcessing}>
             {editingPlanId ? t('UPDATE WORKOUT') : t('SAVE WORKOUT')}
           </button>
         </div>
@@ -1421,7 +1426,7 @@ export default function Workouts({ currentUser }) {
           </div>
           </LayoutGroup>
 
-          <button className="exercise-library-custom" type="button" onClick={addExercise}>
+          <button data-cy="create-custom-exercise" className="exercise-library-custom" type="button" onClick={addExercise}>
             <PlusCircle size={12} />
             {t('Create custom exercise')}
           </button>

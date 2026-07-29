@@ -8,6 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "cypress:open": "env -u ELECTRON_RUN_AS_NODE cypress open",
+    "cypress:run": "env -u ELECTRON_RUN_AS_NODE cypress run",
+    "test:e2e": "start-test \"SMTP_PASSWORD= VAPID_PUBLIC_KEY= VAPID_PRIVATE_KEY= npm --prefix ../.. start\" http://localhost:5173 \"npm run cypress:run\"",
     "cap:sync": "npm run build && cap sync && node scripts/patch-ios-healthkit-plugin.mjs",
     "cap:sync:ios": "npm run build && cap sync ios && node scripts/patch-ios-healthkit-plugin.mjs",
     "cap:open:ios": "cap open ios"
@@ -32,10 +35,12 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
+    "cypress": "^15.19.0",
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "start-server-and-test": "^3.0.11",
     "vite": "^8.1.5"
   },
   "overrides": {
