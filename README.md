@@ -135,6 +135,7 @@ vor und werden nicht im Repository gespeichert.
 
 - [Qualitätssicherung und Feature-Nachweise](docs/QUALITY_ASSURANCE.md)
 - [UX und Designsprache](docs/UX_AND_DESIGN.md)
+- [aktuelle Systemarchitektur](docs/ARCHITECTURE.md)
 - [ausführliche Entwicklungs- und Lernprozessdokumentation](workout-tracker/frontend/README.md)
 
 Architekturdokumentation, Testanleitung und Retrospektive werden für die finale
