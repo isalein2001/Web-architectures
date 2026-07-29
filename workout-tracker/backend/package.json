@@ -15,6 +15,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "body-parser": "2.3.0"
+  },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.9.1",
     "@prisma/client": "^7.9.1",
