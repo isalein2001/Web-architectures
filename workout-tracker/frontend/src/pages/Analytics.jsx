@@ -594,10 +594,6 @@ const getPercentChange = (currentValue, previousValue) => {
 
 const isWithinRange = (date, startDate, endDate) => date >= startDate && date <= endDate;
 
-const getTrainingVolume = (entries) => entries.reduce((sum, entry) => (
-  sum + ((entry.weight || 0) * (entry.reps || 0))
-), 0);
-
 const getAverageDurationMinutes = (sessions = []) => {
   const durations = sessions
     .map((session) => Number(session.duration_seconds) || 0)
@@ -784,7 +780,6 @@ const buildPerformanceIntelligence = (sessions = [], referenceDate = new Date())
   const entries = getLogEntries(sessions);
   const strengthEntries = getStrengthEntries(sessions);
   const last30Entries = entries.filter((entry) => isWithinRange(entry.date, last30Start, now));
-  const previous30Entries = entries.filter((entry) => isWithinRange(entry.date, previous30Start, previous30End));
   const last30Sessions = sessions.filter((session) => {
     const date = getSessionDate(session);
     return date && isWithinRange(date, last30Start, now);
@@ -1144,7 +1139,7 @@ export default function Analytics({ currentUser }) {
       setSessions(mergedSessions);
       setWorkoutSchedule((currentSchedule) => mergeScheduleWithSessions(currentSchedule, mergedSessions));
       return mergedSessions;
-    } catch (error) {
+    } catch {
       const fallbackSessions = mergeSessionsWithStorage([], storedSessions);
       saveStoredWorkoutSessions(currentUser, fallbackSessions);
       setStats(buildStatsFromSessions(fallbackSessions));

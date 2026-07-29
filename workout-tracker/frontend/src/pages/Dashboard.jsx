@@ -540,7 +540,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
       sessionDates: DEMO_DASHBOARD_SESSIONS.map((session) => session.date),
     }
     : stats;
-  const currentWorkoutStreak = getCurrentWorkoutStreak(displayStats.sessionDates || displaySessions.map((session) => session.date));
   const displayActivity = shouldUseDemoValues
     ? {
       water_intake_ml: 2400,

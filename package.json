@@ -7,8 +7,10 @@
     "workout-tracker/backend"
   ],
   "scripts": {
-    "dev": "npm run --workspace workout-tracker/backend start & npm run --workspace workout-tracker/frontend dev",
+    "dev": "node scripts/dev.mjs",
     "start": "npm run dev",
+    "db:start": "docker compose up -d --wait mysql",
+    "db:stop": "docker compose down",
     "lint": "npm run --workspace workout-tracker/frontend lint && npm run --workspace workout-tracker/backend lint"
   },
   "overrides": {

@@ -641,7 +641,7 @@ export default function Workouts({ currentUser }) {
       return;
     }
 
-    let planImage = '/hero-bg.jpg';
+    let planImage;
     try {
       planImage = await preparePlanImageForSave(coverImage);
     } catch {
@@ -666,7 +666,7 @@ export default function Workouts({ currentUser }) {
       })),
     };
 
-    let persistedPlan = null;
+    let persistedPlan;
     const editingPlan = savedPlans.find((plan) => plan.id === editingPlanId);
     const currentBackendId = editingPlan?.backendPlanId;
 
