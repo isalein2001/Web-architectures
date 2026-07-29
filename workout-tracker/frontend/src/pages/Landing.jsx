@@ -5,6 +5,8 @@ import { Activity, ArrowRight, BarChart3, Dumbbell, Globe, Instagram, LineChart,
 import { useLanguage } from '../context/LanguageContext';
 import './Landing.css';
 
+const ScrollPhone = React.lazy(() => import('../components/ScrollPhone'));
+
 const reveal = {
   hidden: { opacity: 0, y: 34 },
   visible: { opacity: 1, y: 0 },
@@ -40,6 +42,38 @@ function ProductPreview({ preview, compact = false }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function DeferredScrollPhone({ children }) {
+  const boundaryRef = useRef(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const boundary = boundaryRef.current;
+    if (!boundary || isReady) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setIsReady(true);
+        observer.disconnect();
+      },
+      { rootMargin: '700px 0px' },
+    );
+    observer.observe(boundary);
+
+    return () => observer.disconnect();
+  }, [isReady]);
+
+  return (
+    <div className={`landing-scroll-phone-boundary${isReady ? ' is-ready' : ''}`} ref={boundaryRef}>
+      {isReady && (
+        <React.Suspense fallback={null}>
+          <ScrollPhone videoSrc="/app-demo.mp4">{children}</ScrollPhone>
+        </React.Suspense>
+      )}
     </div>
   );
 }
@@ -524,40 +558,35 @@ export default function Landing({ currentUser }) {
       </section>
 
       <section className="landing-intro" id="features">
-        <motion.div
-          className="landing-section-heading"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.45 }}
-          variants={reveal}
-          transition={{ duration: 0.6 }}
-        >
-          <span>{copy.introEyebrow}</span>
-          <h2>{copy.introTitle}</h2>
-          <p>{copy.introText}</p>
-        </motion.div>
-
-        <div className="landing-feature-grid">
-          {featureCards.map(({ title, text, Icon, step, meta }, index) => (
-            <motion.article
-              className="landing-feature"
-              key={title}
+        <DeferredScrollPhone>
+          <div className="landing-phone-story">
+            <motion.div
+              className="landing-phone-story-heading"
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.35 }}
+              viewport={{ once: true, amount: 0.45 }}
               variants={reveal}
-              transition={{ duration: 0.55, delay: index * 0.08 }}
+              transition={{ duration: 0.6 }}
             >
-              <div className="landing-feature-topline">
-                <span className="landing-feature-number">{step}</span>
-                <span className="landing-feature-meta">{meta}</span>
-              </div>
-              <span className="landing-feature-icon"><Icon size={22} /></span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </motion.article>
-          ))}
-        </div>
+              <span>{copy.introEyebrow}</span>
+              <h2>{copy.introTitle}</h2>
+              <p>{copy.introText}</p>
+            </motion.div>
+
+            <div className="landing-phone-feature-map">
+              {featureCards.map(({ title, text, step, meta }) => (
+                <article className="landing-phone-feature" key={title}>
+                  <div>
+                    <span>{step}</span>
+                    <small>{meta}</small>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </DeferredScrollPhone>
 
         <motion.div
           aria-hidden="true"

@@ -54,7 +54,8 @@ body {
 
   body {
     background-color: var(--palette-0e0e0e);
-    overflow-x: hidden;
+    /* clip statt hidden – erhält position:sticky auf Mobile */
+    overflow-x: clip;
     overscroll-behavior-y: none;
   }
 
