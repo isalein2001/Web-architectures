@@ -98,6 +98,7 @@ npm start          # Datenbank, Migrationen, Backend und Frontend
 npm run db:start   # nur die lokale MySQL-Datenbank
 npm run db:stop    # lokale Docker-Services stoppen
 npm run lint       # statische Codeprüfung
+npm run test:backend # Vitest inklusive Docker/Prisma und Coverage
 npm run --workspace workout-tracker/frontend build
 ```
 

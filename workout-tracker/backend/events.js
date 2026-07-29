@@ -58,6 +58,8 @@ const createEventsRouter = () => {
 };
 
 module.exports = {
+  addClient,
   broadcastToUser,
   createEventsRouter,
+  writeEvent,
 };

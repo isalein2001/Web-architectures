@@ -12,8 +12,9 @@
     "check:modules": "node scripts/check-module-boundaries.js",
     "lint": "node scripts/lint.js && npm run check:modules",
     "start": "node server.js",
+    "test:prepare": "docker compose -f ../../docker-compose.yml up -d --wait mysql && npm run prisma:generate && npm run prisma:deploy",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "npm run test:prepare && vitest run --coverage"
   },
   "keywords": [],
   "author": "",

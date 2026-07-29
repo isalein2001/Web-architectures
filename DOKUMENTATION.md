@@ -493,9 +493,42 @@ Entscheidungen passen weiterhin zu Teamgröße und Produktumfang.
 
 ## 8. Tests und Abgabestatus
 
-Für die finale Abgabe werden im nächsten Schritt ergänzt:
+### Backend: Vitest und Coverage
 
-- Backendtests mit Vitest und mindestens 80 Prozent Coverage
+Der Backend-Testlauf startet mit einem einzigen Root-Befehl:
+
+```bash
+npm run test:backend
+```
+
+Der Befehl startet beziehungsweise prüft MySQL über Docker Compose, generiert
+den Prisma Client, wendet Migrationen an und führt anschließend Vitest mit
+V8-Coverage aus. Die Integrationstests verwenden einen eindeutig benannten
+Testaccount, testen ausschließlich dessen Daten und löschen ihn danach wieder.
+
+Stand vom 29. Juli 2026:
+
+| Kennzahl | Ergebnis | Schwelle |
+| --- | ---: | ---: |
+| Testdateien | 6 bestanden | – |
+| Tests | 42 bestanden | – |
+| Statements | 80,32 % | 80 % |
+| Lines | 83,49 % | 80 % |
+| Functions | 89,09 % | 80 % |
+| Branches | 63,34 % | informativ |
+
+Getestet werden nicht nur Happy Paths, sondern unter anderem schwache
+Passwörter, falsche Login- und Verifikationsdaten, ungültiges Onboarding,
+CSRF/CORS, Mass Assignment, Ownership, ungültige Aktivitätswerte,
+idempotente Session-Speicherung, SSE-Disconnects und abgelaufene
+Push-Subscriptions. Feste Vitest-Schwellen für Statements, Lines und Functions
+verhindern, dass die geforderte Coverage später unbemerkt unterschritten wird.
+
+Der reproduzierbare HTML-Report liegt unter
+`workout-tracker/backend/coverage/index.html`; die maschinenlesbare
+Zusammenfassung liegt daneben als `coverage-summary.json`.
+
+### Noch ausstehend
+
 - mindestens ein Cypress-E2E-Test pro kritischem User-Pfad
-- ein gemeinsamer Testbefehl
-- reproduzierbarer Coverage-Report im Repository und Abgabe-ZIP
+- ein gemeinsamer Root-Befehl für Backend- und Frontendtests

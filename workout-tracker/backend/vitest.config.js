@@ -25,6 +25,11 @@ module.exports = defineConfig({
         'modules/insights-coaching/insights-coaching.service.js',
         'modules/notifications/notifications.service.js',
       ],
+      thresholds: {
+        statements: 80,
+        lines: 80,
+        functions: 80,
+      },
     },
   },
 });

@@ -11,7 +11,8 @@
     "start": "npm run dev",
     "db:start": "docker compose up -d --wait mysql",
     "db:stop": "docker compose down",
-    "lint": "npm run --workspace workout-tracker/frontend lint && npm run --workspace workout-tracker/backend lint"
+    "lint": "npm run --workspace workout-tracker/frontend lint && npm run --workspace workout-tracker/backend lint",
+    "test:backend": "npm run --workspace workout-tracker/backend test:coverage"
   },
   "overrides": {
     "body-parser": "2.3.0",
