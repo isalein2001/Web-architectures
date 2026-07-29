@@ -75,7 +75,9 @@ jobs:
             touch server.js 2>/dev/null || touch app.js 2>/dev/null
 
             echo "Starte Node.js-App neu, damit Backend-Code neu geladen wird..."
-            if command -v passenger-config >/dev/null 2>&1; then
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 restart all --update-env
+            elif command -v passenger-config >/dev/null 2>&1; then
               passenger-config restart-app "$(pwd)" || true
             fi
           EOF
