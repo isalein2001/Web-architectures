@@ -7,6 +7,76 @@ Trainingstracking, tägliche Aktivität, Hydration und Fortschrittsanalyse. Die
 Anwendung läuft als Website unter [next-reps.de](https://next-reps.de) und wird
 mit Capacitor zusätzlich als iOS-App ausgeliefert.
 
+### Ausgangsproblem und Produktidee
+
+Die Idee zu NEXT REPS entstand aus einem konkreten Problem im Fitnessalltag:
+Viele Trainierende finden keine Anwendung, die Trainingsplanung,
+Satz- und Wiederholungstracking sowie eine verständliche Auswertung in einem
+durchgängigen Ablauf verbindet. Stattdessen werden Trainingsdaten häufig über
+Excel-Tabellen, lose Notizen auf dem Smartphone oder ein klassisches Notizbuch
+geführt. Diese Lösungen funktionieren grundsätzlich, erzeugen aber Reibung:
+Daten sind verstreut, Fortschritte schwer erkennbar und die Planung des
+nächsten Trainings bleibt weitgehend manuell.
+
+NEXT REPS bündelt diesen Ablauf in einem Produkt. Nutzer können individuelle
+Trainingspläne anlegen, Übungen mit Sätzen und Wiederholungen dokumentieren,
+Trainingseinheiten durchführen und ihre Entwicklung anschließend in
+Auswertungen nachvollziehen. Die Anwendung ersetzt damit nicht nur die
+Excel-Tabelle oder das Trainingsbuch, sondern schafft einen geschlossenen
+Kreislauf aus **Planen, Trainieren, Erfassen und Analysieren**.
+
+### Entwicklung vom Webprodukt zur mobilen Fitnessplattform
+
+Die Lösung wurde bewusst schrittweise entwickelt:
+
+1. Zunächst entstand eine Webanwendung, um die Kernidee schnell nutzbar und
+   plattformunabhängig zu validieren.
+2. Danach kamen Fortschrittsanalysen, Tagesaktivität, Hydration und eine aktive
+   Trainingsplanung hinzu.
+3. Der React-Client wurde anschließend mit Capacitor als iOS-App umgesetzt.
+4. Die mobile Anwendung wurde mit Apple Health beziehungsweise der Apple Watch
+   verbunden, damit relevante Aktivitätsdaten in den persönlichen
+   Trainingskontext einfließen können.
+
+Diese Entwicklung erklärt auch die gewählte Architektur: React/Vite ermöglicht
+eine gemeinsame Produktoberfläche für Web und iOS, während das zentrale
+Express-Backend Pläne, Sessions und Analysen für beide Clients bereitstellt.
+Web- und Mobilprodukt sind dadurch keine getrennten Prototypen, sondern zwei
+Zugänge zum selben System.
+
+### Branding, Vermarktung und Produktziel
+
+NEXT REPS besitzt eine eigenständige visuelle Identität mit selbst entwickeltem
+Logo, Key Visuals, Typografie, Farbwelt und einer inszenierten Landingpage.
+Begleitend wurde eine Instagram-Präsenz aufgebaut, über die das Produkt
+vorgestellt, beworben und perspektivisch mit einer Fitness-Community
+weiterentwickelt werden soll. Branding und Marketing wurden somit nicht erst
+als spätere Dekoration betrachtet, sondern als Teil des Produktkonzepts.
+
+Das Ziel endet nicht mit der Prüfungsabgabe. Die App soll in naher Zukunft
+veröffentlicht, vertrieben und mit realen Nutzern aktiv getestet werden. Dabei
+sollen Nutzungsfeedback, technische Stabilität und die Verständlichkeit der
+Analysen systematisch überprüft werden. Die aktuelle Anwendung bildet dafür
+einen funktionsfähigen Produktkern.
+
+### Produkt-Roadmap
+
+Die folgenden Funktionen sind als nächste Ausbaustufen geplant und werden klar
+vom bereits implementierten Umfang getrennt:
+
+| Ausbaustufe | Geplanter Nutzen |
+| --- | --- |
+| Pläne teilen | Trainingspläne zwischen Nutzern freigeben sowie als PDF exportieren oder versenden |
+| Trainer-Funktion | Trainer erstellen Pläne, weisen sie Sportlern zu und werten deren Durchführung und Entwicklung aus |
+| KI-gestütztes Coaching | Auf Basis vorhandener Trainings- und Analysedaten Pläne vorschlagen, Entwicklungen erklären und individualisierte Hinweise geben |
+| Öffentlicher Produktstart | App veröffentlichen, aktiv vermarkten und anhand realer Nutzung iterativ verbessern |
+
+Für die KI-Funktionen gilt bewusst: Empfehlungen sollen nachvollziehbar bleiben
+und vorhandene Daten nutzen, ohne medizinische Diagnosen oder professionelle
+Betreuung vorzutäuschen. Vor einer Umsetzung müssen deshalb Datenschutz,
+Einwilligung, Datenqualität und transparente Grenzen der Empfehlungen
+architektonisch berücksichtigt werden.
+
 Dieses Dokument ist die zentrale Dokumentation des Abgabestands. Es verbindet
 die aktuelle Systemarchitektur mit den Entscheidungen aus den Studio-Sessions,
 begründet verworfene Alternativen und reflektiert, was im Nachhinein anders
