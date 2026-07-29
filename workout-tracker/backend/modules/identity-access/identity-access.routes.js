@@ -296,6 +296,9 @@ function createAuthRouter() {
         where: { id: req.user.userId },
       });
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (isDemoAccount(currentUser.email)) {
+        return res.status(403).json({ error: 'Der Demo-Account kann nicht geändert werden.' });
+      }
 
       if (email !== currentUser.email) {
         const existingUser = await prisma.user.findFirst({
