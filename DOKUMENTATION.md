@@ -15,99 +15,52 @@ mit Capacitor zusätzlich als iOS-App ausgeliefert.
 
 ### Ausgangsproblem und Produktidee
 
-Die Idee zu NEXT REPS entstand aus einem konkreten Problem im Fitnessalltag:
-Viele Trainierende finden keine Anwendung, die Trainingsplanung,
-Satz- und Wiederholungstracking sowie eine verständliche Auswertung in einem
-durchgängigen Ablauf verbindet. Stattdessen werden Trainingsdaten häufig über
-Excel-Tabellen, lose Notizen auf dem Smartphone oder ein klassisches Notizbuch
-geführt. Diese Lösungen funktionieren grundsätzlich, erzeugen aber Reibung:
-Daten sind verstreut, Fortschritte schwer erkennbar und die Planung des
-nächsten Trainings bleibt weitgehend manuell.
-
-NEXT REPS bündelt diesen Ablauf in einem Produkt. Nutzer können individuelle
-Trainingspläne anlegen, Übungen mit Sätzen und Wiederholungen dokumentieren,
-Trainingseinheiten durchführen und ihre Entwicklung anschließend in
-Auswertungen nachvollziehen. Die Anwendung ersetzt damit nicht nur die
-Excel-Tabelle oder das Trainingsbuch, sondern schafft einen geschlossenen
-Kreislauf aus **Planen, Trainieren, Erfassen und Analysieren**.
+Viele Trainierende dokumentieren Pläne, Sätze und Wiederholungen in
+Excel-Tabellen, Smartphone-Notizen oder Notizbüchern. Dadurch sind Daten
+verstreut, Fortschritte schwer erkennbar und kommende Einheiten weiterhin
+manuell zu planen. NEXT REPS verbindet diese bislang getrennten Schritte zu
+einem Kreislauf aus **Planen, Trainieren, Erfassen und Analysieren**:
+individuelle Pläne erstellen, Sätze und Wiederholungen loggen, Einheiten
+durchführen und die Entwicklung verständlich auswerten.
 
 ### Entwicklung vom Webprodukt zur mobilen Fitnessplattform
 
-Die Lösung wurde bewusst schrittweise entwickelt:
+| Phase | Entwicklung und Begründung |
+| --- | --- |
+| Web-MVP | Kernidee schnell, plattformunabhängig und mit realen Abläufen validieren |
+| Funktionsausbau | Analytics, Tagesaktivität, Hydration und aktive Trainingsplanung ergänzen |
+| Mobile App | denselben React-Client mit Capacitor als iOS-App bereitstellen |
+| Wearable | Apple Health beziehungsweise Apple Watch in den persönlichen Trainingskontext einbinden |
 
-1. Zunächst entstand eine Webanwendung, um die Kernidee schnell nutzbar und
-   plattformunabhängig zu validieren.
-2. Danach kamen Fortschrittsanalysen, Tagesaktivität, Hydration und eine aktive
-   Trainingsplanung hinzu.
-3. Der React-Client wurde anschließend mit Capacitor als iOS-App umgesetzt.
-4. Die mobile Anwendung wurde mit Apple Health beziehungsweise der Apple Watch
-   verbunden, damit relevante Aktivitätsdaten in den persönlichen
-   Trainingskontext einfließen können.
-
-Diese Entwicklung erklärt auch die gewählte Architektur: React/Vite ermöglicht
-eine gemeinsame Produktoberfläche für Web und iOS, während das zentrale
-Express-Backend Pläne, Sessions und Analysen für beide Clients bereitstellt.
-Web- und Mobilprodukt sind dadurch keine getrennten Prototypen, sondern zwei
-Zugänge zum selben System.
+React/Vite ermöglicht dabei eine gemeinsame Oberfläche für Web und iOS; das
+Express-Backend stellt beiden Clients Pläne, Sessions und Analysen bereit. Es
+handelt sich somit um zwei Zugänge zu demselben Produkt statt um getrennte
+Prototypen.
 
 ### Branding, Vermarktung und Produktziel
 
-NEXT REPS besitzt eine vollständig eigenständig entwickelte visuelle
-Identität. Branding, Grafikdesign und Logo wurden nicht aus einer vorhandenen
-Vorlage übernommen, sondern in einem vollständigen Designprozess erarbeitet.
+Die visuelle Identität wurde vollständig eigenständig entwickelt:
 
-Am Anfang stand die visuelle und strategische Recherche. Auf Miro wurde ein
-Moodboard aufgebaut, das unterschiedliche Richtungen für Sport, Energie,
-Fortschritt, Technologie, Typografie und Farbstimmung zusammenführte. Das
-Moodboard diente nicht als Sammlung beliebiger schöner Bilder, sondern als
-Entscheidungsgrundlage: Welche Stimmung soll die Marke vermitteln, wie
-unterscheidet sie sich von klassischen Fitnessstudios und welche Elemente
-lassen sich über App, Website und Social Media hinweg konsistent einsetzen?
+| Schritt | Ergebnis und Gedanke |
+| --- | --- |
+| Recherche | Miro-Moodboard zu Sport, Energie, Fortschritt, Technologie, Typografie und Farbstimmung als strategische Entscheidungsgrundlage |
+| Konzeption | Handskizzen verbinden Buchstaben, Namen und Produktaussage; Pfeile stehen für Tracking, Richtung, Wiederholung und Entwicklung |
+| Iteration | mehrere formale und typografische Varianten wurden verglichen, reduziert und zum heutigen Zeichen weiterentwickelt |
+| Reinzeichnung | Adobe Illustrator für skalierbare Vektoren, präzise Proportionen, Abstände und Logoanwendungen |
+| Markensystem | Dark Mode, Lime-Grün, gerichtete Formen, reduzierte Typografie, Key Visuals, Bildstimmungen, Motion sowie Logo- und Sublogo-Anwendungen |
+| Praxistransfer | Einsatz in Website, iOS-App, Landingpage, Instagram-Posts und Reels |
 
-Auf dieser Basis entstanden Logoentwürfe zunächst als Handskizzen. Dabei wurde
-untersucht, wie sich Buchstaben, Name und Produktaussage konzeptionell
-miteinander verbinden lassen. Ein zentrales Motiv wurden Pfeile: Sie stehen
-für Tracking, Richtung, Wiederholung, Entwicklung und den nächsten
-Trainingsfortschritt. Mehrere formale und typografische Varianten wurden
-verglichen, reduziert und weiterentwickelt, bis das heutige Zeichen und die
-Wortmarke entstanden.
-
-Die ausgewählten Entwürfe wurden anschließend in Adobe Illustrator als
-präzise Vektorgrafiken umgesetzt. Dort wurden Proportionen, Abstände,
-Linienführung und unterschiedliche Logoanwendungen ausgearbeitet. Die
-finalisierten Dateien wurden in geeigneten Formaten exportiert und in Website,
-iOS-App, Landingpage und weitere Markenmedien integriert. Dadurch bleibt das
-Logo von kleinen App-Icons bis zu großen Key Visuals konsistent und
-skalierbar.
-
-Zur Brand Identity gehören neben dem Logo:
-
-- Lime-Grün und Dark Mode als wiedererkennbare Farbwelt,
-- Pfeile und gerichtete Formen als visuelles System für Fortschritt,
-- eine kraftvolle, reduzierte Typografie,
-- eigene Key Visuals und Bildstimmungen,
-- Bewegungsprinzipien für Reels, Übergänge und Interface-Animationen,
-- wiederkehrende Logo- und Sublogo-Anwendungen.
-
-Das Branding wurde bewusst auch außerhalb des eigentlichen Interfaces
-angewendet. Für Instagram und weitere Social-Media-Formate entstanden Posts,
-Reels, Schnitte und Stimmungsvorgaben. Dadurch konnte geprüft werden, ob die
-Identität nicht nur innerhalb eines App-Screens funktioniert, sondern als
-erkennbare Marke kommunizierbar ist. Insbesondere die Kombination aus
-dunkler Bildwelt, Lime-Akzenten, dynamischer Typografie und Bewegung zeigt,
-wohin NEXT REPS als Produkt und Marke langfristig führen soll.
-
-Die Social-Media-Arbeit erfüllt damit mehrere Funktionen: Sie macht die Marke
-früh sichtbar, gibt potenziellen Nutzern einen emotionalen Zugang zum Produkt,
-schafft einen zukünftigen Feedbackkanal und erprobt bereits vor dem Launch
-eine konsistente Vermarktung. Branding und Marketing wurden folglich nicht
-erst als spätere Dekoration betrachtet, sondern als Teil der Produktstrategie.
+Social-Media-Posts, Schnitte und Stimmungsvorgaben prüfen, ob die Identität auch
+außerhalb eines App-Screens als Marke funktioniert. Zugleich schaffen sie
+Sichtbarkeit, einen emotionalen Produkteinstieg, einen zukünftigen
+Feedbackkanal und die Grundlage für eine konsistente Vermarktung. Branding und
+Marketing sind deshalb Bestandteil der Produktstrategie, nicht nachträgliche
+Dekoration.
 
 Das Ziel endet nicht mit der Prüfungsabgabe. Die App soll in naher Zukunft
-veröffentlicht, vertrieben und mit realen Nutzern aktiv getestet werden. Dabei
-sollen Nutzungsfeedback, technische Stabilität und die Verständlichkeit der
-Analysen systematisch überprüft werden. Die aktuelle Anwendung bildet dafür
-einen funktionsfähigen Produktkern.
+veröffentlicht, vertrieben und mit realen Nutzern getestet werden. Feedback,
+Stabilität und Verständlichkeit der Analysen sollen dabei systematisch geprüft
+werden; die aktuelle Anwendung bildet den funktionsfähigen Produktkern.
 
 ### Produkt-Roadmap
 
@@ -538,143 +491,78 @@ noch stärker codegesplittet und automatisiert per Lighthouse überwacht werden.
 
 ### Gestalterisches Ziel
 
-Das Design von NEXT REPS entstand nicht aus einem einzelnen Template, sondern
-in einem längeren Recherche- und Iterationsprozess. Gesucht wurde eine
-Designsprache, die Energie und sportliche Leistung vermittelt, gleichzeitig
-aber modern, minimalistisch und gut bedienbar bleibt. Als gestalterische
-Leitbegriffe wurden deshalb **energetisch, modern, futuristisch und
-minimalistisch** festgelegt.
+Die Leitbegriffe **energetisch, modern, futuristisch und minimalistisch**
+entstanden in einem längeren Recherche- und Iterationsprozess. Ein helles
+Standard-Dashboard wirkte zu generisch und ist in dunkleren Trainingsräumen
+unangenehmer; ein dekoratives Interface hätte dagegen von schnellen Aktionen
+abgelenkt. Dark Mode schafft deshalb eine ruhige Basis, während Lime `#c5fe00`
+Aktionen, Auswahl und Fortschritt mit hohem Kontrast kennzeichnet.
 
-Ein reines helles Fitness-Dashboard wurde verworfen, weil es zu generisch wirkte
-und insbesondere während des Trainings in dunkleren Räumen unangenehm sein
-kann. Ein sehr verspieltes oder stark dekoriertes Interface hätte dagegen von
-den zentralen Aktionen abgelenkt. Der gewählte Dark Mode schafft eine ruhige
-Grundfläche; Lime `#c5fe00` wird gezielt als Aktions-, Status- und
-Fortschrittsfarbe eingesetzt. Der hohe Kontrast macht primäre Aktionen und
-positive Entwicklungen schnell erkennbar und erzeugt zugleich den
-eigenständigen NEXT-REPS-Charakter.
-
-Zentrale Design-Tokens definieren Farben, Abstände, Typografie, Radien und
-Motion. Landingpage, Dashboard, Workouts, Logger, Analytics und Profil
-verwenden dadurch dieselben visuellen Regeln. Die Wiederholung dieser Muster
-reduziert die kognitive Belastung: Ein grünes Element signalisiert nicht
-beliebig Dekoration, sondern meist Fortschritt, Auswahl oder eine wichtige
-Aktion.
+Gemeinsame Tokens für Farbe, Abstand, Typografie, Radien und Motion verbinden
+Landingpage, Dashboard, Workouts, Logger, Analytics und Profil. Wiederkehrende
+Muster stärken die Marke und reduzieren zugleich die kognitive Belastung.
 
 ### Recherche, Prototyping und Umsetzung
 
-Die visuelle Recherche erfolgte unter anderem über Pinterest. Dabei wurden
-Fitnessprodukte, futuristische Interfaces, Editorial Layouts, Sportkampagnen
-und reduzierte Dark-Mode-Systeme verglichen. Referenzen wurden nicht
-unverändert übernommen, sondern hinsichtlich Typografie, Informationsdichte,
-Kontrast, Bildsprache und Bewegungsverhalten ausgewertet.
+Pinterest-Referenzen zu Fitnessprodukten, futuristischen Interfaces, Editorial
+Layouts, Sportkampagnen und Dark Mode wurden nach Typografie,
+Informationsdichte, Kontrast, Bildsprache und Motion ausgewertet, nicht
+unverändert übernommen.
 
-Der anschließende Gestaltungsprozess verlief in mehreren Stufen:
+| Phase | Vorgehen |
+| --- | --- |
+| Exploration | erste Richtungen und Frames mit Stitch.ai |
+| Ausarbeitung | manuelle Überarbeitung und Vereinheitlichung in Figma |
+| Realitätscheck | Umsetzung in VS Code/React mit echten Daten, Zuständen und responsiven Größen |
+| Iteration | erneute Prüfung in Browser, Smartphone und realem Training |
 
-1. Mit Stitch.ai wurden erste Frames und unterschiedliche
-   Oberflächenrichtungen exploriert.
-2. Die ausgewählten Frames und Bildschirme wurden in Figma manuell
-   überarbeitet, vereinheitlicht und an die tatsächlichen Produktabläufe
-   angepasst.
-3. Figma und die Implementierung in Visual Studio Code wurden eng
-   zusammengedacht. Ein Frame galt erst dann als tragfähig, wenn er auch
-   responsiv, mit echten Daten und als bedienbare React-Komponente
-   funktionierte.
-4. Nach der Implementierung wurden die Ansichten erneut im Browser, auf dem
-   Smartphone und während realer Trainingseinheiten geprüft und weiter
-   angepasst.
-
-Diese Arbeitsweise war wichtig, weil ein statischer Figma-Screen keine langen
-Namen, leeren Datenzustände, Ladezeiten, Tastatureingaben oder unterschiedliche
-Displaygrößen abbildet. Design und Entwicklung wurden daher nicht als zwei
-aufeinanderfolgende, abgeschlossene Phasen verstanden, sondern als
-wechselseitiger Prozess.
-
-Midjourney und ChatGPT wurden unterstützend zur Erzeugung und Weiterentwicklung
-von Bildern, Key Visuals und Medien eingesetzt. Die Ergebnisse wurden
-ausgewählt, zugeschnitten, komprimiert, in das Branding integriert und in einen
-konkreten Nutzungskontext gesetzt. Generative Werkzeuge dienten damit als
-Produktionsmittel, nicht als Ersatz für die manuelle Produkt-, UX- und
-Layoutentscheidung.
+Dieser Kreislauf ist nötig, weil statische Frames keine langen Namen,
+Leerzustände, Ladezeiten oder Tastatureingaben zeigen. Midjourney und ChatGPT
+unterstützten bei Bildern, Key Visuals und Medien; Auswahl, Zuschnitt,
+Kompression, Branding-Integration und UX-Entscheidungen blieben manuelle
+Arbeit.
 
 ### Eigene Bildsprache und Übungsillustrationen
 
-Für die Übungsgalerie werden einzelne Übungen in einer einheitlichen
-Lime-grünen Illustrationssprache dargestellt. Jede Grafik muss zur Übung passen
-und gleichzeitig innerhalb des gesamten Systems konsistent bleiben. Da die
-Zahl möglicher Kraft-, Ausdauer- und Mobilitätsübungen sehr groß ist, ist diese
-Bibliothek im aktuellen Stand noch nicht vollständig. Sie wird schrittweise
-erweitert, statt uneinheitliche Platzhalter als vermeintlich fertigen Bestand
-zu präsentieren.
+Jede Übung erhält schrittweise eine eigene Lime-grüne Illustration. Die noch
+unvollständige Bibliothek wird bewusst konsistent erweitert. Ein
+Bodybuilding-Trainer empfahl die Galerie besonders für Einsteiger, da Namen
+allein Wissen über Geräte, Bewegung und Muskelgruppen voraussetzen. Bild,
+Kategorie und Name erleichtern die Einordnung.
 
-Die Übungsgalerie entstand auch aus dem Feedback eines Bodybuilding-Trainers.
-Seine Einschätzung war, dass besonders Einsteiger von einer visuellen
-Einordnung profitieren: Übungsnamen allein setzen häufig bereits Wissen über
-Geräte, Bewegungsabläufe und Muskelgruppen voraus. Bild, Kategorie und
-Übungsname bilden deshalb gemeinsam eine verständlichere Auswahl.
-
-Als nächste Ausbaustufe sollen Übungen anklickbar werden. Eine Detailansicht
-soll den korrekten Bewegungsablauf visualisieren und Hinweise zu Ausführung,
-Körperhaltung, typischen Fehlern und beanspruchten Muskelgruppen geben. Diese
-Funktion ist bewusst als Roadmap gekennzeichnet; vor der Veröffentlichung
-müssen die Inhalte fachlich geprüft werden, weil falsche Trainingshinweise ein
-Verletzungsrisiko darstellen können.
+Geplante anklickbare Detailansichten sollen Bewegung, Körperhaltung, typische
+Fehler und Muskelgruppen erklären. Vor Veröffentlichung müssen diese Inhalte
+fachlich geprüft werden, da falsche Hinweise Verletzungen begünstigen können.
 
 ### Nutzungstests im Fitnessstudio
 
-Die Anwendung wurde bereits in einer frühen Phase von uns selbst während realer
-Trainingseinheiten eingesetzt. Dadurch wurden Probleme sichtbar, die in einem
-reinen Desktop-Test kaum auffallen:
+Eigene Tests während realer Trainingseinheiten machten Probleme sichtbar, die
+am Desktop kaum auffallen:
 
-- Workoutbilder ließen sich anfangs nicht zuverlässig speichern.
-- Trainingseinheiten konnten nach längerer Nutzung verloren gehen, weil die
-  Persistenz und das damalige Datenbankmodell noch nicht ausreichend waren.
-- Zu viele Schritte pro Satz verlangsamten den Ablauf zwischen zwei Übungen.
-- Geräteeinstellungen oder individuelle Hinweise fehlten beim nächsten
-  Training.
+| Beobachtung | Konsequenz |
+| --- | --- |
+| Bilder und längere Einheiten gingen durch unzureichende Persistenz verloren | serverseitige Speicherung von Workouts und Logs sowie verbessertes Datenmodell |
+| zu viele Eingaben verlangsamten das Training | Sätze direkt und mit wenigen Schritten abhaken |
+| Gerätewerte fehlten beim nächsten Besuch | Notizen für Sitzhöhe, Griffposition und individuelle Hinweise |
+| nicht jeder besitzt eine Smartwatch | optionale grobe Kalorienverbrauchsschätzung als Orientierung, nicht als exakter medizinischer Wert |
 
-Aus diesen Beobachtungen entstanden konkrete Produktentscheidungen. Workouts
-und Logs werden serverseitig persistiert, statt nur im flüchtigen
-Frontend-Zustand zu liegen. Sätze können direkt abgehakt werden. Notizen
-ermöglichen neben allgemeinen Trainingshinweisen auch praktische Angaben wie
-Sitzhöhe, Griffposition oder Geräteeinstellung für die nächste Einheit. Die
-Oberfläche wurde wiederholt darauf geprüft, ob ein Satz mit möglichst wenig
-Interaktion dokumentiert werden kann.
-
-Für Nutzer ohne Smartwatch wurde außerdem eine grobe
-Kalorienverbrauchsschätzung vorgesehen. Sie ersetzt keine medizinische oder
-sportwissenschaftliche Messung und wird daher nicht als exakter Messwert
-dargestellt. Ihr Zweck ist eine nachvollziehbare Orientierung innerhalb des
-persönlichen Fortschritts, ohne den Besitz zusätzlicher Hardware
-vorauszusetzen.
+So wurde die Oberfläche wiederholt nicht nur auf Vollständigkeit, sondern auf
+Geschwindigkeit und praktische Nutzung zwischen zwei Sätzen geprüft.
 
 ### Hydration, Schritte und zugängliches Tracking
 
-Hydration war nicht Bestandteil des allerersten Workout-Trackers. Während der
-Nutzung wurde jedoch deutlich, dass ausreichendes Trinken gerade während des
-Trainings relevant ist und gut in den Tagesüberblick passt. Daraus entstand
-das Wasser-Logging mit Tagesziel und visueller Füllstandsanzeige.
-
-Schritte und Aktivitätsdaten können über Apple Health beziehungsweise die
-Apple Watch einfließen. Gleichzeitig lassen sie sich manuell erfassen. Diese
-Entscheidung verhindert, dass zentrale Funktionen nur Nutzern mit einer
-Smartwatch zur Verfügung stehen. Hardwareintegration erweitert das Produkt,
-ist aber keine Zugangsvoraussetzung.
+Hydration kam durch die reale Nutzung hinzu: Wasser-Logging, Tagesziel und
+Füllstandsanzeige machen Trinken im Tagesüberblick sichtbar. Schritte und
+Aktivität können aus Apple Health beziehungsweise der Apple Watch stammen,
+bleiben aber manuell erfassbar. Wearables erweitern das Produkt, sind keine
+Zugangsvoraussetzung.
 
 ### Zweisprachigkeit und Lokalisierung
 
-NEXT REPS kann auf Deutsch und Englisch verwendet werden. Die
-Sprachumschaltung wird über einen zentralen `LanguageContext` bereitgestellt,
-damit Komponenten nicht jeweils eine eigene Übersetzungslogik benötigen.
-Texte werden über stabile Übersetzungsschlüssel abgerufen; die gewählte Sprache
-gilt dadurch konsistent für Landingpage, Dashboard, Analytics, Profil und
-weitere Produktbereiche.
-
-Englisch war während eines großen Teils der Entwicklung die primäre
-Arbeitssprache. Deshalb ist die englische Fassung aktuell sprachlich
-konsistenter, während einzelne deutsche Begriffe, Satzstellungen und
-Fachübersetzungen noch überarbeitet werden müssen. Dieser Stand wird bewusst
-nicht als vollständig abgeschlossene Internationalisierung dargestellt.
+Ein zentraler `LanguageContext` stellt Deutsch und Englisch über gemeinsame
+Übersetzungsschlüssel bereit. Da Englisch die primäre Arbeitssprache war, ist
+diese Fassung aktuell konsistenter; deutsche Begriffe, Satzstellungen und
+Fachübersetzungen benötigen noch einen redaktionellen Review.
 
 Vor einem Launch ist ein eigener Localization-Review vorgesehen:
 
@@ -687,37 +575,24 @@ Vor einem Launch ist ein eigener Localization-Review vorgesehen:
    regionsabhängig formatieren,
 5. beide Sprachfassungen auf kleinen mobilen Displays testen.
 
-Die Zweisprachigkeit ist für einen späteren Vertrieb relevant: Deutsch
-ermöglicht einen verständlichen Einstieg im ersten Zielmarkt, während Englisch
-die App für eine größere Fitness-Community anschlussfähig macht.
+Deutsch unterstützt den ersten Zielmarkt, Englisch eine größere
+Fitness-Community. Die Zweisprachigkeit ist damit Produkt- und
+Vertriebsentscheidung, nicht nur ein Oberflächen-Extra.
 
 ### Erinnerungen und App-Mitteilungen
 
-Reminder wurden als echtes Mobile-App-Feature konzipiert, weil der Nutzen eines
-Trackers nicht nur im nachträglichen Anzeigen von Daten liegt. Er kann Nutzer
-auch im passenden Moment dabei unterstützen, Routinen einzuhalten. Geplant
-beziehungsweise teilweise bereits technisch umgesetzt sind insbesondere
-Erinnerungen an Hydration und an vorgesehene Trainingseinheiten.
-
-Für iOS existiert eine native Hydration-Reminder-Anbindung. Zusätzlich enthält
-das Produkt Einstellungen für Workout- und Hydration-Mitteilungen. Die
-Erinnerungen sind als Opt-in gedacht: Nutzer sollen selbst entscheiden, ob,
-wann und zu welchem Zweck sie benachrichtigt werden. Zu häufige oder
-unpassende Push-Nachrichten würden Motivation nicht erhöhen, sondern
-Benachrichtigungsmüdigkeit erzeugen. Vor dem Launch müssen deshalb
-Zeitsteuerung, Zeitzonen, Ruhezeiten, Berechtigungsdialoge und das einfache
-Deaktivieren zuverlässig geprüft werden.
+Reminder sollen Routinen im passenden Moment unterstützen, nicht nur Daten
+nachträglich anzeigen. iOS besitzt eine native Hydration-Anbindung; Einstellungen
+für Workout- und Trinkhinweise sind vorhanden. Alle Mitteilungen bleiben
+Opt-in. Vor dem Launch müssen Zeitsteuerung, Zeitzonen, Ruhezeiten,
+Berechtigungsdialoge und Deaktivierung geprüft werden, damit Motivation nicht
+in Benachrichtigungsmüdigkeit umschlägt.
 
 ### Geführte Einführung und „Was ist neu?“
 
-Das bestehende persönliche Onboarding sammelt die Daten, die für Ziele und
-Analysen benötigt werden. Für den Produktlaunch ist zusätzlich ein
-Bedien-Onboarding geplant. Nach einer neuen Registrierung soll eine kurze,
-schrittweise Produkttour zentrale Bereiche hervorheben, beispielsweise durch
-Umrandungen, Fokusflächen und kompakte kontextbezogene Erklärungen.
-
-Diese Tour soll nicht jede Funktion auf einmal erklären. Sie folgt dem Prinzip
-der progressiven Offenlegung:
+Das bestehende Onboarding sammelt Daten für Ziele und Analysen. Zum Launch soll
+eine zusätzliche Produkttour zentrale Bereiche durch Umrandungen, Fokusflächen
+und kurze kontextbezogene Erklärungen schrittweise vorstellen:
 
 1. zuerst den ersten Trainingsplan auswählen oder erstellen,
 2. anschließend einen Satz loggen und abhaken,
@@ -725,43 +600,28 @@ der progressiven Offenlegung:
 4. Kalender, Hydration und Analysen erst dann vorstellen, wenn sie relevant
    werden.
 
-Damit wird vermieden, dass Anfänger direkt nach der Registrierung mit der
-gesamten Informationsdichte der App konfrontiert werden. Die Tour muss
-überspringbar, später erneut aufrufbar und pro Nutzer als abgeschlossen
-speicherbar sein. Sie darf außerdem wichtige Bedienelemente nicht verdecken
-und muss sowohl im Web als auch auf unterschiedlichen Mobilgrößen
-funktionieren.
+Progressive Offenlegung verhindert Überforderung. Die Tour muss überspringbar,
+erneut aufrufbar, pro Nutzer speicherbar und responsiv sein, ohne wichtige
+Bedienelemente zu verdecken.
 
 Nach größeren Updates ist ergänzend eine kurze „Was ist neu?“-Übersicht
-vorgesehen. Statt eines langen Changelogs sollen wenige relevante Änderungen
-mit Nutzenbeschreibung und direkter Verlinkung zur neuen Funktion gezeigt
-werden. Eine Versionskennung verhindert, dass derselbe Hinweis bei jedem
-Appstart erneut erscheint.
+mit Nutzenbeschreibung und direkter Verlinkung vorgesehen. Eine
+Versionskennung verhindert wiederholte Hinweise bei jedem Appstart.
 
 ### Onboarding und sensible Körperdaten
 
-Das persönliche Onboarding entstand im Verlauf des Projekts, weil aussagefähige
-Ziele und Analysen Informationen wie Trainingsfokus, Körpergröße, Gewicht und
-Tagesziele benötigen. Statt diese Werte später an unterschiedlichen Stellen
-abzufragen, führt das Onboarding verständlich und schrittweise durch die
-notwendigen Angaben.
-
-Aus Größe und Gewicht kann beispielsweise ein BMI als grober Richtwert
-abgeleitet werden. Dieser Wert ist jedoch stark vereinfachend: Muskelmasse,
-Körperzusammensetzung, Alter und individuelle Gesundheit werden nicht
-ausreichend berücksichtigt. Zusätzlich erhielten wir von einer Testperson die
-Rückmeldung, dass eine prominente BMI-Anzeige triggernd wirken kann. Daraus
-folgt die Produktentscheidung, den Wert klar einzuordnen und Nutzern die
-Möglichkeit zu geben, eine solche Darstellung auszublenden. Dieses Feedback
-zeigt, dass Personalisierung nicht nur mehr Daten bedeutet, sondern auch
-Kontrolle darüber, welche Daten eine Person sehen möchte.
+Das persönliche Onboarding bündelt Trainingsfokus, Größe, Gewicht und
+Tagesziele, statt Werte später verstreut abzufragen. Der daraus ableitbare BMI
+ist nur ein grober Richtwert, da er Muskelmasse, Körperzusammensetzung, Alter
+und individuelle Gesundheit unzureichend berücksichtigt. Eine Testperson
+empfand die prominente Anzeige zudem als triggernd. Der Wert wird deshalb
+erklärt und kann ausgeblendet werden. Personalisierung bedeutet somit nicht nur
+mehr Daten, sondern Kontrolle über deren Sichtbarkeit.
 
 ### Motion Design als funktionaler Bestandteil
 
-Animation wurde nicht nur zur Dekoration eingesetzt. Ein ansonsten sehr
-reduzierter Dark Mode kann kühl oder technisch wirken; gezielte Bewegung gibt
-direktes Feedback und macht Fortschritt emotionaler wahrnehmbar. Beispiele
-sind:
+Motion gibt direktes Feedback, macht den reduzierten Dark Mode lebendiger und
+Fortschritt emotional wahrnehmbar:
 
 - die steigende Wasseranimation beim Hydration-Tracking,
 - Konfetti bei neuen Meilensteinen,
@@ -769,94 +629,58 @@ sind:
 - Übergänge beim Öffnen, Speichern und Wechseln von Zuständen,
 - die scrollgesteuerte Smartphone-Inszenierung auf der Landingpage.
 
-Die Animationen unterstützen damit Statusverständnis und Motivation. Sie
-sollen kurz, zielgerichtet und konsistent bleiben, damit sie den
-Trainingsablauf nicht verlangsamen. Als weiterer Qualitätsschritt sollen
-`prefers-reduced-motion` und automatisierte Accessibility-Tests noch
-vollständiger berücksichtigt werden.
+Animationen bleiben kurz, zielgerichtet und konsistent, damit sie motivieren,
+ohne das Training zu verlangsamen. `prefers-reduced-motion` und automatisierte
+Accessibility-Tests sind noch vollständiger umzusetzen.
 
 ### Kalender und nachträgliches Logging
 
-Eine Kalenderfunktion war anfangs nicht vorgesehen. Mit wachsender
-Trainingsplanung wurde jedoch deutlich, dass Nutzer nicht nur einzelne Pläne,
-sondern auch deren zeitliche Einordnung benötigen. Mehrere Kalenderentwürfe
-wurden über mehrere Wochen getestet und schrittweise vereinfacht.
+Der Kalender kam hinzu, als neben einzelnen Plänen auch deren zeitliche
+Einordnung wichtig wurde. Mehrere Entwürfe wurden über Wochen vereinfacht.
+Web und Mobil folgen demselben Modell; mobil bleibt die Wochenansicht kompakt
+und lässt sich zum Monat erweitern.
 
-Web- und Mobilansicht verfolgen dabei dasselbe mentale Modell, nutzen den
-verfügbaren Raum aber unterschiedlich. Auf Mobilgeräten wurde eine kompakte
-Wochenansicht gewählt, die bei Bedarf zu einer Monatsansicht erweitert werden
-kann. Damit bleiben die nächsten Trainingstage schnell erreichbar, ohne die
-Orientierung im Monat zu verlieren.
-
-Ursprünglich konnten Einheiten nur im Voraus geplant werden. Nachdem eine
-bereits absolvierte Einheit in einer frühen Version durch Persistenzprobleme
-verloren ging, wurde ein wichtiger fehlender Anwendungsfall sichtbar: Ein
-Training muss auch nachträglich eingetragen werden können. Deshalb unterstützt
-der Kalender zusätzlich das Nachtragen und spätere Öffnen gespeicherter
-Einheiten. Er ist damit nicht nur Planer, sondern auch persönliches
+Zunächst waren nur zukünftige Trainings planbar. Eine durch frühe
+Persistenzprobleme verlorene Einheit zeigte, dass auch Nachtragen und späteres
+Öffnen nötig sind. Der Kalender wurde dadurch vom Planer zum persönlichen
 Trainingsarchiv.
 
 ### Vorgefertigte Pläne für Einsteiger
 
-Ein leerer Workout-Builder bietet maximale Freiheit, kann Anfänger aber
-überfordern. Vorgefertigte Trainingspläne geben deshalb einen direkten
-Startpunkt und zeigen zugleich, wie ein strukturierter Plan aufgebaut sein
-kann. Nutzer können diese Grundlage übernehmen und an ihre Situation anpassen.
-
-Langfristig soll eine KI diesen Einstieg stärker personalisieren und abhängig
-von Ziel, Erfahrung, Zeitbudget und vorhandener Ausstattung passende Pläne
-vorschlagen. Vorher müssen jedoch Regeln für sichere Empfehlungen,
-Nachvollziehbarkeit und fachliche Prüfung definiert werden. Die aktuelle
-Vorlagenlogik bleibt deshalb eine kontrollierbare Grundlage.
+Ein leerer Builder kann Anfänger überfordern. Vorgefertigte Pläne zeigen einen
+strukturierten Startpunkt und bleiben anpassbar. Langfristig soll KI Vorschläge
+nach Ziel, Erfahrung, Zeit und Ausstattung personalisieren. Bis Regeln für
+sichere, nachvollziehbare und fachlich geprüfte Empfehlungen bestehen, bleibt
+die kontrollierbare Vorlagenlogik Grundlage.
 
 ### Entwicklung der Analysen
 
-Die ersten Analysen waren auf einfache Kennzahlen wie das höchste verwendete
-Gewicht begrenzt. In Tests wurde deutlich, dass ein einzelner Rekord wenig über
-Trainingskonsistenz, Volumen oder Entwicklung aussagt. Daraufhin wurden
-zusätzliche Fragestellungen formuliert:
+Anfangs zeigten die Analysen nur einfache Werte wie das höchste Gewicht. Tests
+machten deutlich, dass ein Rekord Konsistenz, Volumen und Entwicklung kaum
+abbildet. Daraus entstanden vier Leitfragen: Wie lange wird wöchentlich
+trainiert, welche Übungen dominieren, wie entwickeln sich Häufigkeit und
+Volumen und steigt die Leistung gegenüber früheren Einheiten?
 
-- Wie lange wird pro Woche durchschnittlich trainiert?
-- Welche Übungen werden am häufigsten ausgeführt?
-- Wie oft und mit welchem Volumen wird eine Übung trainiert?
-- Entwickeln sich Belastung und Leistung gegenüber vorherigen Einheiten?
-
-Die Bubble-Visualisierung bildet Trainingshäufigkeit räumlich ab: Je größer
-eine Bubble, desto häufiger wurde die betreffende Übung trainiert. Der
-Progressive-Overload-Score vergleicht Trainingsentwicklung über ein
-30-Tage-Fenster und soll zeigen, ob Belastung beziehungsweise Leistung
-gegenüber dem vorherigen Zeitraum steigt.
-
-Eine weitere Testrunde zeigte jedoch, dass attraktive Diagramme allein nicht
-ausreichen. Nutzer müssen verstehen, was berechnet wurde, warum eine Kennzahl
-relevant ist und wie sie interpretiert werden kann. Deshalb wurden
-Analyse-Widgets klickbar gemacht. Pop-ups erklären Berechnung, Bedeutung und
-Auswertung. Diese Entscheidung folgt dem Grundsatz, dass Datenvisualisierung
-nicht nur gut aussehen, sondern nachvollziehbare Entscheidungen ermöglichen
-soll.
+Die Bubble-Ansicht übersetzt Häufigkeit in Größe; der
+Progressive-Overload-Score vergleicht die aktuellen mit den vorherigen 30
+Tagen. Weil eine weitere Testrunde zeigte, dass Nutzer attraktive Diagramme
+ohne Kontext nicht sicher interpretieren, wurden die Widgets klickbar.
+Pop-ups erklären Berechnung, Relevanz und Auswertung. Visualisierung dient
+damit nicht nur der Ästhetik, sondern nachvollziehbaren Entscheidungen.
 
 ### Landingpage: Nutzen vor Feature
 
-Die Landingpage ist der erste Kontakt mit NEXT REPS und muss zwei Ziele
-gleichzeitig erfüllen: Aufmerksamkeit erzeugen und das Produkt verständlich
-erklären. Eine rein spektakuläre Kampagnenseite hätte zwar visuell beeindrucken
-können, aber offengelassen, welches konkrete Problem die App löst. Eine rein
-funktionale Featureliste hätte wiederum die Energie und Eigenständigkeit der
-Marke nicht transportiert. Deshalb wurde eine Balance aus Inszenierung,
-Produktbeweis und Information gewählt.
+Als erster Kontakt muss die Landingpage zugleich Aufmerksamkeit erzeugen und
+NEXT REPS erklären. Eine reine Kampagnenseite würde das Problem verschleiern,
+eine Featureliste die Energie der Marke verlieren. Deshalb verbinden wir
+Inszenierung, echten Produktbeweis und Information: Headline, Subtext und CTA
+klären im ersten Viewport Produkt, Nutzen und Einstieg; Hero-Reels zeigen
+Planung, Tracking und Analytics statt bloßer Versprechen.
 
-Bereits im ersten Viewport beantworten Headline, Subtext und CTA die Fragen:
-Was ist NEXT REPS, welchen Nutzen bietet es und wie kann man beginnen? Die
-Hero-Reels visualisieren reale Produktbereiche, sodass Besucher nicht nur
-Behauptungen über die App lesen, sondern früh einen Eindruck von Planung,
-Tracking und Analytics erhalten.
-
-Animationen werden dabei bewusst dosiert eingesetzt. Sie sollen Modernität,
-Qualität und Freude an der Nutzung vermitteln, dürfen aber weder Text noch CTA
-verdrängen. Ruhigere Text- und Informationsabschnitte wechseln sich deshalb
-mit aufmerksamkeitsstärkeren Momenten ab. Ziel ist, dass ein Besucher vom
-Design angesprochen wird, anschließend aber auch Produktumfang und nächsten
-Schritt versteht.
+Animationen vermitteln Modernität und Nutzungsfreude, bleiben aber dosiert,
+damit Text und CTA Vorrang behalten. Ruhige Informationsflächen wechseln sich
+mit visuellen Höhepunkten ab. Besucher sollen erst aufmerksam werden und dann
+Produktumfang und nächsten Schritt verstehen.
 
 Die Landingpage erfüllt „Nutzen vor Feature“ konkret durch:
 
@@ -872,22 +696,18 @@ Die Landingpage erfüllt „Nutzen vor Feature“ konkret durch:
 - Q&A-Bereich für häufige Fragen und mögliche Einstiegshürden
 - responsive Breakpoints und semantische Buttons/Links
 
-Das Q&A ist im aktuellen Stand vorhanden, benötigt vor dem Launch jedoch noch
-mehr Inhalte aus echten Nutzerfragen. Denkbar sind insbesondere Antworten zu
-Kosten, Datenschutz, Apple-Watch-Nutzung, Training ohne Wearable,
-Datenexport, Zielgruppen und zur Aussagekraft einzelner Analysen. Auch hier
-gilt: Die Landingpage soll nicht nur „catchen“, sondern Unsicherheit reduzieren
-und eine informierte Registrierung ermöglichen.
+Das vorhandene Q&A wird vor dem Launch anhand echter Fragen zu Kosten,
+Datenschutz, Apple Watch, Training ohne Wearable, Datenexport, Zielgruppen und
+Analysequalität erweitert. So reduziert die Seite Unsicherheit und ermöglicht
+eine informierte Registrierung, statt lediglich zu „catchen“.
 
 ### Rechtliche und organisatorische Learnings
 
-Zu Beginn wurden im Impressum fiktive Angaben als Platzhalter verwendet. Im
-produktiven Betrieb führte dies zu einem Hinweis beziehungsweise einer
-Verwarnung durch den Hostingkontext. Die Angaben wurden daraufhin korrigiert.
-Das Learning ist, rechtliche Pflichtinformationen nicht als nachgelagerten
-Designinhalt zu behandeln: Impressum, Datenschutz und Verantwortlichkeit
-müssen vor einer öffentlichen Veröffentlichung mit realen und geprüften
-Angaben vorliegen.
+Fiktive Platzhalter im anfänglichen Impressum führten im produktiven
+Hostingkontext zu einem Hinweis beziehungsweise einer Verwarnung und wurden
+korrigiert. Das Learning: Impressum, Datenschutz und Verantwortlichkeit sind
+keine nachgelagerten Designinhalte, sondern müssen vor Veröffentlichung real
+und geprüft vorliegen.
 
 ### Offene Design- und UX-Arbeiten
 
