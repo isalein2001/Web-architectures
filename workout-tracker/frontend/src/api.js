@@ -29,12 +29,15 @@ const setNativeToken = (token) => {
 export const authFetch = async (url, options = {}) => {
   const { redirectOnUnauthorized = true, ...fetchOptions } = options;
   const nativeToken = getNativeToken();
+  const method = String(fetchOptions.method || 'GET').toUpperCase();
+  const requiresCsrfProtection = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
   const res = await fetch(url, {
     credentials: 'include',
     ...fetchOptions,
     headers: {
       ...(isNativeRuntime ? { 'X-NextReps-Client': 'native' } : {}),
       ...(nativeToken ? { Authorization: `Bearer ${nativeToken}` } : {}),
+      ...(requiresCsrfProtection ? { 'X-NextReps-CSRF': '1' } : {}),
       ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
       ...(fetchOptions.headers || {}),
     },
@@ -56,6 +59,7 @@ export const authFetch = async (url, options = {}) => {
       headers: {
         ...(isNativeRuntime ? { 'X-NextReps-Client': 'native' } : {}),
         ...(nativeToken ? { Authorization: `Bearer ${nativeToken}` } : {}),
+        'X-NextReps-CSRF': '1',
       },
     }).catch(() => null);
     setNativeToken(null);

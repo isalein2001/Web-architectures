@@ -37,6 +37,19 @@ app.set('trust proxy', trustedProxies);
 app.disable('x-powered-by');
 
 app.use(cookieParser());
+
+const CSRF_PROTECTED_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+app.use('/api', (req, res, next) => {
+  if (
+    CSRF_PROTECTED_METHODS.has(req.method)
+    && req.get('X-NextReps-CSRF') !== '1'
+  ) {
+    return res.status(403).json({ error: 'Ungültige oder fehlende CSRF-Absicherung.' });
+  }
+
+  return next();
+});
+
 app.use('/api/auth', authRateLimiter);
 
 // Profile images are capped at 500 KB after decoding. Allow their Base64/JSON
