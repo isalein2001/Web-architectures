@@ -308,11 +308,15 @@ function createAuthRouter() {
       };
 
       if (email !== currentUser.email) {
+        const verification = isDemoAccount(email)
+          ? clearVerificationCodeData
+          : createVerificationCodeData();
+
         updateData.pendingEmail = isDemoAccount(email) ? null : email;
-        Object.assign(
-          updateData,
-          isDemoAccount(email) ? clearVerificationCodeData : createVerificationCodeData()
-        );
+        updateData.verificationCode = verification.verificationCode;
+        updateData.verificationCodeExpiresAt = verification.verificationCodeExpiresAt;
+        updateData.verificationCodeAttempts = verification.verificationCodeAttempts;
+
         if (updateData.verificationCode) {
           sendVerificationEmailLater({
             to: email,
