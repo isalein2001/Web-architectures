@@ -69,6 +69,8 @@ vom bereits implementierten Umfang getrennt:
 | Pläne teilen | Trainingspläne zwischen Nutzern freigeben sowie als PDF exportieren oder versenden |
 | Trainer-Funktion | Trainer erstellen Pläne, weisen sie Sportlern zu und werten deren Durchführung und Entwicklung aus |
 | KI-gestütztes Coaching | Auf Basis vorhandener Trainings- und Analysedaten Pläne vorschlagen, Entwicklungen erklären und individualisierte Hinweise geben |
+| Geführte Produkttour | Neue Nutzer nach der Registrierung kontextbezogen durch zentrale Bereiche und Bedienabläufe führen |
+| Update-Hinweise | Nach größeren Releases neue Funktionen kompakt erklären und direkt zur passenden Stelle führen |
 | Öffentlicher Produktstart | App veröffentlichen, aktiv vermarkten und anhand realer Nutzung iterativ verbessern |
 
 Für die KI-Funktionen gilt bewusst: Empfehlungen sollen nachvollziehbar bleiben
@@ -609,6 +611,83 @@ Entscheidung verhindert, dass zentrale Funktionen nur Nutzern mit einer
 Smartwatch zur Verfügung stehen. Hardwareintegration erweitert das Produkt,
 ist aber keine Zugangsvoraussetzung.
 
+### Zweisprachigkeit und Lokalisierung
+
+NEXT REPS kann auf Deutsch und Englisch verwendet werden. Die
+Sprachumschaltung wird über einen zentralen `LanguageContext` bereitgestellt,
+damit Komponenten nicht jeweils eine eigene Übersetzungslogik benötigen.
+Texte werden über stabile Übersetzungsschlüssel abgerufen; die gewählte Sprache
+gilt dadurch konsistent für Landingpage, Dashboard, Analytics, Profil und
+weitere Produktbereiche.
+
+Englisch war während eines großen Teils der Entwicklung die primäre
+Arbeitssprache. Deshalb ist die englische Fassung aktuell sprachlich
+konsistenter, während einzelne deutsche Begriffe, Satzstellungen und
+Fachübersetzungen noch überarbeitet werden müssen. Dieser Stand wird bewusst
+nicht als vollständig abgeschlossene Internationalisierung dargestellt.
+
+Vor einem Launch ist ein eigener Localization-Review vorgesehen:
+
+1. verbleibende fest codierte Texte in Übersetzungsschlüssel überführen,
+2. Begriffe wie Workout, Satz, Wiederholung, Log und Progressive Overload
+   innerhalb der gesamten App vereinheitlichen,
+3. deutsche Texte nicht nur wörtlich übersetzen, sondern auf Verständlichkeit
+   und verfügbare UI-Breite prüfen,
+4. Datums-, Zahlen- und Einheitendarstellung sprach- beziehungsweise
+   regionsabhängig formatieren,
+5. beide Sprachfassungen auf kleinen mobilen Displays testen.
+
+Die Zweisprachigkeit ist für einen späteren Vertrieb relevant: Deutsch
+ermöglicht einen verständlichen Einstieg im ersten Zielmarkt, während Englisch
+die App für eine größere Fitness-Community anschlussfähig macht.
+
+### Erinnerungen und App-Mitteilungen
+
+Reminder wurden als echtes Mobile-App-Feature konzipiert, weil der Nutzen eines
+Trackers nicht nur im nachträglichen Anzeigen von Daten liegt. Er kann Nutzer
+auch im passenden Moment dabei unterstützen, Routinen einzuhalten. Geplant
+beziehungsweise teilweise bereits technisch umgesetzt sind insbesondere
+Erinnerungen an Hydration und an vorgesehene Trainingseinheiten.
+
+Für iOS existiert eine native Hydration-Reminder-Anbindung. Zusätzlich enthält
+das Produkt Einstellungen für Workout- und Hydration-Mitteilungen. Die
+Erinnerungen sind als Opt-in gedacht: Nutzer sollen selbst entscheiden, ob,
+wann und zu welchem Zweck sie benachrichtigt werden. Zu häufige oder
+unpassende Push-Nachrichten würden Motivation nicht erhöhen, sondern
+Benachrichtigungsmüdigkeit erzeugen. Vor dem Launch müssen deshalb
+Zeitsteuerung, Zeitzonen, Ruhezeiten, Berechtigungsdialoge und das einfache
+Deaktivieren zuverlässig geprüft werden.
+
+### Geführte Einführung und „Was ist neu?“
+
+Das bestehende persönliche Onboarding sammelt die Daten, die für Ziele und
+Analysen benötigt werden. Für den Produktlaunch ist zusätzlich ein
+Bedien-Onboarding geplant. Nach einer neuen Registrierung soll eine kurze,
+schrittweise Produkttour zentrale Bereiche hervorheben, beispielsweise durch
+Umrandungen, Fokusflächen und kompakte kontextbezogene Erklärungen.
+
+Diese Tour soll nicht jede Funktion auf einmal erklären. Sie folgt dem Prinzip
+der progressiven Offenlegung:
+
+1. zuerst den ersten Trainingsplan auswählen oder erstellen,
+2. anschließend einen Satz loggen und abhaken,
+3. Notizen und Geräteeinstellungen erklären,
+4. Kalender, Hydration und Analysen erst dann vorstellen, wenn sie relevant
+   werden.
+
+Damit wird vermieden, dass Anfänger direkt nach der Registrierung mit der
+gesamten Informationsdichte der App konfrontiert werden. Die Tour muss
+überspringbar, später erneut aufrufbar und pro Nutzer als abgeschlossen
+speicherbar sein. Sie darf außerdem wichtige Bedienelemente nicht verdecken
+und muss sowohl im Web als auch auf unterschiedlichen Mobilgrößen
+funktionieren.
+
+Nach größeren Updates ist ergänzend eine kurze „Was ist neu?“-Übersicht
+vorgesehen. Statt eines langen Changelogs sollen wenige relevante Änderungen
+mit Nutzenbeschreibung und direkter Verlinkung zur neuen Funktion gezeigt
+werden. Eine Versionskennung verhindert, dass derselbe Hinweis bei jedem
+Appstart erneut erscheint.
+
 ### Onboarding und sensible Körperdaten
 
 Das persönliche Onboarding entstand im Verlauf des Projekts, weil aussagefähige
@@ -708,15 +787,47 @@ soll.
 
 ### Landingpage: Nutzen vor Feature
 
-Die Landingpage erfüllt „Nutzen vor Feature“ durch:
+Die Landingpage ist der erste Kontakt mit NEXT REPS und muss zwei Ziele
+gleichzeitig erfüllen: Aufmerksamkeit erzeugen und das Produkt verständlich
+erklären. Eine rein spektakuläre Kampagnenseite hätte zwar visuell beeindrucken
+können, aber offengelassen, welches konkrete Problem die App löst. Eine rein
+funktionale Featureliste hätte wiederum die Energie und Eigenständigkeit der
+Marke nicht transportiert. Deshalb wurde eine Balance aus Inszenierung,
+Produktbeweis und Information gewählt.
+
+Bereits im ersten Viewport beantworten Headline, Subtext und CTA die Fragen:
+Was ist NEXT REPS, welchen Nutzen bietet es und wie kann man beginnen? Die
+Hero-Reels visualisieren reale Produktbereiche, sodass Besucher nicht nur
+Behauptungen über die App lesen, sondern früh einen Eindruck von Planung,
+Tracking und Analytics erhalten.
+
+Animationen werden dabei bewusst dosiert eingesetzt. Sie sollen Modernität,
+Qualität und Freude an der Nutzung vermitteln, dürfen aber weder Text noch CTA
+verdrängen. Ruhigere Text- und Informationsabschnitte wechseln sich deshalb
+mit aufmerksamkeitsstärkeren Momenten ab. Ziel ist, dass ein Besucher vom
+Design angesprochen wird, anschließend aber auch Produktumfang und nächsten
+Schritt versteht.
+
+Die Landingpage erfüllt „Nutzen vor Feature“ konkret durch:
 
 - direkte Nutzenheadline und erklärenden Subtext
 - primären CTA zur Registrierung beziehungsweise zum Dashboard
 - direkten Login für bestehende Nutzer
-- Hero-Reels aus der echten Anwendung
-- scrollgesteuerte Smartphone-Demo
+- Hero-Reels als früher visueller Beweis des Produktworkflows
+- scrollgesteuerte Smartphone-Demo als animiertes 3D-Mockup und Sneak Peek der
+  mobilen Anwendung
 - Produktvorschauen und Diagramme statt generischer Referenzbilder
+- drehendes Sublogo als wiederkehrendes Markenelement
+- animierte Pfeile und Key Visuals in der NEXT-REPS-Formsprache
+- Q&A-Bereich für häufige Fragen und mögliche Einstiegshürden
 - responsive Breakpoints und semantische Buttons/Links
+
+Das Q&A ist im aktuellen Stand vorhanden, benötigt vor dem Launch jedoch noch
+mehr Inhalte aus echten Nutzerfragen. Denkbar sind insbesondere Antworten zu
+Kosten, Datenschutz, Apple-Watch-Nutzung, Training ohne Wearable,
+Datenexport, Zielgruppen und zur Aussagekraft einzelner Analysen. Auch hier
+gilt: Die Landingpage soll nicht nur „catchen“, sondern Unsicherheit reduzieren
+und eine informierte Registrierung ermöglichen.
 
 ### Rechtliche und organisatorische Learnings
 
@@ -736,6 +847,10 @@ Angaben vorliegen.
 - Kalender und schnelle Satzeingabe weiter mit realen Nutzern testen
 - große Video- und 3D-Chunks weiter aufteilen und komprimieren
 - Körper- und Leistungskennzahlen noch granularer ein-/ausblendbar machen
+- deutsche Lokalisierung redaktionell und auf allen Displaygrößen prüfen
+- geführte Produkttour und versionsabhängige Update-Hinweise entwickeln
+- Q&A anhand realer Fragen vor dem Launch vervollständigen
+- Reminder-Zeiten, Opt-in und Benachrichtigungsfrequenz mit Nutzern testen
 
 Große Video-/3D-Chunks erzeugen aktuell noch eine Build-Warnung. Lazy Loading
 reduziert die Erstlast; weitere Aufteilung und Medienkompression bleiben ein
