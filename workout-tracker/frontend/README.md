@@ -54,6 +54,31 @@ Nach dem Deployment wird Lighthouse erneut ausgeführt. Erwartet werden eine
 kleinere übertragene Bildmenge und stabileres Laden; die tatsächliche
 Verbesserung wird mit den gemessenen Scores in der Tabelle dokumentiert.
 
+## Landingpage: Nutzen vor Feature
+
+Die öffentliche Route `/` ist die ungeschützte Einstiegsseite vor Login und
+Registrierung. Sie setzt die drei Anforderungen der Landingpage-Aufgabe wie
+folgt um:
+
+1. **Above the fold:** Die Headline erklärt unmittelbar den Nutzen: Workout-
+   Planung, Set-Logging und Fortschrittsanalyse in einem System. Der primäre,
+   kontrastreiche CTA heißt „Kostenlos starten“ und führt direkt zu
+   `/register`; der sekundäre CTA führt zu `/login`. Ein kurzer Hinweis unter
+   den Buttons reduziert Unsicherheit zu Kosten, Kreditkarte und Zeitaufwand.
+2. **Features und Nutzen:** Statt generischer Gym-Videos zeigt der Hero eine
+   in React/CSS gebaute Produktvorschau. Sie visualisiert nacheinander einen
+   Trainingsplan, den Live Logger und die Fortschrittsanalyse. Darunter
+   erläutern drei Nutzenkarten und weitere Produktoberflächen die Schritte
+   Planen, Trainieren und Auswerten.
+3. **Reibung minimieren:** Der primäre CTA verlinkt ohne Zwischenschritt auf
+   die vorhandene Registrierungsroute. Login bleibt als klarer sekundärer Weg
+   sichtbar. Bereits angemeldete Nutzer werden stattdessen direkt zum
+   Dashboard geführt.
+
+Die frühere Hero-Darstellung nutzte drei MP4-Dateien mit zusammen rund 4,7 MB.
+Die neue Produktoberfläche benötigt keine Video-Downloads, ist responsiv,
+übersetzbar und zeigt die tatsächlichen Funktionen der Anwendung eindeutiger.
+
 ## Aktueller App-Stand
 
 Die App ist inzwischen deutlich mehr als ein einfacher Workout-Tracker. Der aktuelle Stand umfasst:

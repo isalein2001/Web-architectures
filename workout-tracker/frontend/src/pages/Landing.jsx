@@ -21,7 +21,8 @@ const landingCopy = {
     dashboard: 'Dashboard',
     login: 'Login',
     openDashboard: 'Open Dashboard',
-    createWorkout: 'Create Your Workout',
+    createWorkout: 'Start free',
+    ctaNote: 'Free account · No credit card · Start in under 2 minutes',
     exploreApp: 'Explore the App',
     tryNextReps: 'Try Next Reps',
     goToApp: 'Go to App',
@@ -119,7 +120,8 @@ const landingCopy = {
     dashboard: 'Dashboard',
     login: 'Login',
     openDashboard: 'Dashboard öffnen',
-    createWorkout: 'Workout erstellen',
+    createWorkout: 'Kostenlos starten',
+    ctaNote: 'Kostenloses Konto · Keine Kreditkarte · In unter 2 Minuten starten',
     exploreApp: 'App entdecken',
     tryNextReps: 'Next Reps testen',
     goToApp: 'Zur App',
@@ -263,9 +265,50 @@ export default function Landing({ currentUser }) {
   const copy = landingCopy[lang] || landingCopy.en;
   const heroSlides = copy.heroSlides.map((slide, index) => ({
     ...slide,
-    video: `/hero-reel-${index + 1}.mp4`,
     Icon: heroIcons[index],
   }));
+  const productPreviewSlides = lang === 'de'
+    ? [
+        {
+          eyebrow: 'HEUTIGES TRAINING',
+          title: 'Upper Body Strength',
+          metric: '6 Übungen',
+          rows: ['Bench Press · 4 × 8', 'Lat Pulldown · 3 × 10', 'Shoulder Press · 3 × 10'],
+        },
+        {
+          eyebrow: 'LIVE LOGGER',
+          title: 'Bench Press',
+          metric: 'Satz 3 / 4',
+          rows: ['80 kg × 8 · erledigt', '82,5 kg × 8 · erledigt', '85 kg × 6 · aktiv'],
+        },
+        {
+          eyebrow: '30-TAGE-FORTSCHRITT',
+          title: '+12 % Trainingsvolumen',
+          metric: '9 Sessions',
+          rows: ['Bestleistung · 85 kg', 'Konstanz · 3× pro Woche', 'Nächstes Ziel · 87,5 kg'],
+        },
+      ]
+    : [
+        {
+          eyebrow: 'TODAY’S WORKOUT',
+          title: 'Upper Body Strength',
+          metric: '6 exercises',
+          rows: ['Bench Press · 4 × 8', 'Lat Pulldown · 3 × 10', 'Shoulder Press · 3 × 10'],
+        },
+        {
+          eyebrow: 'LIVE LOGGER',
+          title: 'Bench Press',
+          metric: 'Set 3 / 4',
+          rows: ['80 kg × 8 · complete', '82.5 kg × 8 · complete', '85 kg × 6 · active'],
+        },
+        {
+          eyebrow: '30-DAY PROGRESS',
+          title: '+12% training volume',
+          metric: '9 sessions',
+          rows: ['Personal best · 85 kg', 'Consistency · 3× weekly', 'Next target · 87.5 kg'],
+        },
+      ];
+  const activeProductPreview = productPreviewSlides[activeHeroSlide];
   const featureCards = copy.features.map((feature, index) => ({
     ...feature,
     Icon: featureIcons[index],
@@ -378,6 +421,7 @@ export default function Landing({ currentUser }) {
                 <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
               )}
             </motion.div>
+            {!currentUser && <small className="landing-cta-note">{copy.ctaNote}</small>}
           </motion.div>
 
           <motion.aside
@@ -388,19 +432,31 @@ export default function Landing({ currentUser }) {
           >
             <div className="landing-hero-reel" aria-label="Next Reps preview reel">
               <div className="landing-hero-reel-media">
-                {heroSlides.map((slide, index) => (
-                  <video
-                    aria-hidden="true"
-                    autoPlay
-                    className={index === activeHeroSlide ? 'is-active' : ''}
-                    key={slide.video}
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    src={slide.video}
-                  />
-                ))}
+                <div className="landing-product-preview" key={activeHeroSlide}>
+                  <div className="landing-product-toolbar">
+                    <span>NEXT REPS</span>
+                    <i aria-hidden="true" />
+                  </div>
+                  <div className="landing-product-heading">
+                    <span>{activeProductPreview.eyebrow}</span>
+                    <strong>{activeProductPreview.title}</strong>
+                    <small>{activeProductPreview.metric}</small>
+                  </div>
+                  <div className="landing-product-chart" aria-hidden="true">
+                    {[42, 58, 51, 74, 68, 86, 96].map((height, index) => (
+                      <i key={height + index} style={{ '--preview-bar-height': `${height}%` }} />
+                    ))}
+                  </div>
+                  <div className="landing-product-rows">
+                    {activeProductPreview.rows.map((row, index) => (
+                      <div key={row}>
+                        <span>{String(index + 1).padStart(2, '0')}</span>
+                        <strong>{row}</strong>
+                        <i className={index < 2 ? 'is-complete' : ''} aria-hidden="true" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <div className="landing-hero-reel-overlay" />
                 <div className="landing-hero-reel-badge">next-reps.de</div>
               </div>
