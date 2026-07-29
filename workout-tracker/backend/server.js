@@ -76,6 +76,19 @@ const getTrustedHttpsOrigin = () => {
   }
 };
 const trustedHttpsOrigin = getTrustedHttpsOrigin();
+const getSafeHttpsRedirectUrl = (originalUrl) => {
+  const safePath = (
+    typeof originalUrl === 'string'
+    && /^\/(?!\/)[^\\\r\n]*$/.test(originalUrl)
+  )
+    ? originalUrl
+    : '/';
+
+  const targetUrl = new URL(safePath, `${trustedHttpsOrigin}/`);
+  return targetUrl.origin === trustedHttpsOrigin
+    ? targetUrl.href
+    : `${trustedHttpsOrigin}/`;
+};
 const contentSecurityPolicyDirectives = {
   defaultSrc: ["'self'"],
   baseUri: ["'self'"],
@@ -96,7 +109,7 @@ app.use((req, res, next) => {
     return next();
   }
 
-  return res.redirect(308, `${trustedHttpsOrigin}${req.originalUrl}`);
+  return res.redirect(308, getSafeHttpsRedirectUrl(req.originalUrl));
 });
 
 app.use(helmet({
