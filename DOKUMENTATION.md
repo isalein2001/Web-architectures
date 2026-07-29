@@ -118,6 +118,55 @@ Weitere Schutzschichten:
 - begrenzte JSON- und Bildgrößen
 - Helmet, CSP und explizit vertrauenswürdige Reverse Proxies
 
+### Security-Review: CodeSniper V1 bis V9
+
+Die Sicherheitsarbeit wurde nicht nur punktuell, sondern durch wiederholte
+CodeSniper-Scans überprüft. Der erste Bericht V1
+(`18ab13e3-d5ac-4696-a1ba-ccb149f44790`) bewertete den Stand mit 33
+Code-Findings und 41 Dependency-Findings als schwach. Darunter waren fünf
+High-Findings, unter anderem fehlendes Rate-Limiting, hart codierte
+Zugangsdaten, unsichere Build-Abhängigkeiten und unzureichende serverseitige
+Autorisierung.
+
+Der abschließende Vergleichsbericht V9
+(`9bf55ff9-f95f-4193-be9c-468c459096c0`) enthält noch fünf Code-Hinweise und
+zwölf Dependency-Hinweise. Das entspricht einer Reduktion um 28 Code-Findings
+und 29 Dependency-Findings. V9 bestätigt außerdem, dass keine aktiven
+Produktionszugangsdaten, API-Keys oder privaten Schlüssel im Repository
+gefunden wurden.
+
+Wichtige Maßnahmen zwischen den Scans:
+
+- serverseitige Ownership-Prüfungen und Demo-Account-Schutz
+- getrennte Rate-Limits für Login, Verifikation und E-Mail-Versand
+- Ablaufzeit, Versuchslimit und serverseitige Speicherung von
+  Verifikationscodes
+- CSRF-Headerprüfung, Helmet/CSP und sichere Redirect-Validierung
+- Größenlimits für JSON und Profilbilder
+- SSH-Key statt Passwort im Deployment
+- gezielte Dependency-Upgrades und Overrides
+
+Die verbliebenen V9-Hinweise werden differenziert bewertet:
+
+- Der Medium-Hinweis zum schnellen SHA-256-Hash eines niedrig-entropischen
+  sechsstelligen Codes ist ein berechtigtes Rest-Risiko. Ablaufzeit,
+  Versuchslimit und Rate-Limiting begrenzen Online-Angriffe; für besseren
+  Schutz bei einem Datenbankabfluss soll auf einen langsamen, gesalzenen Hash
+  umgestellt werden.
+- Der gemeldete unhandled Promise-Pfad beim Laden des Profilbilds besitzt im
+  aktuellen Stand bereits einen `.catch()`-Zweig und wird daher als behoben
+  beziehungsweise als Scanner-Fehlalarm bewertet.
+- Der CSRF-Hinweis ist informational: Die Anwendung verwendet bewusst eine
+  eigene Headerprüfung für alle zustandsändernden `/api`-Requests statt des
+  veralteten `csurf`-Pakets.
+- `Math.random()` erzeugte nur eine lokale Offline-Queue-ID und schützte keine
+  Berechtigung. Der Hinweis wurde dennoch geschlossen, indem die ID nun mit
+  `crypto.randomUUID()` erzeugt wird.
+- Die verbleibenden Dependency-Hinweise betreffen vor allem transitive
+  Entwicklungsabhängigkeiten (`@capacitor/cli`, `tar`, `@babel/core`) und
+  werden unter Beachtung der geforderten Sieben-Tage-Supply-Chain-Regel
+  aktualisiert.
+
 ### Deployment
 
 Jeder Push auf `main` startet GitHub Actions. Der Workflow baut das Frontend,

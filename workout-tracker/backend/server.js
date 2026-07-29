@@ -164,4 +164,8 @@ app.use((req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
+}
+
+module.exports = app;

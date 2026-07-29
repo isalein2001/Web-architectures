@@ -76,7 +76,7 @@ export const queueWorkoutSession = (sessionData, userOrId) => {
   const userId = getUserId(userOrId);
   const queue = getSyncQueue();
   const queueItem = {
-    id: `queue-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    id: `queue-${Date.now()}-${crypto.randomUUID()}`,
     userId,
     sessionData,
     retries: 0,
