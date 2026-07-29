@@ -272,7 +272,7 @@ function createAuthRouter() {
     res.status(200).json({ profileImage: user.profileImage });
   });
 
-  router.put('/me', authenticate, async (req, res) => {
+  router.put('/me', authenticate, authEmailRateLimiter, async (req, res) => {
     const email = normalizeEmail(req.body.email);
     const firstName = normalizeText(req.body.firstName);
     const lastName = normalizeText(req.body.lastName);

@@ -32,6 +32,9 @@ const authEmailRateLimiter = rateLimit({
   limit: toPositiveNumber(process.env.AUTH_EMAIL_RATE_LIMIT_MAX, 5),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
+  keyGenerator: (req) => req.user?.userId
+    ? `user:${req.user.userId}`
+    : `ip:${ipKeyGenerator(req.ip)}`,
   message: { error: 'Zu viele E-Mail-Anfragen. Bitte versuche es später erneut.' },
 });
 
