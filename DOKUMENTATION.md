@@ -1,5 +1,11 @@
 # NEXT REPS – Architekturdokumentation
 
+**Projektteam:** Isabel Prieb und Marcel Miller
+
+**Produkt:** NEXT REPS
+
+**Web:** [next-reps.de](https://next-reps.de)
+
 ## 1. Ziel und aktueller Stand
 
 NEXT REPS ist eine mobile-first Fitness-Anwendung für Workout-Planung,
@@ -46,12 +52,56 @@ Zugänge zum selben System.
 
 ### Branding, Vermarktung und Produktziel
 
-NEXT REPS besitzt eine eigenständige visuelle Identität mit selbst entwickeltem
-Logo, Key Visuals, Typografie, Farbwelt und einer inszenierten Landingpage.
-Begleitend wurde eine Instagram-Präsenz aufgebaut, über die das Produkt
-vorgestellt, beworben und perspektivisch mit einer Fitness-Community
-weiterentwickelt werden soll. Branding und Marketing wurden somit nicht erst
-als spätere Dekoration betrachtet, sondern als Teil des Produktkonzepts.
+NEXT REPS besitzt eine vollständig eigenständig entwickelte visuelle
+Identität. Branding, Grafikdesign und Logo wurden nicht aus einer vorhandenen
+Vorlage übernommen, sondern in einem vollständigen Designprozess erarbeitet.
+
+Am Anfang stand die visuelle und strategische Recherche. Auf Miro wurde ein
+Moodboard aufgebaut, das unterschiedliche Richtungen für Sport, Energie,
+Fortschritt, Technologie, Typografie und Farbstimmung zusammenführte. Das
+Moodboard diente nicht als Sammlung beliebiger schöner Bilder, sondern als
+Entscheidungsgrundlage: Welche Stimmung soll die Marke vermitteln, wie
+unterscheidet sie sich von klassischen Fitnessstudios und welche Elemente
+lassen sich über App, Website und Social Media hinweg konsistent einsetzen?
+
+Auf dieser Basis entstanden Logoentwürfe zunächst als Handskizzen. Dabei wurde
+untersucht, wie sich Buchstaben, Name und Produktaussage konzeptionell
+miteinander verbinden lassen. Ein zentrales Motiv wurden Pfeile: Sie stehen
+für Tracking, Richtung, Wiederholung, Entwicklung und den nächsten
+Trainingsfortschritt. Mehrere formale und typografische Varianten wurden
+verglichen, reduziert und weiterentwickelt, bis das heutige Zeichen und die
+Wortmarke entstanden.
+
+Die ausgewählten Entwürfe wurden anschließend in Adobe Illustrator als
+präzise Vektorgrafiken umgesetzt. Dort wurden Proportionen, Abstände,
+Linienführung und unterschiedliche Logoanwendungen ausgearbeitet. Die
+finalisierten Dateien wurden in geeigneten Formaten exportiert und in Website,
+iOS-App, Landingpage und weitere Markenmedien integriert. Dadurch bleibt das
+Logo von kleinen App-Icons bis zu großen Key Visuals konsistent und
+skalierbar.
+
+Zur Brand Identity gehören neben dem Logo:
+
+- Lime-Grün und Dark Mode als wiedererkennbare Farbwelt,
+- Pfeile und gerichtete Formen als visuelles System für Fortschritt,
+- eine kraftvolle, reduzierte Typografie,
+- eigene Key Visuals und Bildstimmungen,
+- Bewegungsprinzipien für Reels, Übergänge und Interface-Animationen,
+- wiederkehrende Logo- und Sublogo-Anwendungen.
+
+Das Branding wurde bewusst auch außerhalb des eigentlichen Interfaces
+angewendet. Für Instagram und weitere Social-Media-Formate entstanden Posts,
+Reels, Schnitte und Stimmungsvorgaben. Dadurch konnte geprüft werden, ob die
+Identität nicht nur innerhalb eines App-Screens funktioniert, sondern als
+erkennbare Marke kommunizierbar ist. Insbesondere die Kombination aus
+dunkler Bildwelt, Lime-Akzenten, dynamischer Typografie und Bewegung zeigt,
+wohin NEXT REPS als Produkt und Marke langfristig führen soll.
+
+Die Social-Media-Arbeit erfüllt damit mehrere Funktionen: Sie macht die Marke
+früh sichtbar, gibt potenziellen Nutzern einen emotionalen Zugang zum Produkt,
+schafft einen zukünftigen Feedbackkanal und erprobt bereits vor dem Launch
+eine konsistente Vermarktung. Branding und Marketing wurden folglich nicht
+erst als spätere Dekoration betrachtet, sondern als Teil der Produktstrategie.
 
 Das Ziel endet nicht mit der Prüfungsabgabe. Die App soll in naher Zukunft
 veröffentlicht, vertrieben und mit realen Nutzern aktiv getestet werden. Dabei
