@@ -36,8 +36,19 @@ const trustedProxies = [
 app.set('trust proxy', trustedProxies);
 app.disable('x-powered-by');
 
-app.use(express.json({ limit: '15mb' }));
 app.use(cookieParser());
+app.use('/api/auth', authRateLimiter);
+
+// Profile images are capped at 500 KB after decoding. Allow their Base64/JSON
+// overhead only on the authenticated profile update endpoint.
+app.put(
+  '/api/auth/me',
+  authenticate,
+  express.json({ limit: '750kb' }),
+  (req, res, next) => next()
+);
+
+app.use(express.json({ limit: '100kb' }));
 
 const shouldForceHttps = process.env.NODE_ENV === 'production' && process.env.FORCE_HTTPS !== 'false';
 const getTrustedHttpsOrigin = () => {
@@ -96,7 +107,7 @@ const PORT = process.env.PORT || 3000;
 const workoutsRouter = createWorkoutsRouter();
 const verifiedUser = [authenticate, ensureEmailVerified];
 
-app.use('/api/auth', authRateLimiter, createAuthRouter());
+app.use('/api/auth', createAuthRouter());
 app.use('/api/events', verifiedUser, createEventsRouter());
 app.use('/api/plans', verifiedUser, workoutsRouter);
 app.use('/api/workouts', verifiedUser, workoutsRouter);
