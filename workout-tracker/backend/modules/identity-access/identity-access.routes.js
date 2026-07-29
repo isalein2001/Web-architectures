@@ -11,6 +11,9 @@ const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
 const INTERNAL_ERROR_MESSAGE = 'Ein interner Fehler ist aufgetreten.';
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const PROFILE_IMAGE_MAX_BYTES = 500_000;
+const VERIFICATION_CODE_TTL_MS = 10 * 60 * 1000;
+const VERIFICATION_CODE_MAX_ATTEMPTS = 5;
+const DUMMY_PASSWORD_HASH_FOR_TIMING_ONLY = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 12);
 
 const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
 const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
@@ -18,6 +21,49 @@ const DEMO_EMAIL = 'jonasarnold@gmail.com';
 const MIN_PASSWORD_LENGTH = 8;
 
 const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
+const createVerificationCodeData = () => ({
+  verificationCode: createVerificationCode(),
+  verificationCodeExpiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+  verificationCodeAttempts: 0,
+});
+
+const clearVerificationCodeData = {
+  verificationCode: null,
+  verificationCodeExpiresAt: null,
+  verificationCodeAttempts: 0,
+};
+
+const validateVerificationCode = async (user, code) => {
+  const hasExpired = (
+    !user.verificationCodeExpiresAt
+    || user.verificationCodeExpiresAt.getTime() <= Date.now()
+  );
+
+  if (!user.verificationCode || hasExpired) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: clearVerificationCodeData,
+    });
+    return { valid: false, expired: true };
+  }
+
+  if (!code || code !== user.verificationCode) {
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { verificationCodeAttempts: { increment: 1 } },
+      select: { verificationCodeAttempts: true },
+    });
+    if (updatedUser.verificationCodeAttempts >= VERIFICATION_CODE_MAX_ATTEMPTS) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: clearVerificationCodeData,
+      });
+    }
+    return { valid: false, expired: false };
+  }
+
+  return { valid: true, expired: false };
+};
 
 const isDemoAccount = (email) => email === DEMO_EMAIL;
 
@@ -116,7 +162,7 @@ function createAuthRouter() {
       }
 
       const passwordHash = await bcrypt.hash(password, 12);
-      const verificationCode = isDemoAccount(email) ? null : createVerificationCode();
+      const verification = isDemoAccount(email) ? clearVerificationCodeData : createVerificationCodeData();
       const user = await prisma.user.create({
         data: {
           email,
@@ -124,18 +170,18 @@ function createAuthRouter() {
           firstName,
           lastName,
           emailVerified: isDemoAccount(email),
-          verificationCode,
+          ...verification,
           onboardingCompleted: isDemoAccount(email),
           passwordHash,
         },
         select: selectPublicUser,
       });
 
-      if (verificationCode) {
+      if (verification.verificationCode) {
         sendVerificationEmailLater({
           to: email,
           firstName,
-          code: verificationCode,
+          code: verification.verificationCode,
         });
       }
 
@@ -161,12 +207,9 @@ function createAuthRouter() {
 
     try {
       const user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        return res.status(401).json({ error: INVALID_LOGIN_MESSAGE });
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-      if (!isValidPassword) {
+      const passwordHash = user?.passwordHash || DUMMY_PASSWORD_HASH_FOR_TIMING_ONLY;
+      const isValidPassword = await bcrypt.compare(password, passwordHash);
+      if (!user || !isValidPassword) {
         return res.status(401).json({ error: INVALID_LOGIN_MESSAGE });
       }
 
@@ -266,7 +309,10 @@ function createAuthRouter() {
 
       if (email !== currentUser.email) {
         updateData.pendingEmail = isDemoAccount(email) ? null : email;
-        updateData.verificationCode = isDemoAccount(email) ? null : createVerificationCode();
+        Object.assign(
+          updateData,
+          isDemoAccount(email) ? clearVerificationCodeData : createVerificationCodeData()
+        );
         if (updateData.verificationCode) {
           sendVerificationEmailLater({
             to: email,
@@ -352,8 +398,13 @@ function createAuthRouter() {
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
       if (!currentUser.pendingEmail) return res.status(400).json({ error: 'Keine ausstehende E-Mail-Änderung.' });
 
-      if (!code || code !== currentUser.verificationCode) {
-        return res.status(400).json({ error: 'Verification code is invalid.' });
+      const verification = await validateVerificationCode(currentUser, code);
+      if (!verification.valid) {
+        return res.status(400).json({
+          error: verification.expired
+            ? 'Verification code has expired. Please request a new code.'
+            : 'Verification code is invalid.',
+        });
       }
 
       const existingUser = await prisma.user.findFirst({
@@ -370,7 +421,7 @@ function createAuthRouter() {
           email: currentUser.pendingEmail,
           pendingEmail: null,
           emailVerified: true,
-          verificationCode: null,
+          ...clearVerificationCodeData,
         },
         select: selectPublicUser,
       });
@@ -388,15 +439,15 @@ function createAuthRouter() {
       if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
       if (!currentUser.pendingEmail) return res.status(400).json({ error: 'Keine ausstehende E-Mail-Änderung.' });
 
-      const verificationCode = createVerificationCode();
+      const verification = createVerificationCodeData();
       await prisma.user.update({
         where: { id: currentUser.id },
-        data: { verificationCode },
+        data: verification,
       });
       sendVerificationEmailLater({
         to: currentUser.pendingEmail,
         firstName: currentUser.firstName,
-        code: verificationCode,
+        code: verification.verificationCode,
       });
 
       res.status(200).json({
@@ -417,19 +468,24 @@ function createAuthRouter() {
       if (isDemoAccount(currentUser.email) || currentUser.emailVerified) {
         const user = await prisma.user.update({
           where: { id: currentUser.id },
-          data: { emailVerified: true, verificationCode: null },
+          data: { emailVerified: true, ...clearVerificationCodeData },
           select: selectPublicUser,
         });
         return res.status(200).json({ user: userWithClaims(user) });
       }
 
-      if (!code || code !== currentUser.verificationCode) {
-        return res.status(400).json({ error: 'Verification code is invalid.' });
+      const verification = await validateVerificationCode(currentUser, code);
+      if (!verification.valid) {
+        return res.status(400).json({
+          error: verification.expired
+            ? 'Verification code has expired. Please request a new code.'
+            : 'Verification code is invalid.',
+        });
       }
 
       const user = await prisma.user.update({
         where: { id: currentUser.id },
-        data: { emailVerified: true, verificationCode: null },
+        data: { emailVerified: true, ...clearVerificationCodeData },
         select: selectPublicUser,
       });
 
@@ -448,15 +504,15 @@ function createAuthRouter() {
         return res.status(200).json({ message: 'Already verified.' });
       }
 
-      const verificationCode = createVerificationCode();
+      const verification = createVerificationCodeData();
       await prisma.user.update({
         where: { id: currentUser.id },
-        data: { verificationCode },
+        data: verification,
       });
       sendVerificationEmailLater({
         to: currentUser.email,
         firstName: currentUser.firstName,
-        code: verificationCode,
+        code: verification.verificationCode,
       });
 
       res.status(200).json({
