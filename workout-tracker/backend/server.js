@@ -63,32 +63,6 @@ app.put(
 
 app.use(express.json({ limit: '100kb' }));
 
-const shouldForceHttps = process.env.NODE_ENV === 'production' && process.env.FORCE_HTTPS !== 'false';
-const getTrustedHttpsOrigin = () => {
-  const configuredHost = (process.env.APP_HOST || 'next-reps.de').trim();
-  const candidate = /^https?:\/\//i.test(configuredHost) ? configuredHost : `https://${configuredHost}`;
-
-  try {
-    const url = new URL(candidate);
-    return `https://${url.host}`;
-  } catch {
-    return 'https://next-reps.de';
-  }
-};
-const trustedHttpsOrigin = getTrustedHttpsOrigin();
-const getSafeHttpsRedirectUrl = (originalUrl) => {
-  const safePath = (
-    typeof originalUrl === 'string'
-    && /^\/(?!\/)[^\\\r\n]*$/.test(originalUrl)
-  )
-    ? originalUrl
-    : '/';
-
-  const targetUrl = new URL(safePath, `${trustedHttpsOrigin}/`);
-  return targetUrl.origin === trustedHttpsOrigin
-    ? targetUrl.href
-    : `${trustedHttpsOrigin}/`;
-};
 const contentSecurityPolicyDirectives = {
   defaultSrc: ["'self'"],
   baseUri: ["'self'"],
@@ -103,14 +77,6 @@ const contentSecurityPolicyDirectives = {
   workerSrc: ["'self'"],
   mediaSrc: ["'self'"],
 };
-
-app.use((req, res, next) => {
-  if (!shouldForceHttps || req.secure) {
-    return next();
-  }
-
-  return res.redirect(308, getSafeHttpsRedirectUrl(req.originalUrl));
-});
 
 app.use(helmet({
   contentSecurityPolicy: {
