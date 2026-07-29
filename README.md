@@ -133,7 +133,9 @@ vor und werden nicht im Repository gespeichert.
 
 ## Dokumentation
 
-Die ausführliche Entwicklungs- und Lernprozessdokumentation befindet sich in
-[`workout-tracker/frontend/README.md`](workout-tracker/frontend/README.md).
-Eine kompakte Architekturdokumentation, Testanleitung und Retrospektive werden
-für die finale Abgabe in separaten Dokumenten gepflegt.
+- [Qualitätssicherung und Feature-Nachweise](docs/QUALITY_ASSURANCE.md)
+- [UX und Designsprache](docs/UX_AND_DESIGN.md)
+- [ausführliche Entwicklungs- und Lernprozessdokumentation](workout-tracker/frontend/README.md)
+
+Architekturdokumentation, Testanleitung und Retrospektive werden für die finale
+Abgabe ebenfalls als kompakte Dokumente in `docs/` gepflegt.
