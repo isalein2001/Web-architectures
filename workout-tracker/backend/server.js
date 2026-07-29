@@ -22,6 +22,35 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 
+// Capacitor serves the installed app from a local origin. Allow only those
+// native origins to call the production API; browser traffic remains same-origin.
+const nativeAppOrigins = new Set([
+  'https://localhost',
+  'capacitor://localhost',
+]);
+app.use('/api', (req, res, next) => {
+  const origin = req.get('Origin');
+
+  if (!origin || !nativeAppOrigins.has(origin)) {
+    return next();
+  }
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Authorization, Content-Type, X-NextReps-Client, X-NextReps-CSRF'
+  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.append('Vary', 'Origin');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
+
 // The app runs behind the Apache reverse proxy on konsoleH.
 // Only known proxy addresses may supply forwarding headers. A numeric hop count
 // would also trust an attacker-controlled X-Forwarded-For value when a request
