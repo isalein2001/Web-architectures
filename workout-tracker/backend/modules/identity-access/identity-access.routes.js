@@ -33,6 +33,17 @@ const clearVerificationCodeData = {
   verificationCodeAttempts: 0,
 };
 
+const verificationCodeDigest = (value) => (
+  crypto.createHash('sha256').update(typeof value === 'string' ? value : '').digest()
+);
+
+const verificationCodesMatch = (submittedCode, storedCode) => (
+  crypto.timingSafeEqual(
+    verificationCodeDigest(submittedCode),
+    verificationCodeDigest(storedCode)
+  )
+);
+
 const validateVerificationCode = async (user, code) => {
   const hasExpired = (
     !user.verificationCodeExpiresAt
@@ -47,7 +58,7 @@ const validateVerificationCode = async (user, code) => {
     return { valid: false, expired: true };
   }
 
-  if (!code || code !== user.verificationCode) {
+  if (!verificationCodesMatch(code, user.verificationCode)) {
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { verificationCodeAttempts: { increment: 1 } },
