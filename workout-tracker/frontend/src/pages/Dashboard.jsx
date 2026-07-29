@@ -484,7 +484,7 @@ function AnimatedMedal({ Icon: MedalIcon = Award }) {
   );
 }
 
-export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }) {
+export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, surface = 'web' }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
@@ -1256,7 +1256,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
   ];
 
   return (
-    <div className="dashboard-container">
+    <div className={`dashboard-container dashboard-surface-${surface}`}>
       
       {/* Hero Banner Slideshow */}
       <div className="hero-banner">
@@ -1452,8 +1452,12 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog }
         <div className="calendar-header">
           <h3>{format(currentMonth, "MMMM yyyy", { locale: lang === 'de' ? de : undefined }).toUpperCase()}</h3>
           <div className="calendar-nav">
-            <ChevronLeft size={16} onClick={prevMonth} />
-            <ChevronRight size={16} onClick={nextMonth} />
+            <button type="button" onClick={prevMonth} aria-label={t('Previous month')}>
+              <ChevronLeft size={18} />
+            </button>
+            <button type="button" onClick={nextMonth} aria-label={t('Next month')}>
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
         <div className="calendar-grid">

@@ -1582,3 +1582,27 @@
     cursor: auto !important;
   }
 }
+
+/* Desktop web shell. Native and narrow-screen layouts keep their existing rules. */
+@media (min-width: 901px) {
+  .app-container--web .main-content:not(.main-content--landing) {
+    width: 100%;
+    max-width: 1480px;
+    margin-right: auto;
+    margin-left: auto;
+    padding: var(--size-32);
+  }
+
+  .app-container--web .workout-btn {
+    min-height: var(--size-50);
+    padding: 0 var(--size-20);
+    border-radius: var(--radius-screen-8);
+    font-size: var(--font-size-screen-31);
+    letter-spacing: 0.03em;
+  }
+
+  .app-container--web .workout-btn:focus-visible {
+    outline: var(--size-2) solid var(--palette-fff);
+    outline-offset: var(--size-3);
+  }
+}

@@ -263,54 +263,6 @@
   line-height: 1.5;
 }
 
-.today-main-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--size-32);
-  min-width: 0;
-}
-
-.today-main-content > div {
-  min-width: 0;
-}
-
-.today-plan-action,
-.insight-unlock-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--size-8);
-  min-height: var(--size-48);
-  padding: 0 var(--size-22);
-  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-36));
-  border-radius: var(--radius-screen-24);
-  color: var(--palette-050505);
-  background: var(--color-primary);
-  box-shadow: 0 var(--size-8) var(--size-24) rgb(var(--rgb-197-254-0) / var(--opacity-0-14));
-  font-size: var(--font-size-screen-31);
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-
-.today-plan-action:hover,
-.insight-unlock-button:hover {
-  background: var(--palette-e0ff63);
-  box-shadow: 0 var(--size-12) var(--size-28) rgb(var(--rgb-197-254-0) / var(--opacity-0-22));
-  transform: translateY(var(--size-neg-2));
-}
-
-.today-plan-action:focus-visible,
-.insight-unlock-button:focus-visible {
-  outline: var(--size-2) solid var(--palette-fff);
-  outline-offset: var(--size-3);
-}
-
 /* Daily Goal Card */
 .daily-goal-card {
   display: grid;
@@ -418,10 +370,10 @@
 .daily-goal-row-copy span {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--font-size-screen-18);
-  font-weight: 850;
+  font-size: var(--font-size-screen-8);
+  font-weight: 950;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
   white-space: nowrap;
 }
 
@@ -431,9 +383,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--font-size-screen-43);
+  font-size: var(--font-size-screen-24);
   font-weight: 900;
-  text-align: left;
+  text-align: right;
 }
 
 .daily-goal-row small {
@@ -857,8 +809,7 @@
 .hydration-text p {
   color: var(--palette-888);
   margin: 0;
-  font-size: var(--font-size-screen-31);
-  line-height: 1.5;
+  font-size: var(--font-size-screen-24);
 }
 
 .hydration-goal {
@@ -866,8 +817,8 @@
   align-items: center;
   gap: var(--size-8);
   color: var(--color-primary);
-  font-size: var(--font-size-screen-31);
-  font-weight: 850;
+  font-size: var(--font-size-screen-18);
+  font-weight: 700;
   letter-spacing: var(--size-1);
   z-index: 2;
 }
@@ -1114,9 +1065,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: min(100%, var(--size-880));
-  margin-left: auto;
-  margin-right: auto;
   margin-bottom: var(--size-24);
 }
 
@@ -1137,9 +1085,7 @@
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--size-8);
-  width: min(100%, var(--size-880));
-  margin: 0 auto;
+  gap: var(--size-12);
   text-align: center;
 }
 
@@ -3375,5 +3321,345 @@
     padding-left: 0;
     border-top: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-07));
     padding-top: var(--size-8);
+  }
+}
+
+/* Desktop web presentation. This surface never applies inside the native app. */
+@media (min-width: 901px) {
+  .dashboard-surface-web {
+    --web-card-radius: 20px;
+    --web-control-radius: 12px;
+    --web-control-height: 50px;
+
+    width: 100%;
+    gap: var(--size-32);
+  }
+
+  .dashboard-surface-web > .card,
+  .dashboard-surface-web > section > .card {
+    border-radius: var(--web-card-radius);
+    border-color: rgb(var(--rgb-255-255-255) / var(--opacity-0-07));
+    background-color: var(--palette-121212);
+  }
+
+  .dashboard-surface-web .hero-banner {
+    height: var(--size-300);
+    border-radius: var(--web-card-radius);
+  }
+
+  .dashboard-surface-web .hero-content h1 {
+    font-size: clamp(48px, 4.5vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+  }
+
+  .dashboard-surface-web .hero-content p {
+    font-size: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  .dashboard-surface-web .today-section {
+    gap: var(--size-16);
+  }
+
+  .dashboard-surface-web .today-section-title {
+    font-size: clamp(24px, 2.2vw, 30px);
+    letter-spacing: -0.015em;
+  }
+
+  .dashboard-surface-web .today-main-task {
+    grid-template-columns: var(--size-72) minmax(0, 1fr);
+    min-height: var(--size-150);
+    padding: var(--size-32);
+    border-radius: var(--web-card-radius);
+  }
+
+  .dashboard-surface-web .today-main-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-32);
+    min-width: 0;
+  }
+
+  .dashboard-surface-web .today-main-content > div {
+    min-width: 0;
+  }
+
+  .dashboard-surface-web .today-main-task span {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .dashboard-surface-web .today-main-task h3 {
+    margin: var(--size-8) 0;
+    font-size: clamp(30px, 3vw, 42px);
+    line-height: 1.05;
+  }
+
+  .dashboard-surface-web .today-main-task p {
+    max-width: 720px;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .dashboard-surface-web .today-plan-action,
+  .dashboard-surface-web .insight-unlock-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--size-8);
+    min-height: var(--web-control-height);
+    padding: 0 var(--size-24);
+    border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-38));
+    border-radius: var(--web-control-radius);
+    color: var(--palette-050505);
+    background: var(--color-primary);
+    box-shadow: 0 var(--size-8) var(--size-20) rgb(var(--rgb-197-254-0) / var(--opacity-0-1));
+    font-size: 15px;
+    font-weight: 850;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  }
+
+  .dashboard-surface-web .today-plan-action:hover,
+  .dashboard-surface-web .insight-unlock-button:hover {
+    background: var(--palette-e0ff63);
+    box-shadow: 0 var(--size-10) var(--size-24) rgb(var(--rgb-197-254-0) / var(--opacity-0-16));
+    transform: translateY(var(--size-neg-2));
+  }
+
+  .dashboard-surface-web .today-plan-action:active,
+  .dashboard-surface-web .insight-unlock-button:active {
+    box-shadow: none;
+    transform: translateY(0);
+  }
+
+  .dashboard-surface-web .today-plan-action:focus-visible,
+  .dashboard-surface-web .insight-unlock-button:focus-visible {
+    outline: var(--size-2) solid var(--palette-fff);
+    outline-offset: var(--size-3);
+  }
+
+  .dashboard-surface-web .hero-quick-log-button {
+    min-height: var(--web-control-height);
+    border-radius: var(--web-control-radius);
+    box-shadow: 0 var(--size-8) var(--size-20) rgb(var(--rgb-0-0-0) / var(--opacity-0-2));
+  }
+
+  .dashboard-surface-web .hero-quick-log-copy strong {
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+
+  .dashboard-surface-web .hero-quick-log-copy small {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .dashboard-surface-web .daily-goal-card {
+    grid-template-columns: minmax(220px, 0.4fr) minmax(0, 0.6fr);
+    gap: var(--size-32);
+    padding: var(--size-32);
+  }
+
+  .dashboard-surface-web .daily-goal-breakdown {
+    padding-left: var(--size-32);
+  }
+
+  .dashboard-surface-web .daily-goal-row {
+    grid-template-columns: var(--size-44) minmax(0, 1fr);
+    gap: var(--size-16);
+    min-height: var(--size-72);
+    padding: var(--size-12) 0;
+  }
+
+  .dashboard-surface-web .daily-goal-row-icon {
+    width: var(--size-44);
+    height: var(--size-44);
+    border-radius: var(--size-12);
+  }
+
+  .dashboard-surface-web .daily-goal-row-copy {
+    gap: var(--size-6);
+  }
+
+  .dashboard-surface-web .daily-goal-row-copy span {
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .dashboard-surface-web .daily-goal-row-copy strong {
+    overflow: visible;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: left;
+    text-overflow: clip;
+  }
+
+  .dashboard-surface-web .daily-goal-actions {
+    justify-content: flex-end;
+    padding-top: var(--size-16);
+  }
+
+  .dashboard-surface-web .daily-goal-actions button {
+    min-height: var(--size-38);
+    padding: 0 var(--size-16);
+    border-radius: var(--web-control-radius);
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+  }
+
+  .dashboard-surface-web .daily-goal-actions button:hover {
+    border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-5));
+    background: rgb(var(--rgb-197-254-0) / var(--opacity-0-12));
+  }
+
+  .dashboard-surface-web .daily-goal-actions button:focus-visible {
+    outline: var(--size-2) solid var(--color-primary);
+    outline-offset: var(--size-3);
+  }
+
+  .dashboard-surface-web .hydration-card {
+    min-height: var(--size-128);
+    padding: var(--size-32);
+  }
+
+  .dashboard-surface-web .hydration-text h3 {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  .dashboard-surface-web .hydration-text p {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .dashboard-surface-web .hydration-goal {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .dashboard-surface-web .monthly-calendar-card {
+    padding: var(--size-32);
+  }
+
+  .dashboard-surface-web .calendar-header,
+  .dashboard-surface-web .calendar-grid {
+    width: min(100%, 640px);
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .dashboard-surface-web .calendar-header {
+    padding-bottom: var(--size-20);
+    border-bottom: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
+  }
+
+  .dashboard-surface-web .calendar-header h3 {
+    font-size: 24px;
+    font-weight: 850;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .dashboard-surface-web .calendar-nav {
+    gap: var(--size-8);
+  }
+
+  .dashboard-surface-web .calendar-nav button {
+    display: grid;
+    place-items: center;
+    width: var(--size-40);
+    height: var(--size-40);
+    padding: 0;
+    border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-08));
+    border-radius: var(--web-control-radius);
+    color: var(--palette-aaa);
+    background: rgb(var(--rgb-255-255-255) / var(--opacity-0-035));
+    cursor: pointer;
+    transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+  }
+
+  .dashboard-surface-web .calendar-nav button:hover {
+    color: var(--color-primary);
+    border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-32));
+    background: rgb(var(--rgb-197-254-0) / var(--opacity-0-07));
+  }
+
+  .dashboard-surface-web .calendar-nav button:focus-visible {
+    outline: var(--size-2) solid var(--color-primary);
+    outline-offset: var(--size-3);
+  }
+
+  .dashboard-surface-web .calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--size-12);
+    align-items: center;
+  }
+
+  .dashboard-surface-web .cal-day-name {
+    margin-bottom: var(--size-4);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .dashboard-surface-web .cal-day {
+    width: 100%;
+    height: var(--size-72);
+    min-height: var(--size-72);
+    margin: 0;
+    border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-05));
+    border-radius: var(--web-control-radius);
+    font-size: 16px;
+    background: rgb(var(--rgb-255-255-255) / var(--opacity-0-025));
+  }
+
+  .dashboard-surface-web .cal-day:hover {
+    border-color: rgb(var(--rgb-255-255-255) / var(--opacity-0-12));
+    background: rgb(var(--rgb-255-255-255) / var(--opacity-0-065));
+    transform: translateY(var(--size-neg-1));
+  }
+
+  .dashboard-surface-web .cal-day:focus-visible {
+    outline: var(--size-2) solid var(--color-primary);
+    outline-offset: var(--size-2);
+  }
+
+  .dashboard-surface-web .cal-day.active {
+    color: var(--palette-050505);
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    box-shadow: 0 0 var(--size-18) rgb(var(--rgb-197-254-0) / var(--opacity-0-16));
+  }
+
+  .dashboard-surface-web .cal-day.scheduled:not(.active):not(.trained) {
+    color: var(--palette-fff);
+    border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-34));
+    background: rgb(var(--rgb-197-254-0) / var(--opacity-0-07));
+  }
+
+  .dashboard-surface-web .cal-day.trained {
+    color: var(--palette-050505);
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+  }
+
+  .dashboard-surface-web .cal-workout-dot {
+    right: var(--size-8);
+    bottom: var(--size-8);
+  }
+
+  .dashboard-surface-web .cal-completed-dot {
+    top: var(--size-8);
+    right: var(--size-8);
   }
 }

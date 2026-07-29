@@ -754,7 +754,7 @@ function AppLayout() {
   }
 
   return (
-    <div className={`app-container ${isLanding ? 'app-container--landing' : ''}`}>
+    <div className={`app-container app-container--${isNativeApp ? 'app' : 'web'} ${isLanding ? 'app-container--landing' : ''}`}>
       {/* Left Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-brand">
@@ -1016,7 +1016,7 @@ function AppLayout() {
         <main className={`main-content ${isLanding ? 'main-content--landing' : ''}`}>
           <Routes>
             <Route path="/" element={isNativeApp ? <Navigate to="/dashboard" replace /> : <Landing currentUser={currentUser} />} />
-            <Route path="/dashboard" element={<Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} />} />
+            <Route path="/dashboard" element={<Dashboard currentUser={currentUser} dailyActivity={dailyActivity} onOpenQuickLog={openQuickLog} surface={isNativeApp ? 'app' : 'web'} />} />
             <Route path="/workouts" element={<Workouts currentUser={currentUser} />} />
             <Route path="/start-workout" element={<WorkoutLogger currentUser={currentUser} />} />
             <Route path="/analytics" element={<Analytics currentUser={currentUser} />} />
