@@ -12,7 +12,37 @@ const reveal = {
 
 const featureIcons = [Dumbbell, LineChart, Trophy];
 const heroIcons = [Dumbbell, LineChart, Trophy];
-const scrollImages = ['/slideshow-3.png', '/slideshow-7.png', '/achievements-bg.jpg'];
+const heroVideos = ['/hero-reel-1.mp4', '/hero-reel-2.mp4', '/hero-reel-3.mp4'];
+
+function ProductPreview({ preview, compact = false }) {
+  return (
+    <div className={`landing-product-preview${compact ? ' is-compact' : ''}`}>
+      <div className="landing-product-toolbar">
+        <span>NEXT REPS</span>
+        <i aria-hidden="true" />
+      </div>
+      <div className="landing-product-heading">
+        <span>{preview.eyebrow}</span>
+        <strong>{preview.title}</strong>
+        <small>{preview.metric}</small>
+      </div>
+      <div className="landing-product-chart" aria-hidden="true">
+        {[42, 58, 51, 74, 68, 86, 96].map((height, index) => (
+          <i key={height + index} style={{ '--preview-bar-height': `${height}%` }} />
+        ))}
+      </div>
+      <div className="landing-product-rows">
+        {preview.rows.map((row, index) => (
+          <div key={row}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <strong>{row}</strong>
+            <i className={index < 2 ? 'is-complete' : ''} aria-hidden="true" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const landingCopy = {
   en: {
@@ -265,6 +295,7 @@ export default function Landing({ currentUser }) {
   const copy = landingCopy[lang] || landingCopy.en;
   const heroSlides = copy.heroSlides.map((slide, index) => ({
     ...slide,
+    video: heroVideos[index],
     Icon: heroIcons[index],
   }));
   const productPreviewSlides = lang === 'de'
@@ -308,15 +339,11 @@ export default function Landing({ currentUser }) {
           rows: ['Personal best · 85 kg', 'Consistency · 3× weekly', 'Next target · 87.5 kg'],
         },
       ];
-  const activeProductPreview = productPreviewSlides[activeHeroSlide];
   const featureCards = copy.features.map((feature, index) => ({
     ...feature,
     Icon: featureIcons[index],
   }));
-  const scrollFrames = copy.scrollFrames.map((frame, index) => ({
-    ...frame,
-    image: scrollImages[index],
-  }));
+  const scrollFrames = copy.scrollFrames;
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -432,31 +459,19 @@ export default function Landing({ currentUser }) {
           >
             <div className="landing-hero-reel" aria-label="Next Reps preview reel">
               <div className="landing-hero-reel-media">
-                <div className="landing-product-preview" key={activeHeroSlide}>
-                  <div className="landing-product-toolbar">
-                    <span>NEXT REPS</span>
-                    <i aria-hidden="true" />
-                  </div>
-                  <div className="landing-product-heading">
-                    <span>{activeProductPreview.eyebrow}</span>
-                    <strong>{activeProductPreview.title}</strong>
-                    <small>{activeProductPreview.metric}</small>
-                  </div>
-                  <div className="landing-product-chart" aria-hidden="true">
-                    {[42, 58, 51, 74, 68, 86, 96].map((height, index) => (
-                      <i key={height + index} style={{ '--preview-bar-height': `${height}%` }} />
-                    ))}
-                  </div>
-                  <div className="landing-product-rows">
-                    {activeProductPreview.rows.map((row, index) => (
-                      <div key={row}>
-                        <span>{String(index + 1).padStart(2, '0')}</span>
-                        <strong>{row}</strong>
-                        <i className={index < 2 ? 'is-complete' : ''} aria-hidden="true" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {heroSlides.map((slide, index) => (
+                  <video
+                    aria-hidden="true"
+                    autoPlay
+                    className={index === activeHeroSlide ? 'is-active' : ''}
+                    key={slide.video}
+                    loop
+                    muted
+                    playsInline
+                    preload={index === 0 ? 'metadata' : 'none'}
+                    src={slide.video}
+                  />
+                ))}
                 <div className="landing-hero-reel-overlay" />
                 <div className="landing-hero-reel-badge">next-reps.de</div>
               </div>
@@ -629,13 +644,13 @@ export default function Landing({ currentUser }) {
               <p>{frame.text}</p>
             </div>
             <motion.div
-              className="landing-story-image"
+              className="landing-story-product"
               whileInView={{ scale: 1, rotate: 0 }}
               initial={{ scale: 0.94, rotate: index % 2 === 0 ? -2 : 2 }}
               viewport={{ once: false, amount: 0.45 }}
               transition={{ duration: 0.7 }}
             >
-              <img src={frame.image} alt="" />
+              <ProductPreview preview={productPreviewSlides[index]} compact />
               <div className="landing-image-badge">
                 <BarChart3 size={16} />
                 <span>{frame.stat}</span>
@@ -646,22 +661,6 @@ export default function Landing({ currentUser }) {
       </section>
 
       <section className="landing-proof">
-        <motion.div
-          className="landing-proof-image"
-          initial={{ opacity: 0, scale: 0.94 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.65 }}
-        >
-          <img
-            src="/hero-bg-evening.webp"
-            alt="Evening workout session"
-            width="1024"
-            height="1024"
-            loading="lazy"
-            decoding="async"
-          />
-        </motion.div>
         <motion.div
           className="landing-proof-copy"
           initial="hidden"
@@ -678,6 +677,15 @@ export default function Landing({ currentUser }) {
             <span><Activity size={17} /> {copy.proofItems[1]}</span>
             <span><PlayCircle size={17} /> {copy.proofItems[2]}</span>
           </div>
+        </motion.div>
+        <motion.div
+          className="landing-proof-dashboard"
+          initial={{ opacity: 0, scale: 0.94 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.65 }}
+        >
+          <ProductPreview preview={productPreviewSlides[2]} compact />
         </motion.div>
       </section>
 
