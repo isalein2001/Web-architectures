@@ -21,11 +21,6 @@ const DEMO_EMAIL = 'jonasarnold@gmail.com';
 const MIN_PASSWORD_LENGTH = 8;
 
 const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
-const createVerificationCodeData = () => ({
-  verificationCode: createVerificationCode(),
-  verificationCodeExpiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
-  verificationCodeAttempts: 0,
-});
 
 const clearVerificationCodeData = {
   verificationCode: null,
@@ -37,12 +32,29 @@ const verificationCodeDigest = (value) => (
   crypto.createHash('sha256').update(typeof value === 'string' ? value : '').digest()
 );
 
-const verificationCodesMatch = (submittedCode, storedCode) => (
-  crypto.timingSafeEqual(
-    verificationCodeDigest(submittedCode),
-    verificationCodeDigest(storedCode)
+const createVerificationCodeData = () => {
+  const code = createVerificationCode();
+  return {
+    code,
+    data: {
+      verificationCode: verificationCodeDigest(code).toString('hex'),
+      verificationCodeExpiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+      verificationCodeAttempts: 0,
+    },
+  };
+};
+
+const verificationCodesMatch = (submittedCode, storedCodeHash) => {
+  const submittedCodeHash = verificationCodeDigest(submittedCode);
+  const storedCodeHashBuffer = (
+    typeof storedCodeHash === 'string'
+    && /^[a-f0-9]{64}$/i.test(storedCodeHash)
   )
-);
+    ? Buffer.from(storedCodeHash, 'hex')
+    : Buffer.alloc(submittedCodeHash.length);
+
+  return crypto.timingSafeEqual(submittedCodeHash, storedCodeHashBuffer);
+};
 
 const validateVerificationCode = async (user, code) => {
   const hasExpired = (
@@ -173,7 +185,9 @@ function createAuthRouter() {
       }
 
       const passwordHash = await bcrypt.hash(password, 12);
-      const verification = isDemoAccount(email) ? clearVerificationCodeData : createVerificationCodeData();
+      const verification = isDemoAccount(email)
+        ? { code: null, data: clearVerificationCodeData }
+        : createVerificationCodeData();
       const user = await prisma.user.create({
         data: {
           email,
@@ -181,18 +195,18 @@ function createAuthRouter() {
           firstName,
           lastName,
           emailVerified: isDemoAccount(email),
-          ...verification,
+          ...verification.data,
           onboardingCompleted: isDemoAccount(email),
           passwordHash,
         },
         select: selectPublicUser,
       });
 
-      if (verification.verificationCode) {
+      if (verification.code) {
         sendVerificationEmailLater({
           to: email,
           firstName,
-          code: verification.verificationCode,
+          code: verification.code,
         });
       }
 
@@ -323,19 +337,19 @@ function createAuthRouter() {
 
       if (email !== currentUser.email) {
         const verification = isDemoAccount(email)
-          ? clearVerificationCodeData
+          ? { code: null, data: clearVerificationCodeData }
           : createVerificationCodeData();
 
         updateData.pendingEmail = isDemoAccount(email) ? null : email;
-        updateData.verificationCode = verification.verificationCode;
-        updateData.verificationCodeExpiresAt = verification.verificationCodeExpiresAt;
-        updateData.verificationCodeAttempts = verification.verificationCodeAttempts;
+        updateData.verificationCode = verification.data.verificationCode;
+        updateData.verificationCodeExpiresAt = verification.data.verificationCodeExpiresAt;
+        updateData.verificationCodeAttempts = verification.data.verificationCodeAttempts;
 
-        if (updateData.verificationCode) {
+        if (verification.code) {
           sendVerificationEmailLater({
             to: email,
             firstName,
-            code: updateData.verificationCode,
+            code: verification.code,
           });
         } else {
           updateData.email = email;
@@ -460,12 +474,12 @@ function createAuthRouter() {
       const verification = createVerificationCodeData();
       await prisma.user.update({
         where: { id: currentUser.id },
-        data: verification,
+        data: verification.data,
       });
       sendVerificationEmailLater({
         to: currentUser.pendingEmail,
         firstName: currentUser.firstName,
-        code: verification.verificationCode,
+        code: verification.code,
       });
 
       res.status(200).json({
@@ -525,12 +539,12 @@ function createAuthRouter() {
       const verification = createVerificationCodeData();
       await prisma.user.update({
         where: { id: currentUser.id },
-        data: verification,
+        data: verification.data,
       });
       sendVerificationEmailLater({
         to: currentUser.email,
         firstName: currentUser.firstName,
-        code: verification.verificationCode,
+        code: verification.code,
       });
 
       res.status(200).json({
