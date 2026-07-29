@@ -13,6 +13,47 @@ The project keeps frontend and backend separate:
 - `backend/server.js`: Express app setup and route mounting
 - `backend/modules/`: modularer Monolith mit fachlichen Backend-Kontexten
 
+## Lighthouse-Audit und Bildoptimierung
+
+Für die Performance-Aufgabe wird die deployte Website in einem
+Chrome-Inkognito-Fenster mit Lighthouse im Modus **Performance / Mobile**
+gemessen. Cache und Browser-Erweiterungen bleiben dadurch aus der Messung
+heraus.
+
+### Vorher-Nachher-Messung
+
+| Messung | Performance-Score | Largest Contentful Paint | Cumulative Layout Shift |
+| --- | ---: | ---: | ---: |
+| Baseline vor der Optimierung | _Lighthouse-Wert eintragen_ | _Wert eintragen_ | _Wert eintragen_ |
+| Nach der Optimierung | _Lighthouse-Wert eintragen_ | _Wert eintragen_ | _Wert eintragen_ |
+
+Die beiden Messungen werden mit identischen Lighthouse-Einstellungen und auf
+derselben deployten URL durchgeführt. Für die Abgabe werden die Platzhalter
+durch die gemessenen Werte ersetzt und optional Screenshots der beiden Reports
+beigefügt.
+
+### Optimiertes Asset
+
+Das Bild im Landingpage-Abschnitt „Built for real training“ war eines der
+größeren sichtbaren Einzelbilder und lag als JPEG vor:
+
+| Asset | Format | Abmessungen | Dateigröße |
+| --- | --- | ---: | ---: |
+| `public/hero-bg-evening.jpg` | JPEG | 1024 × 1024 px | 257.083 Bytes |
+| `public/hero-bg-evening.webp` | WebP | 1024 × 1024 px | 70.370 Bytes |
+
+Die WebP-Version ist damit **186.713 Bytes bzw. 72,6 % kleiner**. Das Bild
+behält seine benötigte maximale Anzeigegröße bei und wird in
+`src/pages/Landing.jsx` mit expliziten `width`- und `height`-Attributen
+eingebunden. Dadurch kann der Browser den Platz vor dem Download reservieren
+und Layout-Sprünge vermeiden. Da der Abschnitt unterhalb des initial sichtbaren
+Bereichs liegt, nutzt das Bild außerdem `loading="lazy"` und
+`decoding="async"`.
+
+Nach dem Deployment wird Lighthouse erneut ausgeführt. Erwartet werden eine
+kleinere übertragene Bildmenge und stabileres Laden; die tatsächliche
+Verbesserung wird mit den gemessenen Scores in der Tabelle dokumentiert.
+
 ## Aktueller App-Stand
 
 Die App ist inzwischen deutlich mehr als ein einfacher Workout-Tracker. Der aktuelle Stand umfasst:

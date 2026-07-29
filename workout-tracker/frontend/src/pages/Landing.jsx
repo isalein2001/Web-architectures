@@ -597,7 +597,14 @@ export default function Landing({ currentUser }) {
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.65 }}
         >
-          <img src="/hero-bg-evening.jpg" alt="Evening workout session" />
+          <img
+            src="/hero-bg-evening.webp"
+            alt="Evening workout session"
+            width="1024"
+            height="1024"
+            loading="lazy"
+            decoding="async"
+          />
         </motion.div>
         <motion.div
           className="landing-proof-copy"
