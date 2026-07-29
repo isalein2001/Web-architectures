@@ -263,6 +263,54 @@
   line-height: 1.5;
 }
 
+.today-main-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-32);
+  min-width: 0;
+}
+
+.today-main-content > div {
+  min-width: 0;
+}
+
+.today-plan-action,
+.insight-unlock-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-8);
+  min-height: var(--size-48);
+  padding: 0 var(--size-22);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-36));
+  border-radius: var(--radius-screen-24);
+  color: var(--palette-050505);
+  background: var(--color-primary);
+  box-shadow: 0 var(--size-8) var(--size-24) rgb(var(--rgb-197-254-0) / var(--opacity-0-14));
+  font-size: var(--font-size-screen-31);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.today-plan-action:hover,
+.insight-unlock-button:hover {
+  background: var(--palette-e0ff63);
+  box-shadow: 0 var(--size-12) var(--size-28) rgb(var(--rgb-197-254-0) / var(--opacity-0-22));
+  transform: translateY(var(--size-neg-2));
+}
+
+.today-plan-action:focus-visible,
+.insight-unlock-button:focus-visible {
+  outline: var(--size-2) solid var(--palette-fff);
+  outline-offset: var(--size-3);
+}
+
 /* Daily Goal Card */
 .daily-goal-card {
   display: grid;
@@ -370,10 +418,10 @@
 .daily-goal-row-copy span {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--font-size-screen-8);
-  font-weight: 950;
+  font-size: var(--font-size-screen-18);
+  font-weight: 850;
   letter-spacing: 0.08em;
-  text-transform: none;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -383,9 +431,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--font-size-screen-24);
+  font-size: var(--font-size-screen-43);
   font-weight: 900;
-  text-align: right;
+  text-align: left;
 }
 
 .daily-goal-row small {
@@ -809,7 +857,8 @@
 .hydration-text p {
   color: var(--palette-888);
   margin: 0;
-  font-size: var(--font-size-screen-24);
+  font-size: var(--font-size-screen-31);
+  line-height: 1.5;
 }
 
 .hydration-goal {
@@ -817,8 +866,8 @@
   align-items: center;
   gap: var(--size-8);
   color: var(--color-primary);
-  font-size: var(--font-size-screen-18);
-  font-weight: 700;
+  font-size: var(--font-size-screen-31);
+  font-weight: 850;
   letter-spacing: var(--size-1);
   z-index: 2;
 }
@@ -1065,6 +1114,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: min(100%, var(--size-880));
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: var(--size-24);
 }
 
@@ -1085,7 +1137,9 @@
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--size-12);
+  gap: var(--size-8);
+  width: min(100%, var(--size-880));
+  margin: 0 auto;
   text-align: center;
 }
 
