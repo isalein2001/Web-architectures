@@ -484,10 +484,229 @@ noch stärker codegesplittet und automatisiert per Lighthouse überwacht werden.
 
 ## 5. UX und Designsprache
 
-NEXT REPS verwendet eine eigene dunkle Trainingsästhetik mit Lime `#c5fe00`
-als Aktions- und Fortschrittsfarbe. Zentrale Tokens definieren Farben,
-Abstände, Typografie, Radien und Motion. Landingpage, Dashboard, Workouts,
-Logger, Analytics und Profil verwenden dieselben Muster.
+### Gestalterisches Ziel
+
+Das Design von NEXT REPS entstand nicht aus einem einzelnen Template, sondern
+in einem längeren Recherche- und Iterationsprozess. Gesucht wurde eine
+Designsprache, die Energie und sportliche Leistung vermittelt, gleichzeitig
+aber modern, minimalistisch und gut bedienbar bleibt. Als gestalterische
+Leitbegriffe wurden deshalb **energetisch, modern, futuristisch und
+minimalistisch** festgelegt.
+
+Ein reines helles Fitness-Dashboard wurde verworfen, weil es zu generisch wirkte
+und insbesondere während des Trainings in dunkleren Räumen unangenehm sein
+kann. Ein sehr verspieltes oder stark dekoriertes Interface hätte dagegen von
+den zentralen Aktionen abgelenkt. Der gewählte Dark Mode schafft eine ruhige
+Grundfläche; Lime `#c5fe00` wird gezielt als Aktions-, Status- und
+Fortschrittsfarbe eingesetzt. Der hohe Kontrast macht primäre Aktionen und
+positive Entwicklungen schnell erkennbar und erzeugt zugleich den
+eigenständigen NEXT-REPS-Charakter.
+
+Zentrale Design-Tokens definieren Farben, Abstände, Typografie, Radien und
+Motion. Landingpage, Dashboard, Workouts, Logger, Analytics und Profil
+verwenden dadurch dieselben visuellen Regeln. Die Wiederholung dieser Muster
+reduziert die kognitive Belastung: Ein grünes Element signalisiert nicht
+beliebig Dekoration, sondern meist Fortschritt, Auswahl oder eine wichtige
+Aktion.
+
+### Recherche, Prototyping und Umsetzung
+
+Die visuelle Recherche erfolgte unter anderem über Pinterest. Dabei wurden
+Fitnessprodukte, futuristische Interfaces, Editorial Layouts, Sportkampagnen
+und reduzierte Dark-Mode-Systeme verglichen. Referenzen wurden nicht
+unverändert übernommen, sondern hinsichtlich Typografie, Informationsdichte,
+Kontrast, Bildsprache und Bewegungsverhalten ausgewertet.
+
+Der anschließende Gestaltungsprozess verlief in mehreren Stufen:
+
+1. Mit Stitch.ai wurden erste Frames und unterschiedliche
+   Oberflächenrichtungen exploriert.
+2. Die ausgewählten Frames und Bildschirme wurden in Figma manuell
+   überarbeitet, vereinheitlicht und an die tatsächlichen Produktabläufe
+   angepasst.
+3. Figma und die Implementierung in Visual Studio Code wurden eng
+   zusammengedacht. Ein Frame galt erst dann als tragfähig, wenn er auch
+   responsiv, mit echten Daten und als bedienbare React-Komponente
+   funktionierte.
+4. Nach der Implementierung wurden die Ansichten erneut im Browser, auf dem
+   Smartphone und während realer Trainingseinheiten geprüft und weiter
+   angepasst.
+
+Diese Arbeitsweise war wichtig, weil ein statischer Figma-Screen keine langen
+Namen, leeren Datenzustände, Ladezeiten, Tastatureingaben oder unterschiedliche
+Displaygrößen abbildet. Design und Entwicklung wurden daher nicht als zwei
+aufeinanderfolgende, abgeschlossene Phasen verstanden, sondern als
+wechselseitiger Prozess.
+
+Midjourney und ChatGPT wurden unterstützend zur Erzeugung und Weiterentwicklung
+von Bildern, Key Visuals und Medien eingesetzt. Die Ergebnisse wurden
+ausgewählt, zugeschnitten, komprimiert, in das Branding integriert und in einen
+konkreten Nutzungskontext gesetzt. Generative Werkzeuge dienten damit als
+Produktionsmittel, nicht als Ersatz für die manuelle Produkt-, UX- und
+Layoutentscheidung.
+
+### Eigene Bildsprache und Übungsillustrationen
+
+Für die Übungsgalerie werden einzelne Übungen in einer einheitlichen
+Lime-grünen Illustrationssprache dargestellt. Jede Grafik muss zur Übung passen
+und gleichzeitig innerhalb des gesamten Systems konsistent bleiben. Da die
+Zahl möglicher Kraft-, Ausdauer- und Mobilitätsübungen sehr groß ist, ist diese
+Bibliothek im aktuellen Stand noch nicht vollständig. Sie wird schrittweise
+erweitert, statt uneinheitliche Platzhalter als vermeintlich fertigen Bestand
+zu präsentieren.
+
+Die Übungsgalerie entstand auch aus dem Feedback eines Bodybuilding-Trainers.
+Seine Einschätzung war, dass besonders Einsteiger von einer visuellen
+Einordnung profitieren: Übungsnamen allein setzen häufig bereits Wissen über
+Geräte, Bewegungsabläufe und Muskelgruppen voraus. Bild, Kategorie und
+Übungsname bilden deshalb gemeinsam eine verständlichere Auswahl.
+
+Als nächste Ausbaustufe sollen Übungen anklickbar werden. Eine Detailansicht
+soll den korrekten Bewegungsablauf visualisieren und Hinweise zu Ausführung,
+Körperhaltung, typischen Fehlern und beanspruchten Muskelgruppen geben. Diese
+Funktion ist bewusst als Roadmap gekennzeichnet; vor der Veröffentlichung
+müssen die Inhalte fachlich geprüft werden, weil falsche Trainingshinweise ein
+Verletzungsrisiko darstellen können.
+
+### Nutzungstests im Fitnessstudio
+
+Die Anwendung wurde bereits in einer frühen Phase von uns selbst während realer
+Trainingseinheiten eingesetzt. Dadurch wurden Probleme sichtbar, die in einem
+reinen Desktop-Test kaum auffallen:
+
+- Workoutbilder ließen sich anfangs nicht zuverlässig speichern.
+- Trainingseinheiten konnten nach längerer Nutzung verloren gehen, weil die
+  Persistenz und das damalige Datenbankmodell noch nicht ausreichend waren.
+- Zu viele Schritte pro Satz verlangsamten den Ablauf zwischen zwei Übungen.
+- Geräteeinstellungen oder individuelle Hinweise fehlten beim nächsten
+  Training.
+
+Aus diesen Beobachtungen entstanden konkrete Produktentscheidungen. Workouts
+und Logs werden serverseitig persistiert, statt nur im flüchtigen
+Frontend-Zustand zu liegen. Sätze können direkt abgehakt werden. Notizen
+ermöglichen neben allgemeinen Trainingshinweisen auch praktische Angaben wie
+Sitzhöhe, Griffposition oder Geräteeinstellung für die nächste Einheit. Die
+Oberfläche wurde wiederholt darauf geprüft, ob ein Satz mit möglichst wenig
+Interaktion dokumentiert werden kann.
+
+Für Nutzer ohne Smartwatch wurde außerdem eine grobe
+Kalorienverbrauchsschätzung vorgesehen. Sie ersetzt keine medizinische oder
+sportwissenschaftliche Messung und wird daher nicht als exakter Messwert
+dargestellt. Ihr Zweck ist eine nachvollziehbare Orientierung innerhalb des
+persönlichen Fortschritts, ohne den Besitz zusätzlicher Hardware
+vorauszusetzen.
+
+### Hydration, Schritte und zugängliches Tracking
+
+Hydration war nicht Bestandteil des allerersten Workout-Trackers. Während der
+Nutzung wurde jedoch deutlich, dass ausreichendes Trinken gerade während des
+Trainings relevant ist und gut in den Tagesüberblick passt. Daraus entstand
+das Wasser-Logging mit Tagesziel und visueller Füllstandsanzeige.
+
+Schritte und Aktivitätsdaten können über Apple Health beziehungsweise die
+Apple Watch einfließen. Gleichzeitig lassen sie sich manuell erfassen. Diese
+Entscheidung verhindert, dass zentrale Funktionen nur Nutzern mit einer
+Smartwatch zur Verfügung stehen. Hardwareintegration erweitert das Produkt,
+ist aber keine Zugangsvoraussetzung.
+
+### Onboarding und sensible Körperdaten
+
+Das persönliche Onboarding entstand im Verlauf des Projekts, weil aussagefähige
+Ziele und Analysen Informationen wie Trainingsfokus, Körpergröße, Gewicht und
+Tagesziele benötigen. Statt diese Werte später an unterschiedlichen Stellen
+abzufragen, führt das Onboarding verständlich und schrittweise durch die
+notwendigen Angaben.
+
+Aus Größe und Gewicht kann beispielsweise ein BMI als grober Richtwert
+abgeleitet werden. Dieser Wert ist jedoch stark vereinfachend: Muskelmasse,
+Körperzusammensetzung, Alter und individuelle Gesundheit werden nicht
+ausreichend berücksichtigt. Zusätzlich erhielten wir von einer Testperson die
+Rückmeldung, dass eine prominente BMI-Anzeige triggernd wirken kann. Daraus
+folgt die Produktentscheidung, den Wert klar einzuordnen und Nutzern die
+Möglichkeit zu geben, eine solche Darstellung auszublenden. Dieses Feedback
+zeigt, dass Personalisierung nicht nur mehr Daten bedeutet, sondern auch
+Kontrolle darüber, welche Daten eine Person sehen möchte.
+
+### Motion Design als funktionaler Bestandteil
+
+Animation wurde nicht nur zur Dekoration eingesetzt. Ein ansonsten sehr
+reduzierter Dark Mode kann kühl oder technisch wirken; gezielte Bewegung gibt
+direktes Feedback und macht Fortschritt emotionaler wahrnehmbar. Beispiele
+sind:
+
+- die steigende Wasseranimation beim Hydration-Tracking,
+- Konfetti bei neuen Meilensteinen,
+- sich füllende Fortschrittsanzeigen und Diagramme,
+- Übergänge beim Öffnen, Speichern und Wechseln von Zuständen,
+- die scrollgesteuerte Smartphone-Inszenierung auf der Landingpage.
+
+Die Animationen unterstützen damit Statusverständnis und Motivation. Sie
+sollen kurz, zielgerichtet und konsistent bleiben, damit sie den
+Trainingsablauf nicht verlangsamen. Als weiterer Qualitätsschritt sollen
+`prefers-reduced-motion` und automatisierte Accessibility-Tests noch
+vollständiger berücksichtigt werden.
+
+### Kalender und nachträgliches Logging
+
+Eine Kalenderfunktion war anfangs nicht vorgesehen. Mit wachsender
+Trainingsplanung wurde jedoch deutlich, dass Nutzer nicht nur einzelne Pläne,
+sondern auch deren zeitliche Einordnung benötigen. Mehrere Kalenderentwürfe
+wurden über mehrere Wochen getestet und schrittweise vereinfacht.
+
+Web- und Mobilansicht verfolgen dabei dasselbe mentale Modell, nutzen den
+verfügbaren Raum aber unterschiedlich. Auf Mobilgeräten wurde eine kompakte
+Wochenansicht gewählt, die bei Bedarf zu einer Monatsansicht erweitert werden
+kann. Damit bleiben die nächsten Trainingstage schnell erreichbar, ohne die
+Orientierung im Monat zu verlieren.
+
+Ursprünglich konnten Einheiten nur im Voraus geplant werden. Nachdem eine
+bereits absolvierte Einheit in einer frühen Version durch Persistenzprobleme
+verloren ging, wurde ein wichtiger fehlender Anwendungsfall sichtbar: Ein
+Training muss auch nachträglich eingetragen werden können. Deshalb unterstützt
+der Kalender zusätzlich das Nachtragen und spätere Öffnen gespeicherter
+Einheiten. Er ist damit nicht nur Planer, sondern auch persönliches
+Trainingsarchiv.
+
+### Vorgefertigte Pläne für Einsteiger
+
+Ein leerer Workout-Builder bietet maximale Freiheit, kann Anfänger aber
+überfordern. Vorgefertigte Trainingspläne geben deshalb einen direkten
+Startpunkt und zeigen zugleich, wie ein strukturierter Plan aufgebaut sein
+kann. Nutzer können diese Grundlage übernehmen und an ihre Situation anpassen.
+
+Langfristig soll eine KI diesen Einstieg stärker personalisieren und abhängig
+von Ziel, Erfahrung, Zeitbudget und vorhandener Ausstattung passende Pläne
+vorschlagen. Vorher müssen jedoch Regeln für sichere Empfehlungen,
+Nachvollziehbarkeit und fachliche Prüfung definiert werden. Die aktuelle
+Vorlagenlogik bleibt deshalb eine kontrollierbare Grundlage.
+
+### Entwicklung der Analysen
+
+Die ersten Analysen waren auf einfache Kennzahlen wie das höchste verwendete
+Gewicht begrenzt. In Tests wurde deutlich, dass ein einzelner Rekord wenig über
+Trainingskonsistenz, Volumen oder Entwicklung aussagt. Daraufhin wurden
+zusätzliche Fragestellungen formuliert:
+
+- Wie lange wird pro Woche durchschnittlich trainiert?
+- Welche Übungen werden am häufigsten ausgeführt?
+- Wie oft und mit welchem Volumen wird eine Übung trainiert?
+- Entwickeln sich Belastung und Leistung gegenüber vorherigen Einheiten?
+
+Die Bubble-Visualisierung bildet Trainingshäufigkeit räumlich ab: Je größer
+eine Bubble, desto häufiger wurde die betreffende Übung trainiert. Der
+Progressive-Overload-Score vergleicht Trainingsentwicklung über ein
+30-Tage-Fenster und soll zeigen, ob Belastung beziehungsweise Leistung
+gegenüber dem vorherigen Zeitraum steigt.
+
+Eine weitere Testrunde zeigte jedoch, dass attraktive Diagramme allein nicht
+ausreichen. Nutzer müssen verstehen, was berechnet wurde, warum eine Kennzahl
+relevant ist und wie sie interpretiert werden kann. Deshalb wurden
+Analyse-Widgets klickbar gemacht. Pop-ups erklären Berechnung, Bedeutung und
+Auswertung. Diese Entscheidung folgt dem Grundsatz, dass Datenvisualisierung
+nicht nur gut aussehen, sondern nachvollziehbare Entscheidungen ermöglichen
+soll.
+
+### Landingpage: Nutzen vor Feature
 
 Die Landingpage erfüllt „Nutzen vor Feature“ durch:
 
@@ -499,9 +718,28 @@ Die Landingpage erfüllt „Nutzen vor Feature“ durch:
 - Produktvorschauen und Diagramme statt generischer Referenzbilder
 - responsive Breakpoints und semantische Buttons/Links
 
-Bekannte Verbesserung: Große Video-/3D-Chunks erzeugen noch eine
-Build-Warnung. Lazy Loading reduziert die Erstlast; weitere Aufteilung,
-Medienkompression, Reduced-Motion- und axe-Tests bleiben sinnvoll.
+### Rechtliche und organisatorische Learnings
+
+Zu Beginn wurden im Impressum fiktive Angaben als Platzhalter verwendet. Im
+produktiven Betrieb führte dies zu einem Hinweis beziehungsweise einer
+Verwarnung durch den Hostingkontext. Die Angaben wurden daraufhin korrigiert.
+Das Learning ist, rechtliche Pflichtinformationen nicht als nachgelagerten
+Designinhalt zu behandeln: Impressum, Datenschutz und Verantwortlichkeit
+müssen vor einer öffentlichen Veröffentlichung mit realen und geprüften
+Angaben vorliegen.
+
+### Offene Design- und UX-Arbeiten
+
+- Übungsillustrationen und fachlich geprüfte Detailansichten vervollständigen
+- `prefers-reduced-motion` konsequent für alle größeren Animationen umsetzen
+- Accessibility automatisiert mit axe und zusätzlich manuell prüfen
+- Kalender und schnelle Satzeingabe weiter mit realen Nutzern testen
+- große Video- und 3D-Chunks weiter aufteilen und komprimieren
+- Körper- und Leistungskennzahlen noch granularer ein-/ausblendbar machen
+
+Große Video-/3D-Chunks erzeugen aktuell noch eine Build-Warnung. Lazy Loading
+reduziert die Erstlast; weitere Aufteilung und Medienkompression bleiben ein
+konkretes Performanceziel.
 
 ## 6. Funktions- und Qualitätsnachweis
 
