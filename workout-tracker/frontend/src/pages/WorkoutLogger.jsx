@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
-import { getUserStorageKey, upsertStoredWorkoutSession } from '../userStorage';
+import { getUserStorageKey, loadStoredWorkoutSessions, upsertStoredWorkoutSession } from '../userStorage';
 import { queueWorkoutSession } from '../workoutSync';
 import './WorkoutLogger.css';
 
@@ -189,6 +189,41 @@ const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
   }))
 );
 
+const normalizeExerciseKey = (name) => String(name || '').trim().toLocaleLowerCase();
+
+const buildPreviousPerformance = (sessions) => {
+  const previousByExercise = new Map();
+  const sortedSessions = [...(Array.isArray(sessions) ? sessions : [])]
+    .sort((a, b) => new Date(b?.date || 0).getTime() - new Date(a?.date || 0).getTime());
+
+  sortedSessions.forEach((session) => {
+    const logsByExercise = new Map();
+
+    (session?.logs || []).forEach((log) => {
+      const exerciseKey = normalizeExerciseKey(log.exercise_name || log.exerciseName);
+      if (!exerciseKey || previousByExercise.has(exerciseKey)) return;
+
+      const currentLogs = logsByExercise.get(exerciseKey) || [];
+      currentLogs.push({
+        reps: Number(log.reps) > 0 ? Number(log.reps) : null,
+        weight: Number(log.weight) > 0 ? Number(log.weight) : null,
+        setNumber: Number(log.set_number || log.setNumber) || currentLogs.length + 1,
+      });
+      logsByExercise.set(exerciseKey, currentLogs);
+    });
+
+    logsByExercise.forEach((exerciseLogs, exerciseKey) => {
+      if (previousByExercise.has(exerciseKey)) return;
+      const sortedLogs = exerciseLogs.sort((a, b) => a.setNumber - b.setNumber);
+      if (sortedLogs.some((log) => log.reps || log.weight)) {
+        previousByExercise.set(exerciseKey, sortedLogs);
+      }
+    });
+  });
+
+  return previousByExercise;
+};
+
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 const formatDuration = (seconds) => {
@@ -253,6 +288,9 @@ export default function WorkoutLogger({ currentUser }) {
   const [energyMode, setEnergyMode] = useState('estimate');
   const [manualCalories, setManualCalories] = useState('');
   const [durationOverrideMinutes, setDurationOverrideMinutes] = useState('');
+  const [previousPerformance, setPreviousPerformance] = useState(() => (
+    buildPreviousPerformance(loadStoredWorkoutSessions(currentUser))
+  ));
 
   const startWorkout = useCallback((plan) => {
     const nextPlan = plan || {
@@ -319,6 +357,34 @@ export default function WorkoutLogger({ currentUser }) {
   useEffect(() => {
     window.sessionStorage.removeItem(SELECTED_WORKOUT_STORAGE_KEY);
   }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const localSessions = loadStoredWorkoutSessions(currentUser);
+
+    const loadPreviousPerformance = async () => {
+      try {
+        const backendSessions = currentUser?.id ? await api.getSessions() : [];
+        if (!isCancelled) {
+          setPreviousPerformance(buildPreviousPerformance([
+            ...(backendSessions || []),
+            ...localSessions,
+          ]));
+        }
+      } catch {
+        if (!isCancelled) {
+          // Local sessions still provide suggestions when the app is offline.
+          setPreviousPerformance(buildPreviousPerformance(localSessions));
+        }
+      }
+    };
+
+    void loadPreviousPerformance();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUser]);
 
   useEffect(() => {
     if (phase !== 'countdown') return undefined;
@@ -743,26 +809,51 @@ export default function WorkoutLogger({ currentUser }) {
                 <span>{t('REST')}</span>
                 <span>{t('DONE')}</span>
               </div>
-              {group.logs.map((log) => (
-                <div className={`set-log-row ${log.completed ? 'completed' : ''}`} key={log.id}>
-                  <strong>{log.set_number}</strong>
-                  <label>
-                    <span>{log.target_reps ? `${t('TARGET')}: ${log.target_reps}` : t('REPS')}</span>
-                    <input type="number" value={log.reps} onChange={(event) => updateLog(log.id, 'reps', event.target.value)} />
-                  </label>
-                  <label>
-                    <span>KG</span>
-                    <input type="number" value={log.weight} onChange={(event) => updateLog(log.id, 'weight', event.target.value)} />
-                  </label>
-                  <label>
-                    <span>{t('SEC')}</span>
-                    <input type="number" value={log.rest_seconds} onChange={(event) => updateLog(log.id, 'rest_seconds', event.target.value)} />
-                  </label>
-                  <button type="button" className={log.completed ? 'done' : ''} onClick={() => toggleComplete(log.id)} aria-label={t('DONE')}>
-                    <Check size={17} />
-                  </button>
-                </div>
-              ))}
+              {group.logs.map((log) => {
+                const previousSets = previousPerformance.get(normalizeExerciseKey(log.exercise_name)) || [];
+                const previousSet = previousSets.find((entry) => entry.setNumber === log.set_number)
+                  || previousSets[log.set_number - 1]
+                  || previousSets.at(-1);
+                const previousReps = previousSet?.reps ? String(previousSet.reps) : '';
+                const previousWeight = previousSet?.weight ? String(previousSet.weight) : '';
+
+                return (
+                  <div className={`set-log-row ${log.completed ? 'completed' : ''}`} key={log.id}>
+                    <strong>{log.set_number}</strong>
+                    <label>
+                      <span>
+                        {previousReps
+                          ? `${t('LAST')}: ${previousReps}`
+                          : (log.target_reps ? `${t('TARGET')}: ${log.target_reps}` : t('REPS'))}
+                      </span>
+                      <input
+                        type="number"
+                        value={log.reps}
+                        placeholder={previousReps}
+                        aria-label={`${t('REPS')}${previousReps ? `, ${t('LAST')}: ${previousReps}` : ''}`}
+                        onChange={(event) => updateLog(log.id, 'reps', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      <span>{previousWeight ? `${t('LAST')}: ${previousWeight} KG` : 'KG'}</span>
+                      <input
+                        type="number"
+                        value={log.weight}
+                        placeholder={previousWeight}
+                        aria-label={`${t('WEIGHT')}${previousWeight ? `, ${t('LAST')}: ${previousWeight} KG` : ''}`}
+                        onChange={(event) => updateLog(log.id, 'weight', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      <span>{t('SEC')}</span>
+                      <input type="number" value={log.rest_seconds} onChange={(event) => updateLog(log.id, 'rest_seconds', event.target.value)} />
+                    </label>
+                    <button type="button" className={log.completed ? 'done' : ''} onClick={() => toggleComplete(log.id)} aria-label={t('DONE')}>
+                      <Check size={17} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </section>
         ))}

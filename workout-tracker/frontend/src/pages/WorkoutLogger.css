@@ -375,6 +375,16 @@
   padding: 0 var(--size-12);
 }
 
+.set-log-row input::placeholder {
+  color: rgb(var(--rgb-255-255-255) / 0.34);
+  font-weight: 750;
+  opacity: 1;
+}
+
+.set-log-row input:focus::placeholder {
+  color: rgb(var(--rgb-197-254-0) / 0.28);
+}
+
 .set-log-row button {
   display: grid;
   place-items: center;
