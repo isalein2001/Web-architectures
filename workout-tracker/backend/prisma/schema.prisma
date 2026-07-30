@@ -30,8 +30,24 @@ model User {
   sessions     WorkoutSession[]
   dailyActivities DailyActivity[]
   pushSubscriptions PushSubscription[]
+  productAnalyticsEvents ProductAnalyticsEvent[]
 
   @@map("users")
+}
+
+model ProductAnalyticsEvent {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  eventName     String   @map("event_name") @db.VarChar(64)
+  clientEventId String   @unique @map("client_event_id") @db.VarChar(64)
+  source        String   @default("web") @db.VarChar(16)
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([eventName, createdAt])
+  @@map("product_analytics_events")
 }
 
 model PushSubscription {

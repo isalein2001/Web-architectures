@@ -9,6 +9,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "node scripts/seed.js",
+    "analytics:report": "node scripts/productAnalyticsReport.js",
     "check:modules": "node scripts/check-module-boundaries.js",
     "lint": "node scripts/lint.js && npm run check:modules",
     "start": "node server.js",

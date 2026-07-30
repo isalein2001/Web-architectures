@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { AtSign, Lock, ShieldCheck, User, Zap } from 'lucide-react';
 import { api } from '../../api';
 import { readFirstLaunchOnboardingDraft } from '../../firstLaunchOnboardingStorage';
+import { trackProductEvent } from '../../productAnalytics';
 import './Auth.css';
 
 const splitName = (value = '') => {
@@ -52,6 +53,7 @@ export default function Register({ onLogin }) {
 
     try {
       const data = await api.register({ firstName, lastName, email, password });
+      void trackProductEvent('sign_up_completed');
       onLogin(data.user);
       navigate(data.user.emailVerified ? '/dashboard' : '/verify-email', { replace: true });
     } catch (requestError) {

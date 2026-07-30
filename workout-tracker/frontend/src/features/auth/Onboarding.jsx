@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, Clock, Droplets, Flame, Goal, Ruler, Scale, UserRound } from 'lucide-react';
 import { api } from '../../api';
 import { getUserFirstName } from '../../userStorage';
+import { trackProductEvent } from '../../productAnalytics';
 import './Onboarding.css';
 
 const goals = [
@@ -107,6 +108,7 @@ export default function Onboarding({ currentUser, onUserUpdate }) {
       window.localStorage.setItem(`dailyCalorieGoal:user:${data.user.id}`, String(nextCalorieGoal));
       window.localStorage.setItem(`dailyTrainingMinutesGoal:user:${data.user.id}`, String(nextTrainingMinutesGoal));
       await api.updateTodayActivity({ step_goal: nextStepGoal }).catch(() => null);
+      void trackProductEvent('onboarding_completed');
       onUserUpdate(data.user);
     } catch (requestError) {
       setError(requestError.message);

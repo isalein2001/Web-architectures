@@ -34,6 +34,7 @@ import { de } from 'date-fns/locale';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
+import { trackProductEvent } from '../productAnalytics';
 import './Analytics.css';
 
 const MotionG = motion.g;
@@ -990,6 +991,10 @@ function AnimatedNumber({ value, decimals = 0, prefix = '', suffix = '', classNa
 export default function Analytics({ currentUser }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (currentUser?.id) void trackProductEvent('analysis_viewed');
+  }, [currentUser?.id]);
+
   const customPlansStorageKey = getUserStorageKey(CUSTOM_WORKOUT_PLANS_STORAGE_KEY, currentUser);
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());

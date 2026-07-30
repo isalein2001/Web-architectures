@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey, loadStoredWorkoutSessions, upsertStoredWorkoutSession } from '../userStorage';
 import { queueWorkoutSession } from '../workoutSync';
+import { trackProductEvent } from '../productAnalytics';
 import './WorkoutLogger.css';
 
 const WORKOUT_SCHEDULE_STORAGE_KEY = 'workoutSchedule';
@@ -291,6 +292,7 @@ export default function WorkoutLogger({ currentUser }) {
   const [previousPerformance, setPreviousPerformance] = useState(() => (
     buildPreviousPerformance(loadStoredWorkoutSessions(currentUser))
   ));
+  const initialWorkoutTrackedRef = useRef(false);
 
   const startWorkout = useCallback((plan) => {
     const nextPlan = plan || {
@@ -314,7 +316,20 @@ export default function WorkoutLogger({ currentUser }) {
     setDurationOverrideMinutes('');
     setPhase('countdown');
     setSaveState('idle');
+    void trackProductEvent('workout_started', {
+      hasPlan: Boolean(plan),
+      exerciseCount: nextPlan.exercises.length,
+    });
   }, [t]);
+
+  useEffect(() => {
+    if (!initialSelectedPlan || initialWorkoutTrackedRef.current) return;
+    initialWorkoutTrackedRef.current = true;
+    void trackProductEvent('workout_started', {
+      hasPlan: true,
+      exerciseCount: initialSelectedPlan.exercises?.length || 0,
+    });
+  }, [initialSelectedPlan]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -561,6 +576,17 @@ export default function WorkoutLogger({ currentUser }) {
       }));
       
       window.dispatchEvent(new CustomEvent('workout-session-saved', { detail: { date: sessionDate, synced: true } }));
+      void trackProductEvent('workout_completed', {
+        hasPlan: Boolean(activePlan.planId ?? activePlan.id),
+        exerciseCount: new Set(sessionData.logs.map((log) => log.exercise_name)).size,
+        setCount: sessionData.logs.length,
+      });
+      if (sessionData.logs.length > 0) {
+        void trackProductEvent('exercise_logged', {
+          exerciseCount: new Set(sessionData.logs.map((log) => log.exercise_name)).size,
+          setCount: sessionData.logs.length,
+        });
+      }
       setSaveState('saved');
       window.setTimeout(() => navigate('/analytics'), 700);
     } catch (error) {

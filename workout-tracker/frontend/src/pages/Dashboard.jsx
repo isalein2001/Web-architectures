@@ -6,6 +6,7 @@ import { getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveSto
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
 import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { trackProductEvent } from '../productAnalytics';
 import { 
   format, 
   addMonths, 
@@ -487,6 +488,10 @@ function AnimatedMedal({ Icon: MedalIcon = Award }) {
 export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, surface = 'web' }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (currentUser?.id) void trackProductEvent('dashboard_viewed');
+  }, [currentUser?.id]);
+
   const workoutScheduleStorageKey = getUserStorageKey(WORKOUT_SCHEDULE_STORAGE_KEY, currentUser);
   const hydrationGoalStorageKey = getUserStorageKey('hydrationGoalLiters', currentUser);
   const appleWatchConnectedStorageKey = getUserStorageKey('appleWatchConnected', currentUser);

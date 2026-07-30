@@ -20,6 +20,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey } from '../userStorage';
 import { API_URL, api } from '../api';
+import { trackProductEvent } from '../productAnalytics';
 import { exerciseLibrary } from '../data/exerciseLibrary';
 import './Workouts.css';
 
@@ -689,6 +690,11 @@ export default function Workouts({ currentUser }) {
     }
 
     const savedPlan = mapBackendPlanToSavedPlan(persistedPlan);
+    if (!editingPlanId) {
+      void trackProductEvent('plan_created', {
+        exerciseCount: enteredExercises.length,
+      });
+    }
 
     setSavedPlans((currentPlans) => {
       if (editingPlanId) {

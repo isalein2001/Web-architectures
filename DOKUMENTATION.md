@@ -701,6 +701,23 @@ Datenschutz, Apple Watch, Training ohne Wearable, Datenexport, Zielgruppen und
 Analysequalität erweitert. So reduziert die Seite Unsicherheit und ermöglicht
 eine informierte Registrierung, statt lediglich zu „catchen“.
 
+### Einwilligungsbasierte Produkt-Analytics
+
+Die Webversion trennt notwendige Authentifizierungsfunktionen von optionalen
+Produkt-Analytics. Ein gebrandeter Cookie-Dialog bietet gleichwertig „Nur
+notwendige“ und „Analytics erlauben“ sowie eine granulare Einstellung. Ohne
+Opt-in werden keine Produkt-Events gesendet. Mit Opt-in werden ausschließlich
+definierte Ereignisse wie Registrierung, abgeschlossenes Onboarding,
+Planerstellung, Workout-Start/-Abschluss und Seitenaufrufe accountbezogen
+gespeichert. IP-Adresse, User-Agent, Trainingsnotizen, Übungsnamen, Gewichte und
+Wiederholungsdetails gehören ausdrücklich nicht zu den Analytics-Metadaten.
+
+Angemeldete Nutzer können über `GET /api/product-analytics/me` nur ihre eigenen
+Events abrufen. Eine projektweite, nach Accounts gruppierte Auswertung ist
+bewusst keine öffentliche Browserroute. Sie wird auf dem Server im
+Backend-Verzeichnis mit `npm run analytics:report` als JSON erzeugt. Dadurch
+bleiben fremde Nutzungsdaten für normale Accounts unzugänglich.
+
 ### Rechtliche und organisatorische Learnings
 
 Fiktive Platzhalter im anfänglichen Impressum führten im produktiven

@@ -12,6 +12,7 @@ const {
 } = require('./modules/insights-coaching/insights-coaching.routes');
 const createDailyActivityRouter = require('./modules/daily-activity/daily-activity.routes');
 const createPushRouter = require('./modules/notifications/notifications.routes');
+const { createProductAnalyticsRouter } = require('./modules/product-analytics/product-analytics.routes');
 const { authenticate, ensureEmailVerified } = require('./middleware/authenticate');
 const { authRateLimiter } = require('./middleware/rateLimiters');
 const { createEventsRouter } = require('./events');
@@ -138,6 +139,7 @@ app.use('/api/stats', verifiedUser, createStatsRouter());
 app.use('/api/daily-activity', verifiedUser, createDailyActivityRouter());
 app.use('/api/push', verifiedUser, createPushRouter());
 app.use('/api/coach', verifiedUser, createCoachRouter());
+app.use('/api/product-analytics', authenticate, createProductAnalyticsRouter());
 
 // Unknown API paths should stay JSON responses and must not fall through
 // to the React SPA fallback.
