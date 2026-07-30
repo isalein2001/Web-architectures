@@ -3331,8 +3331,18 @@
     --web-control-radius: 12px;
     --web-control-height: 50px;
 
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
-    gap: var(--size-32);
+    gap: var(--size-28);
+  }
+
+  .dashboard-surface-web > .hero-banner,
+  .dashboard-surface-web > .today-section,
+  .dashboard-surface-web > .daily-goal-section,
+  .dashboard-surface-web > .hydration-card,
+  .dashboard-surface-web > .week-preview-card {
+    grid-column: 1 / -1;
   }
 
   .dashboard-surface-web > .card,
@@ -3359,7 +3369,10 @@
   }
 
   .dashboard-surface-web .today-section {
-    gap: var(--size-16);
+    gap: var(--size-20);
+    margin-top: var(--size-8);
+    padding-top: var(--size-32);
+    border-top: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-09));
   }
 
   .dashboard-surface-web .today-section-title {
@@ -3446,42 +3459,128 @@
   }
 
   .dashboard-surface-web .hero-quick-log-button {
-    min-height: var(--web-control-height);
-    border-radius: var(--web-control-radius);
-    box-shadow: 0 var(--size-8) var(--size-20) rgb(var(--rgb-0-0-0) / var(--opacity-0-2));
+    top: var(--size-32);
+    right: var(--size-32);
+    gap: var(--size-14);
+    min-width: 210px;
+    min-height: 68px;
+    padding: var(--size-10) var(--size-22) var(--size-10) var(--size-12);
+    border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-38));
+    border-radius: 16px;
+    background:
+      linear-gradient(135deg, rgb(var(--rgb-197-254-0) / var(--opacity-0-16)), rgb(var(--rgb-10-10-10) / var(--opacity-0-84)) 50%),
+      rgb(var(--rgb-10-10-10) / var(--opacity-0-88));
+    box-shadow:
+      0 var(--size-12) var(--size-28) rgb(var(--rgb-0-0-0) / var(--opacity-0-28)),
+      0 0 var(--size-24) rgb(var(--rgb-197-254-0) / var(--opacity-0-1));
+  }
+
+  .dashboard-surface-web .hero-quick-log-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .dashboard-surface-web .hero-quick-log-icon svg {
+    width: 24px;
+    height: 24px;
   }
 
   .dashboard-surface-web .hero-quick-log-copy strong {
-    font-size: 14px;
-    letter-spacing: 0.05em;
+    font-size: 16px;
+    letter-spacing: 0.08em;
   }
 
   .dashboard-surface-web .hero-quick-log-copy small {
-    font-size: 11px;
-    letter-spacing: 0.05em;
+    font-size: 12px;
+    letter-spacing: 0.08em;
   }
 
   .dashboard-surface-web .daily-goal-card {
-    grid-template-columns: minmax(220px, 0.4fr) minmax(0, 0.6fr);
-    gap: var(--size-32);
-    padding: var(--size-32);
+    grid-template-columns: minmax(330px, 0.46fr) minmax(0, 0.54fr);
+    gap: var(--size-40);
+    min-height: 430px;
+    padding: var(--size-40);
+    background:
+      radial-gradient(circle at 18% 42%, rgb(var(--rgb-197-254-0) / var(--opacity-0-07)), transparent 34%),
+      var(--palette-121212);
+  }
+
+  .dashboard-surface-web .daily-goal-chart {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--size-16);
+  }
+
+  .dashboard-surface-web .daily-goal-status-kicker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--size-10);
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 0.11em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .dashboard-surface-web .daily-goal-status-kicker span {
+    width: var(--size-10);
+    height: var(--size-10);
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow:
+      0 0 var(--size-10) rgb(var(--rgb-197-254-0) / var(--opacity-0-58)),
+      0 0 var(--size-20) rgb(var(--rgb-197-254-0) / var(--opacity-0-2));
+  }
+
+  .dashboard-surface-web .daily-goal-status-kicker.is-idle span {
+    opacity: 0.5;
+    box-shadow: 0 0 var(--size-10) rgb(var(--rgb-197-254-0) / var(--opacity-0-2));
+  }
+
+  .dashboard-surface-web .daily-goal-status-kicker.is-active span {
+    animation: streak-dot-pulse 1.8s ease-in-out infinite;
+  }
+
+  .dashboard-surface-web .daily-goal-section .circular-progress-container {
+    width: 320px;
+    height: 320px;
+    margin: 0;
+  }
+
+  .dashboard-surface-web .circular-progress-value {
+    font-size: 64px;
+  }
+
+  .dashboard-surface-web .circular-progress-label {
+    font-size: 14px;
+    letter-spacing: 0.14em;
   }
 
   .dashboard-surface-web .daily-goal-breakdown {
-    padding-left: var(--size-32);
+    padding-left: var(--size-40);
   }
 
   .dashboard-surface-web .daily-goal-row {
-    grid-template-columns: var(--size-44) minmax(0, 1fr);
-    gap: var(--size-16);
-    min-height: var(--size-72);
-    padding: var(--size-12) 0;
+    grid-template-columns: var(--size-52) minmax(0, 1fr);
+    gap: var(--size-18);
+    min-height: 88px;
+    padding: var(--size-16) 0;
   }
 
   .dashboard-surface-web .daily-goal-row-icon {
-    width: var(--size-44);
-    height: var(--size-44);
-    border-radius: var(--size-12);
+    width: var(--size-52);
+    height: var(--size-52);
+    border-radius: 14px;
+  }
+
+  .dashboard-surface-web .daily-goal-row-icon svg {
+    width: 22px;
+    height: 22px;
   }
 
   .dashboard-surface-web .daily-goal-row-copy {
@@ -3489,16 +3588,16 @@
   }
 
   .dashboard-surface-web .daily-goal-row-copy span {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 750;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
   }
 
   .dashboard-surface-web .daily-goal-row-copy strong {
     overflow: visible;
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 20px;
+    font-weight: 850;
     text-align: left;
     text-overflow: clip;
   }
@@ -3509,10 +3608,10 @@
   }
 
   .dashboard-surface-web .daily-goal-actions button {
-    min-height: var(--size-38);
-    padding: 0 var(--size-16);
+    min-height: 44px;
+    padding: 0 var(--size-20);
     border-radius: var(--web-control-radius);
-    font-size: 13px;
+    font-size: 14px;
     letter-spacing: 0.03em;
     cursor: pointer;
   }
@@ -3528,12 +3627,38 @@
   }
 
   .dashboard-surface-web .hydration-card {
-    min-height: var(--size-128);
-    padding: var(--size-32);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "content goal"
+      "progress progress";
+    gap: var(--size-24) var(--size-32);
+    min-height: 178px;
+    padding: var(--size-36) var(--size-40);
+    text-align: left;
+    background:
+      radial-gradient(circle at 88% 18%, rgb(var(--rgb-197-254-0) / var(--opacity-0-1)), transparent 30%),
+      linear-gradient(145deg, rgb(var(--rgb-255-255-255) / var(--opacity-0-045)), rgb(var(--rgb-255-255-255) / var(--opacity-0-012))),
+      var(--palette-111);
+  }
+
+  .dashboard-surface-web .hydration-content {
+    grid-area: content;
+    gap: var(--size-18);
+  }
+
+  .dashboard-surface-web .hydration-content .icon-circle {
+    width: var(--size-56);
+    height: var(--size-56);
+  }
+
+  .dashboard-surface-web .hydration-content .icon-circle svg {
+    width: 28px;
+    height: 28px;
   }
 
   .dashboard-surface-web .hydration-text h3 {
-    font-size: 22px;
+    font-size: 26px;
     line-height: 1.2;
   }
 
@@ -3543,12 +3668,37 @@
   }
 
   .dashboard-surface-web .hydration-goal {
-    font-size: 16px;
+    grid-area: goal;
+    align-self: center;
+    padding: var(--size-12) var(--size-16);
+    border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-2));
+    border-radius: var(--web-control-radius);
+    background: rgb(var(--rgb-197-254-0) / var(--opacity-0-07));
+    font-size: 17px;
     font-weight: 800;
     letter-spacing: 0.02em;
   }
 
+  .dashboard-surface-web .hydration-progress {
+    display: block;
+    grid-area: progress;
+    width: 100%;
+    height: var(--size-8);
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgb(var(--rgb-255-255-255) / var(--opacity-0-08));
+  }
+
+  .dashboard-surface-web .hydration-progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-primary), var(--palette-e0ff63));
+    box-shadow: 0 0 var(--size-16) rgb(var(--rgb-197-254-0) / var(--opacity-0-28));
+  }
+
   .dashboard-surface-web .monthly-calendar-card {
+    min-width: 0;
     padding: var(--size-32);
   }
 
@@ -3661,5 +3811,95 @@
   .dashboard-surface-web .cal-completed-dot {
     top: var(--size-8);
     right: var(--size-8);
+  }
+
+  .dashboard-surface-web .achievements-card {
+    min-width: 0;
+    min-height: 100%;
+    padding: var(--size-32);
+    background-image:
+      linear-gradient(110deg, rgb(var(--rgb-14-14-14) / var(--opacity-0-98)) 0%, rgb(var(--rgb-14-14-14) / var(--opacity-0-9)) 56%, rgb(var(--rgb-14-14-14) / var(--opacity-0-62)) 100%),
+      url('/achievements-bg.jpg');
+  }
+
+  .dashboard-surface-web .achievements-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px;
+    gap: var(--size-24);
+    height: 100%;
+  }
+
+  .dashboard-surface-web .achievements-text-area {
+    min-width: 0;
+  }
+
+  .dashboard-surface-web .achievements-text-area h2 {
+    font-size: clamp(32px, 3.2vw, 48px);
+    line-height: 1;
+  }
+
+  .dashboard-surface-web .achievements-desc {
+    margin-bottom: var(--size-28);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .dashboard-surface-web .achievements-medal-area {
+    width: 88px;
+    height: 88px;
+    margin: 0;
+    justify-self: end;
+  }
+
+  .dashboard-surface-web .medal-icon {
+    width: 76px;
+    height: 76px;
+  }
+
+  .dashboard-surface-web .medal-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dashboard-surface-web .lifts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--size-20);
+  }
+
+  .dashboard-surface-web .lift-item {
+    min-width: 0;
+  }
+
+  .dashboard-surface-web .lift-weight {
+    font-size: 30px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-surface-web {
+    grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  }
+
+  .dashboard-surface-web > .monthly-calendar-card {
+    grid-column: 1;
+  }
+
+  .dashboard-surface-web > .achievements-card {
+    grid-column: 2;
+  }
+
+  .dashboard-surface-web .calendar-header,
+  .dashboard-surface-web .calendar-grid {
+    width: 100%;
+  }
+
+  .dashboard-surface-web .calendar-grid {
+    gap: var(--size-8);
+  }
+
+  .dashboard-surface-web .cal-day {
+    height: 58px;
+    min-height: 58px;
   }
 }
