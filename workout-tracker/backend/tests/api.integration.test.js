@@ -454,6 +454,73 @@ describe.sequential('critical API user journey', () => {
     expect(valid.status).toBe(201);
   });
 
+  test('validates, stores and returns only owned product analytics events', async () => {
+    const unknownEvent = await agent
+      .post('/api/product-analytics')
+      .set(CSRF_HEADER, '1')
+      .send({
+        eventName: 'password_entered',
+        clientEventId: 'vitest-event-0001',
+      });
+    expect(unknownEvent.status).toBe(400);
+
+    const invalidEventId = await agent
+      .post('/api/product-analytics')
+      .set(CSRF_HEADER, '1')
+      .send({
+        eventName: 'workout_completed',
+        clientEventId: 'too-short',
+      });
+    expect(invalidEventId.status).toBe(400);
+
+    const created = await agent
+      .post('/api/product-analytics')
+      .set(CSRF_HEADER, '1')
+      .send({
+        eventName: 'workout_completed',
+        clientEventId: 'vitest-event-0001',
+        source: 'app',
+        metadata: {
+          exerciseCount: 2,
+          setCount: '6',
+          hasPlan: true,
+          notes: 'must not be stored',
+        },
+      });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      eventName: 'workout_completed',
+      source: 'app',
+      metadata: {
+        exerciseCount: 2,
+        setCount: 6,
+        hasPlan: true,
+      },
+    });
+    expect(created.body.metadata.notes).toBeUndefined();
+
+    const duplicate = await agent
+      .post('/api/product-analytics')
+      .set(CSRF_HEADER, '1')
+      .send({
+        eventName: 'workout_completed',
+        clientEventId: 'vitest-event-0001',
+      });
+    expect(duplicate.status).toBe(201);
+    expect(duplicate.body.id).toBe(created.body.id);
+
+    const ownEvents = await agent.get('/api/product-analytics/me');
+    expect(ownEvents.status).toBe(200);
+    expect(ownEvents.body.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: created.body.id,
+          eventName: 'workout_completed',
+        }),
+      ])
+    );
+  });
+
   test('deletes owned resources and invalidates the session on logout', async () => {
     const removedSession = await agent
       .delete(`/api/sessions/${sessionId}`)

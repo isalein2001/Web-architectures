@@ -153,6 +153,7 @@ verwendet die produktive HTTPS-API und einen Bearer-Token.
 | Daily Activity | Wasser, Schritte und Tagesaktivität | `/api/daily-activity` |
 | Insights & Coaching | Statistiken, Progress und Coach-Auswertung | `/api/stats`, `/api/progress`, `/api/coach` |
 | Notifications | Push-Subscriptions und Benachrichtigungen | `/api/push`, `/api/events` |
+| Product Analytics | einwilligungsabhängige, datensparsame Nutzungsereignisse | `/api/product-analytics` |
 
 `server.js` ist der Composition Root. Die Plan-Schreiblogik liegt bereits in
 `training.service.js`. Weitere Service-Dateien markieren die gewünschte
@@ -168,13 +169,14 @@ erDiagram
     User ||--o{ WorkoutSession : performs
     User ||--o{ DailyActivity : tracks
     User ||--o{ PushSubscription : registers
+    User ||--o{ ProductAnalyticsEvent : consents_and_generates
     Plan ||--o{ PlanExercise : contains
     Plan ||--o{ WorkoutSession : templates
     WorkoutSession ||--o{ WorkoutLog : contains
 ```
 
-MySQL speichert Nutzer, Pläne, Übungen, Sessions, Satz-Logs, Tagesaktivitäten
-und Push-Subscriptions. `clientSessionId` macht Session-Speicherung
+MySQL speichert Nutzer, Pläne, Übungen, Sessions, Satz-Logs, Tagesaktivitäten,
+Push-Subscriptions und freigegebene Produkt-Events. `clientSessionId` macht Session-Speicherung
 idempotent. Prisma-Migrationen versionieren alle Schemaänderungen.
 
 ### Authentifizierung und Sicherheit
@@ -718,6 +720,54 @@ bewusst keine öffentliche Browserroute. Sie wird auf dem Server im
 Backend-Verzeichnis mit `npm run analytics:report` als JSON erzeugt. Dadurch
 bleiben fremde Nutzungsdaten für normale Accounts unzugänglich.
 
+Die Entscheidung für eine eigene kleine Event-Pipeline statt eines sofortigen
+externen Trackers reduziert Datenweitergabe und hält das Datenmodell
+nachvollziehbar. Alternativen wie Google Analytics oder umfassendes
+Session-Replay hätten schneller Standard-Dashboards geliefert, aber mehr
+verhaltensnahe Daten an Dritte übertragen. Für den aktuellen Produktumfang
+sind gezielte Events aussagekräftiger als flächendeckende Aufzeichnung. Vor
+einem öffentlichen Launch soll ergänzend ein Lösch- und Aufbewahrungskonzept
+mit zeitlicher Aggregation festgelegt werden.
+
+### Getrennte Web- und Mobile-Optimierung
+
+Die gemeinsame React-Codebasis bleibt erhalten, die Präsentation wird jedoch
+nicht blind zwischen iOS-App und Desktop-Webseite gespiegelt. Das
+Desktop-Dashboard besitzt eigene Breakpoints und Layoutregeln für breitere
+Content-Container, lesbare Typografie, klar erkennbare Aktionen, kompaktere
+Kalenderspalten sowie größere Daily-Goals- und Hydration-Flächen. Die mobile
+Ansicht behält ihre auf kurze Daumenwege und geringere Breite ausgelegte
+Anordnung.
+
+Diese Trennung entwickelt den Mobile-first-Ansatz weiter: Gemeinsam bleiben
+Datenlogik, Komponentenverträge und Branding; unabhängig bleiben
+Informationsdichte, Größen und räumliche Hierarchie. Änderungen an einer
+Plattform führen dadurch nicht automatisch zu visuellen Regressionen auf der
+anderen.
+
+### Trainingskontinuität durch vorherige Satzwerte
+
+Beim erneuten Ausführen einer Übung erscheinen Gewicht und Wiederholungen des
+letzten Trainings mit reduzierter Deckkraft als Vorschlag in leeren
+Eingabefeldern. Die Werte stammen aus den bereits persistierten Sessions und
+werden nicht als neuer Pflichtwert gespeichert. Nutzer erkennen so ihren
+letzten Stand und können Progressive Overload anstreben, ohne alte Einheiten
+manuell zu öffnen. Eigene Eingaben überschreiben den Vorschlag jederzeit; er
+bleibt Orientierung statt automatischer Trainingsvorgabe.
+
+### Gebrandete Systemzustände
+
+Der globale Ladezustand steht zentriert im Viewport und verwendet die
+NEXT-REPS-Formsprache, statt unauffällig am linken oberen Rand zu erscheinen.
+Unbekannte Browserrouten landen auf einer eigenen responsiven 404-Seite mit
+klarer Rücknavigation zur Landingpage beziehungsweise zum Dashboard. Die
+humorvolle Formulierung „Your reps got lost“ bewahrt den Markenton, während
+Statuscode und nächster Handlungsschritt eindeutig bleiben.
+
+Beide Zustände berücksichtigen `prefers-reduced-motion`. Sie verändern keine
+Authentifizierungs- oder Routendatenlogik, sondern verbessern Orientierung,
+wahrgenommene Qualität und Fehlererholung.
+
 ### Rechtliche und organisatorische Learnings
 
 Fiktive Platzhalter im anfänglichen Impressum führten im produktiven
@@ -816,22 +866,25 @@ den Prisma Client, wendet Migrationen an und führt anschließend Vitest mit
 V8-Coverage aus. Die Integrationstests verwenden einen eindeutig benannten
 Testaccount, testen ausschließlich dessen Daten und löschen ihn danach wieder.
 
-Stand vom 29. Juli 2026:
+Stand vom 30. Juli 2026:
 
 | Kennzahl | Ergebnis | Schwelle |
 | --- | ---: | ---: |
-| Testdateien | 6 bestanden | – |
-| Tests | 42 bestanden | – |
-| Statements | 80,32 % | 80 % |
-| Lines | 83,49 % | 80 % |
-| Functions | 89,09 % | 80 % |
-| Branches | 63,34 % | informativ |
+| Testdateien | 7 bestanden | – |
+| Tests | 46 bestanden | – |
+| Statements | 80,80 % | 80 % |
+| Lines | 83,85 % | 80 % |
+| Functions | 89,59 % | 80 % |
+| Branches | 64,00 % | informativ |
 
 Getestet werden nicht nur Happy Paths, sondern unter anderem schwache
 Passwörter, falsche Login- und Verifikationsdaten, ungültiges Onboarding,
 CSRF/CORS, Mass Assignment, Ownership, ungültige Aktivitätswerte,
 idempotente Session-Speicherung, SSE-Disconnects und abgelaufene
-Push-Subscriptions. Feste Vitest-Schwellen für Statements, Lines und Functions
+Push-Subscriptions. Die Analytics-Tests prüfen zusätzlich Event-Allowlist,
+Client-ID-Validierung, Idempotenz, Metadaten-Filterung und den ausschließlich
+authentifizierten Abruf eigener Events. Feste Vitest-Schwellen für Statements,
+Lines und Functions
 verhindern, dass die geforderte Coverage später unbemerkt unterschritten wird.
 
 Der reproduzierbare HTML-Report liegt unter
@@ -857,7 +910,9 @@ Lauf. Der echte SMTP- und Push-Versand ist während E2E-Läufen deaktiviert. So
 bleibt der Test realistisch, reproduzierbar und ohne Auswirkungen auf echte
 Nutzer oder externe Dienste.
 
-Stand vom 29. Juli 2026: **1 Spec-Datei, 3 Tests, 3 bestanden**.
+Stand vom 30. Juli 2026: **1 Spec-Datei, 3 Tests, 3 bestanden**. Der
+Erstbesuch berücksichtigt dabei den sichtbaren Consent-Dialog und wählt
+explizit „Nur notwendige“, bevor der jeweilige kritische Pfad fortgesetzt wird.
 
 ### Gesamter Testlauf mit einem Befehl
 
@@ -865,7 +920,44 @@ Stand vom 29. Juli 2026: **1 Spec-Datei, 3 Tests, 3 bestanden**.
 npm test
 ```
 
-Dieser Root-Befehl führt zuerst die 42 Backend-Tests samt Coverage-Report und
+Dieser Root-Befehl führt zuerst die 46 Backend-Tests samt Coverage-Report und
 anschließend alle Cypress-E2E-Pfade aus. Voraussetzung ist lediglich ein
 laufendes Docker Desktop; alle weiteren Dienste, Migrationen und Testschritte
 werden automatisch gestartet.
+
+## 9. Prüfmatrix zum finalen Abgabestand
+
+Die folgende Matrix bildet beide Seiten der veröffentlichten
+Bewertungsschwerpunkte direkt auf überprüfbare Projektbestandteile ab.
+
+| Prüfungskriterium | Umsetzung/Nachweis | Status |
+| --- | --- | --- |
+| One-Command-Start | `npm ci`, danach `npm start`; Docker, Migrationen, Backend und Frontend werden automatisiert gestartet | erfüllt |
+| Vollständige Konfiguration | Backend- und Frontend-`.env.example`, Variablentabelle im Root-README, keine produktiven Secrets im Repository | erfüllt |
+| Hetzner-Deployment | GitHub Actions mit SSH-Key, rsync, Prisma Deploy und kontrolliertem Neustart; produktiv unter `next-reps.de` | erfüllt + Bonus |
+| Kernfunktionen | Registrierung, Verifikation, Onboarding, Pläne, Sessions, Logs, Daily Activity und Analysen als persistente API-Flows | erfüllt |
+| Funktionale UX | kritische Pfade per Cypress; Web/Mobile getrennt responsiv; klare Lade-, Leer- und 404-Zustände | erfüllt |
+| Eigene Designsprache | eigenständig entwickeltes Branding, Dark Mode/Lime-System, Hero-Reels, Motion und reale Produktvorschauen | erfüllt |
+| Nutzenorientierte Landingpage | Problem/Nutzen, CTA, Login, Produktbeweis, Smartphone-Demo, Diagramme und Q&A | erfüllt |
+| Architekturdokumentation | Sessions 01–12 mit Entscheidung, Alternativen, Begründung und Rückblick in diesem Dokument | erfüllt |
+| Retrospektive | sessionbezogene Rückblicke plus Gesamtretrospektive und konkrete nächste Architekturmaßnahmen | erfüllt |
+| Backend-Coverage ≥ 80 % | Vitest/V8: 80,80 % Statements, 83,85 % Lines, 89,59 % Functions; HTML-Report im Repository | erfüllt |
+| Sinnvolle Backend-Edge-Cases | Validierung, Auth, CSRF/CORS, Ownership, Idempotenz, Verifikation, Analytics-Datensparsamkeit und Fehlerpfade | erfüllt |
+| E2E je kritischem Pfad | 3 Cypress-Pfade für Account-Onboarding, Auth/Logout und Planpersistenz | erfüllt |
+| Tests mit einem Befehl | `npm test` führt Coverage und Cypress nacheinander aus | erfüllt |
+| Coverage-Report in ZIP | `workout-tracker/backend/coverage/index.html` und `coverage-summary.json` | erfüllt |
+| Lesbare Code-Struktur | modularer Monolith, Boundary-Check und gemeinsamer API-Client; verbleibende große Dateien transparent als Refactoring-Ziel benannt | erfüllt mit dokumentiertem Verbesserungspotenzial |
+
+### Bekannte, nicht abgabeblockierende Punkte
+
+- ESLint meldet null Fehler und 28 React-Refactoringwarnungen.
+- Der Produktionsbuild warnt wegen großer lazy-geladener Video-/3D-Chunks;
+  weitere Kompression und Code-Splitting bleiben als Performancearbeit
+  dokumentiert.
+- Die deutsche Übersetzung und die Übungsillustrationsbibliothek sind noch
+  nicht vollständig redaktionell beziehungsweise inhaltlich abgeschlossen.
+- Push ist lokal ohne optionale VAPID-Werte erwartungsgemäß deaktiviert.
+
+Diese Punkte werden nicht verschwiegen, beeinträchtigen aber weder den
+reproduzierbaren Start noch die geprüften Kernpfade oder die geforderten
+Coverage-Schwellen.

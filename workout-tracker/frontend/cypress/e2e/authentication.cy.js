@@ -13,6 +13,7 @@ describe('critical account and authentication paths', () => {
 
   it('registers, verifies and completes onboarding', () => {
     cy.visit('/register');
+    cy.chooseEssentialCookies();
 
     cy.get('[data-cy="register-first-name"]').type('Cypress');
     cy.get('[data-cy="register-last-name"]').type('Test');

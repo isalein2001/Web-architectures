@@ -9,6 +9,13 @@ Trainingstracking, Aktivitätsziele und Fortschrittsanalyse.
 - **Datenbank:** MySQL/MariaDB
 - **Deployment:** GitHub Actions auf Hetzner
 
+Zum aktuellen Funktionsumfang gehören individuelle und vorgefertigte
+Trainingspläne, persistente Workout-Sessions, Vorschlagswerte aus der letzten
+Ausführung einer Übung, Tagesziele, Hydration, Kalender, Analysen sowie ein
+separat optimiertes Web- und Mobile-Layout. Die öffentliche Landingpage,
+gebrandete Lade- und Fehlerzustände und eine responsive Navigation führen
+gezielt in Registrierung und Login.
+
 ## Schnellstart
 
 ### Voraussetzungen
@@ -133,6 +140,28 @@ Jeder Push auf `main` startet den Workflow
 
 Die notwendigen Zugangsdaten liegen als verschlüsselte GitHub Actions Secrets
 vor und werden nicht im Repository gespeichert.
+
+## Datenschutzfreundliche Produkt-Analytics
+
+Die Webversion fragt optionale Produkt-Analytics über einen gebrandeten
+Consent-Dialog ab. Ohne Einwilligung werden keine Analytics-Events übertragen.
+Mit Einwilligung werden nur fest definierte, accountbezogene Ereignisse wie
+Registrierung, Onboarding, Planerstellung, Workout-Start/-Abschluss oder
+Analyseaufrufe gespeichert. Trainingsnotizen, Übungsnamen, Gewichte,
+Wiederholungen, IP-Adresse und User-Agent werden dafür nicht erfasst.
+
+Eigene Events sind authentifiziert über `GET /api/product-analytics/me`
+abrufbar. Die projektweite Auswertung bleibt eine nicht öffentliche
+Serveraufgabe:
+
+```bash
+cd workout-tracker/backend
+npm run analytics:report
+```
+
+Die Einwilligung kann im Cookie-Dialog granular erteilt beziehungsweise
+widerrufen werden. Details stehen in der Datenschutzerklärung und in
+`DOKUMENTATION.md`.
 
 ## Dokumentation
 

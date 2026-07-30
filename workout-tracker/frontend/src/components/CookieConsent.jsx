@@ -121,7 +121,12 @@ export default function CookieConsent() {
         )}
 
         <div className="cookie-consent-actions">
-          <button className="cookie-consent-reject" type="button" onClick={() => chooseConsent(false)}>
+          <button
+            className="cookie-consent-reject"
+            data-cy="cookie-essential-only"
+            type="button"
+            onClick={() => chooseConsent(false)}
+          >
             {labels.reject}
           </button>
           {showSettings ? (
