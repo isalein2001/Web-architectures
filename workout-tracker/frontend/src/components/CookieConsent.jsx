@@ -46,6 +46,8 @@ const copy = {
 export default function CookieConsent() {
   const { lang } = useLanguage();
   const labels = copy[lang] || copy.en;
+  const isLoaderPreview = import.meta.env.DEV
+    && new URLSearchParams(window.location.search).has('previewLoader');
   const existingConsent = getCookieConsent();
   const [isOpen, setIsOpen] = useState(() => !isNativeApp && !existingConsent);
   const [showSettings, setShowSettings] = useState(false);
@@ -65,7 +67,7 @@ export default function CookieConsent() {
     return () => window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, reopenSettings);
   }, []);
 
-  if (isNativeApp || !isOpen) return null;
+  if (isNativeApp || isLoaderPreview || !isOpen) return null;
 
   const chooseConsent = (allowAnalytics) => {
     saveCookieConsent({ analytics: allowAnalytics });

@@ -92,6 +92,8 @@ function AppLayout() {
   const isRootPath = location.pathname === "/";
   const isLanding = isRootPath && !isNativeApp;
   const isPublicLegalPage = !isNativeApp && ["/datenschutz", "/impressum"].includes(location.pathname);
+  const shouldPreviewLoader = import.meta.env.DEV
+    && new URLSearchParams(location.search).has('previewLoader');
   const canShowLogin = location.pathname === "/login" && (isNativeApp || location.state?.loginIntent === true);
   const { t, lang, setLang } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
@@ -709,15 +711,20 @@ function AppLayout() {
     );
   }
 
-  if (isAuthLoading) {
+  if (isAuthLoading || shouldPreviewLoader) {
     return (
-      <div className="auth-page">
-        <section className="auth-card">
-          <div className="auth-brand">
-            <img src="/nextreps-logo.svg" alt="NEXT REPS" />
+      <div className="app-loading-page" role="status" aria-live="polite">
+        <section className="app-loading-card">
+          <div className="app-loading-mark" aria-hidden="true">
+            <span className="app-loading-ring" />
+            <Dumbbell size={30} strokeWidth={1.8} />
           </div>
-          <h1>Loading</h1>
-          <p>Checking your session.</p>
+          <span className="app-loading-kicker">NEXT REPS</span>
+          <h1>{t('Loading')}</h1>
+          <p>{t('Checking your session.')}</p>
+          <span className="app-loading-progress" aria-hidden="true">
+            <i />
+          </span>
         </section>
       </div>
     );
