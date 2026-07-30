@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Radio, Zap, Share2, Shield, Lock, Cookie } from 'lucide-react';
+import { openCookieSettings } from '../cookieConsent';
 import './Legal.css';
 
 export default function Datenschutz() {
@@ -104,6 +105,10 @@ export default function Datenschutz() {
             <span className="tag">{t('SESSION MANAGEMENT')}</span>
             <span className="tag">{t('USER PREFERENCES')}</span>
           </div>
+          <button className="privacy-cookie-settings-button" type="button" onClick={openCookieSettings}>
+            <Cookie size={16} />
+            {t('COOKIE SETTINGS')}
+          </button>
         </section>
       </div>
     </div>

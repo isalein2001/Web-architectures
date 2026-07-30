@@ -12,6 +12,7 @@ import Support from "./pages/Support";
 import About from "./pages/About";
 import Coach from "./pages/Coach";
 import WorkoutLogger from "./pages/WorkoutLogger";
+import CookieConsent from "./components/CookieConsent";
 import { Login, Onboarding, Register, VerifyEmail } from "./features/auth";
 import { api, isNativeApp } from "./api";
 import { hasCompletedFirstLaunchOnboarding } from "./firstLaunchOnboardingStorage";
@@ -90,6 +91,7 @@ function AppLayout() {
   const isOnboardingPage = location.pathname === "/onboarding";
   const isRootPath = location.pathname === "/";
   const isLanding = isRootPath && !isNativeApp;
+  const isPublicLegalPage = !isNativeApp && ["/datenschutz", "/impressum"].includes(location.pathname);
   const canShowLogin = location.pathname === "/login" && (isNativeApp || location.state?.loginIntent === true);
   const { t, lang, setLang } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
@@ -691,10 +693,18 @@ function AppLayout() {
     );
   }
 
-  if (isLanding) {
+  if (isLanding || isPublicLegalPage) {
     return (
       <Routes>
         <Route path="/" element={<Landing currentUser={currentUser} />} />
+        <Route
+          path="/datenschutz"
+          element={<div className="public-legal-page"><Datenschutz /></div>}
+        />
+        <Route
+          path="/impressum"
+          element={<div className="public-legal-page"><Impressum /></div>}
+        />
       </Routes>
     );
   }
@@ -1053,6 +1063,7 @@ export default function App() {
   return (
     <Router>
       <AppLayout />
+      <CookieConsent />
     </Router>
   );
 }

@@ -1606,3 +1606,22 @@
     outline-offset: var(--size-3);
   }
 }
+.public-legal-page {
+  min-height: 100dvh;
+  padding: clamp(28px, 5vw, 72px);
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 88% 4%, rgb(var(--rgb-197-254-0) / 0.07), transparent 30%),
+    var(--color-background);
+}
+
+.public-legal-page .dashboard-container {
+  width: min(1380px, 100%);
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .public-legal-page {
+    padding: 76px 16px 120px;
+  }
+}
