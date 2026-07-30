@@ -14,12 +14,16 @@ export default function NotFound({ isAuthenticated = false }) {
       <section className="not-found-card">
         <div className="not-found-code" aria-label="Error 404">
           <span>4</span>
-          <span className="not-found-zero">
-            <i className="not-found-plate plate-left" />
-            <Dumbbell size={62} strokeWidth={1.35} />
-            <i className="not-found-plate plate-right" />
-          </span>
+          <span>0</span>
           <span>4</span>
+        </div>
+
+        <div className="not-found-route" aria-hidden="true">
+          <span className="not-found-route-line" />
+          <span className="not-found-dumbbell">
+            <Dumbbell size={30} strokeWidth={1.8} />
+          </span>
+          <span className="not-found-route-end" />
         </div>
 
         <span className="not-found-kicker">REST DAY FOR THIS URL</span>
