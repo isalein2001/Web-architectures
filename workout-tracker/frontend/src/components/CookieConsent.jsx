@@ -47,7 +47,9 @@ export default function CookieConsent() {
   const { lang } = useLanguage();
   const labels = copy[lang] || copy.en;
   const isLoaderPreview = import.meta.env.DEV
-    && new URLSearchParams(window.location.search).has('previewLoader');
+    && ['previewLoader', 'preview404'].some((key) => (
+      new URLSearchParams(window.location.search).has(key)
+    ));
   const existingConsent = getCookieConsent();
   const [isOpen, setIsOpen] = useState(() => !isNativeApp && !existingConsent);
   const [showSettings, setShowSettings] = useState(false);

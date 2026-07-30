@@ -12,6 +12,7 @@ import Support from "./pages/Support";
 import About from "./pages/About";
 import Coach from "./pages/Coach";
 import WorkoutLogger from "./pages/WorkoutLogger";
+import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
 import { Login, Onboarding, Register, VerifyEmail } from "./features/auth";
 import { api, isNativeApp } from "./api";
@@ -739,7 +740,7 @@ function AppLayout() {
         />
         <Route path="/register" element={<Register onLogin={setCurrentUser} />} />
         <Route path="/" element={isNativeApp ? <Navigate to="/login" replace /> : <Navigate to="/" replace />} />
-        <Route path="*" element={<Navigate to={isNativeApp ? "/login" : "/"} replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     );
   }
@@ -1044,6 +1045,7 @@ function AppLayout() {
             <Route path="/profile" element={<Profile currentUser={currentUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />} />
             <Route path="/support" element={<Support />} />
             <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound isAuthenticated />} />
           </Routes>
         </main>
       </div>
