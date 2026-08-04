@@ -1,0 +1,84 @@
+name: Deploy single Node.js app to Hetzner
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: './workout-tracker/frontend/package-lock.json'
+
+      - name: Build Frontend
+        run: |
+          cd workout-tracker/frontend
+          npm ci
+          npm run build
+
+      - name: Copy Frontend Build to Backend Public
+        run: |
+          rm -rf workout-tracker/backend/public
+          mkdir -p workout-tracker/backend/public
+          cp -r workout-tracker/frontend/dist/* workout-tracker/backend/public/
+
+      # SSH-Key aus GitHub Secrets einrichten und Host-Schlüssel pinnen.
+      - name: Configure SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 222 -H "${{ secrets.HETZNER_SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy files via rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p 222 -o IdentitiesOnly=yes" \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='.git' \
+            --exclude='.prisma/client' \
+            workout-tracker/backend/ ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }}:~/workout-tracker
+
+      - name: Execute Server Tasks via SSH
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 222 -o IdentitiesOnly=yes ${{ secrets.HETZNER_SSH_USER }}@${{ secrets.HETZNER_SSH_HOST }} << 'EOF'
+            cd ~/workout-tracker
+
+           
+            source .env
+
+            chmod 600 .env
+            
+            echo "Installiere Produktions-Abhängigkeiten auf dem Server..."
+            npm i --omit=dev
+            
+            echo "Führe Datenbank-Migrationen aus (migrate deploy)..."
+            npx prisma migrate deploy --schema=prisma/schema.prisma
+
+            echo "Generiere Prisma-Client passend zum aktuellen Schema..."
+            npx prisma generate --schema=prisma/schema.prisma
+            
+            echo "Erzeuge Restart-Trigger für die Node.js-App..."
+            mkdir -p tmp
+            touch tmp/restart.txt
+            touch server.js 2>/dev/null || touch app.js 2>/dev/null
+
+            echo "Starte Node.js-App neu, damit Backend-Code neu geladen wird..."
+            if command -v pm2 >/dev/null 2>&1 && pm2 jlist | grep -q '"pm_id"'; then
+              pm2 restart all --update-env
+            fi
+            if command -v passenger-config >/dev/null 2>&1; then
+              passenger-config restart-app "$(pwd)" || true
+            fi
+          EOF

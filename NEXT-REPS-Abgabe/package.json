@@ -1,0 +1,27 @@
+{
+  "name": "workout-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "workout-tracker/frontend",
+    "workout-tracker/backend"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "npm run dev",
+    "db:start": "docker compose up -d --wait mysql",
+    "db:stop": "docker compose down",
+    "lint": "npm run --workspace workout-tracker/frontend lint && npm run --workspace workout-tracker/backend lint",
+    "test:backend": "npm run --workspace workout-tracker/backend test:coverage",
+    "test:e2e": "npm run --workspace workout-tracker/frontend test:e2e",
+    "test": "npm run test:backend && npm run test:e2e"
+  },
+  "overrides": {
+    "body-parser": "2.3.0",
+    "brace-expansion": "^5.0.8",
+    "js-yaml": "^4.1.1",
+    "picomatch": "^4.0.5",
+    "postcss": "^8.5.24",
+    "tar": "7.5.20"
+  }
+}

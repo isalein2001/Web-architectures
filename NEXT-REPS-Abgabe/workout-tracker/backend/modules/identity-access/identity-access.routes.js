@@ -1,0 +1,617 @@
+const express = require('express');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const { prisma } = require('../../prismaClient');
+const { AUTH_COOKIE_NAME, authenticate, getAuthCookieOptions } = require('../../middleware/authenticate');
+const { authEmailRateLimiter, loginRateLimiter, verificationRateLimiter } = require('../../middleware/rateLimiters');
+const { sendVerificationEmailLater } = require('../../mail');
+
+const INVALID_LOGIN_MESSAGE = 'E-Mail oder Passwort ungültig.';
+const INTERNAL_ERROR_MESSAGE = 'Ein interner Fehler ist aufgetreten.';
+const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const PROFILE_IMAGE_MAX_BYTES = 500_000;
+const VERIFICATION_CODE_TTL_MS = 10 * 60 * 1000;
+const VERIFICATION_CODE_MAX_ATTEMPTS = 5;
+const DUMMY_PASSWORD_HASH_FOR_TIMING_ONLY = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 12);
+
+const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
+const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
+const DEMO_EMAIL = 'jonasarnold@gmail.com';
+const MIN_PASSWORD_LENGTH = 8;
+
+const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
+
+const clearVerificationCodeData = {
+  verificationCode: null,
+  verificationCodeExpiresAt: null,
+  verificationCodeAttempts: 0,
+};
+
+const verificationCodeDigest = (value) => (
+  crypto.createHash('sha256').update(typeof value === 'string' ? value : '').digest()
+);
+
+const createVerificationCodeData = () => {
+  const code = createVerificationCode();
+  return {
+    code,
+    data: {
+      verificationCode: verificationCodeDigest(code).toString('hex'),
+      verificationCodeExpiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+      verificationCodeAttempts: 0,
+    },
+  };
+};
+
+const verificationCodesMatch = (submittedCode, storedCodeHash) => {
+  const submittedCodeHash = verificationCodeDigest(submittedCode);
+  const storedCodeHashBuffer = (
+    typeof storedCodeHash === 'string'
+    && /^[a-f0-9]{64}$/i.test(storedCodeHash)
+  )
+    ? Buffer.from(storedCodeHash, 'hex')
+    : Buffer.alloc(submittedCodeHash.length);
+
+  return crypto.timingSafeEqual(submittedCodeHash, storedCodeHashBuffer);
+};
+
+const validateVerificationCode = async (user, code) => {
+  const hasExpired = (
+    !user.verificationCodeExpiresAt
+    || user.verificationCodeExpiresAt.getTime() <= Date.now()
+  );
+
+  if (!user.verificationCode || hasExpired) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: clearVerificationCodeData,
+    });
+    return { valid: false, expired: true };
+  }
+
+  if (!verificationCodesMatch(code, user.verificationCode)) {
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { verificationCodeAttempts: { increment: 1 } },
+      select: { verificationCodeAttempts: true },
+    });
+    if (updatedUser.verificationCodeAttempts >= VERIFICATION_CODE_MAX_ATTEMPTS) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: clearVerificationCodeData,
+      });
+    }
+    return { valid: false, expired: false };
+  }
+
+  return { valid: true, expired: false };
+};
+
+const isDemoAccount = (email) => email === DEMO_EMAIL;
+
+const isStrongPassword = (password) => (
+  typeof password === 'string'
+  && password.length >= MIN_PASSWORD_LENGTH
+  && /[A-Za-z]/.test(password)
+  && /\d/.test(password)
+);
+
+const getProfileImageByteLength = (profileImage) => {
+  if (typeof profileImage !== 'string') return Number.POSITIVE_INFINITY;
+  const match = profileImage.match(/^data:image\/(?:png|jpe?g|webp);base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) return Number.POSITIVE_INFINITY;
+
+  const base64 = match[1];
+  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+};
+
+const isAllowedProfileImage = (profileImage) => (
+  profileImage === null
+  || profileImage === ''
+  || getProfileImageByteLength(profileImage) <= PROFILE_IMAGE_MAX_BYTES
+);
+
+const selectPublicUser = {
+  id: true,
+  email: true,
+  pendingEmail: true,
+  name: true,
+  firstName: true,
+  lastName: true,
+  emailVerified: true,
+  onboardingCompleted: true,
+  heightCm: true,
+  weightKg: true,
+  gender: true,
+  hydrationGoalLiters: true,
+  fitnessGoal: true,
+};
+
+const selectProfileImage = {
+  profileImage: true,
+};
+
+const createToken = (user) => jwt.sign(
+  { userId: user.id, email: user.email },
+  process.env.JWT_SECRET,
+  { expiresIn: '24h' }
+);
+
+const setAuthCookie = (res, token) => {
+  res.cookie(AUTH_COOKIE_NAME, token, {
+    ...getAuthCookieOptions(),
+    maxAge: TOKEN_MAX_AGE_MS,
+  });
+};
+
+const authPayload = (token) => ({ token });
+const userWithClaims = (user) => ({
+  ...user,
+  isDemo: isDemoAccount(user.email),
+});
+
+const handleInternalError = (res, context, error) => {
+  console.error('\n', new Date().toISOString(), context, error);
+  return res.status(500).json({ error: INTERNAL_ERROR_MESSAGE });
+};
+
+function createAuthRouter() {
+  const router = express.Router();
+
+  router.post('/register', authEmailRateLimiter, async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
+    const firstName = normalizeText(req.body.firstName);
+    const lastName = normalizeText(req.body.lastName);
+    const legacyName = normalizeText(req.body.name || req.body.fullName);
+    const name = firstName || lastName
+      ? `${firstName} ${lastName}`.trim()
+      : legacyName;
+
+    if (!email || !password || typeof password !== 'string' || !firstName || !lastName) {
+      return res.status(400).json({ error: 'Vorname, Nachname, E-Mail und Passwort sind erforderlich.' });
+    }
+
+    if (!isDemoAccount(email) && !isStrongPassword(password)) {
+      return res.status(400).json({ error: 'Passwort muss mindestens 8 Zeichen haben und Buchstaben sowie Zahlen enthalten.' });
+    }
+
+    try {
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) {
+        return res.status(409).json({ error: 'E-Mail bereits vergeben.' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
+      const verification = isDemoAccount(email)
+        ? { code: null, data: clearVerificationCodeData }
+        : createVerificationCodeData();
+      const user = await prisma.user.create({
+        data: {
+          email,
+          name: name || null,
+          firstName,
+          lastName,
+          emailVerified: isDemoAccount(email),
+          ...verification.data,
+          onboardingCompleted: isDemoAccount(email),
+          passwordHash,
+        },
+        select: selectPublicUser,
+      });
+
+      if (verification.code) {
+        sendVerificationEmailLater({
+          to: email,
+          firstName,
+          code: verification.code,
+        });
+      }
+
+      const token = createToken(user);
+      setAuthCookie(res, token);
+
+      res.status(201).json({
+        user: userWithClaims(user),
+        ...authPayload(token),
+      });
+    } catch (error) {
+      return handleInternalError(res, 'register failed', error);
+    }
+  });
+
+  router.post('/login', loginRateLimiter, async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
+
+    if (!email || !password || typeof password !== 'string') {
+      return res.status(401).json({ error: INVALID_LOGIN_MESSAGE });
+    }
+
+    try {
+      const user = await prisma.user.findUnique({ where: { email } });
+      const passwordHash = user?.passwordHash || DUMMY_PASSWORD_HASH_FOR_TIMING_ONLY;
+      const isValidPassword = await bcrypt.compare(password, passwordHash);
+      if (!user || !isValidPassword) {
+        return res.status(401).json({ error: INVALID_LOGIN_MESSAGE });
+      }
+
+      const token = createToken(user);
+      setAuthCookie(res, token);
+
+      res.status(200).json({
+        ...authPayload(token),
+        user: userWithClaims({
+          id: user.id,
+          email: user.email,
+          pendingEmail: user.pendingEmail,
+          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
+          heightCm: user.heightCm,
+          weightKg: user.weightKg,
+          gender: user.gender,
+          hydrationGoalLiters: user.hydrationGoalLiters,
+          fitnessGoal: user.fitnessGoal,
+        }),
+      });
+    } catch (error) {
+      return handleInternalError(res, 'login failed', error);
+    }
+  });
+
+  router.get('/me', authenticate, async (req, res) => {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: selectPublicUser,
+    });
+
+    if (!user) return res.status(401).json({ error: 'Nicht autorisiert.' });
+
+    res.status(200).json({ user: userWithClaims(user) });
+  });
+
+  router.get('/me/profile-image', authenticate, async (req, res) => {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: selectProfileImage,
+    });
+
+    if (!user) return res.status(401).json({ error: 'Nicht autorisiert.' });
+
+    res.status(200).json({ profileImage: user.profileImage });
+  });
+
+  router.put('/me', authenticate, authEmailRateLimiter, async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const firstName = normalizeText(req.body.firstName);
+    const lastName = normalizeText(req.body.lastName);
+    const { currentPassword, newPassword } = req.body;
+    const hasProfileImageUpdate = Object.prototype.hasOwnProperty.call(req.body, 'profileImage');
+
+    if (!email || !firstName || !lastName) {
+      return res.status(400).json({ error: 'Vorname, Nachname und E-Mail sind erforderlich.' });
+    }
+
+    if (newPassword && !isStrongPassword(newPassword)) {
+      return res.status(400).json({ error: 'Das neue Passwort muss mindestens 8 Zeichen haben und Buchstaben sowie Zahlen enthalten.' });
+    }
+
+    if (newPassword && !currentPassword) {
+      return res.status(400).json({ error: 'Aktuelles Passwort ist erforderlich.' });
+    }
+
+    try {
+      const currentUser = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+      });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (isDemoAccount(currentUser.email)) {
+        return res.status(403).json({ error: 'Der Demo-Account kann nicht geändert werden.' });
+      }
+
+      if (email !== currentUser.email) {
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email },
+              { pendingEmail: email },
+            ],
+            NOT: { id: currentUser.id },
+          },
+        });
+        if (existingUser && existingUser.id !== currentUser.id) {
+          return res.status(409).json({ error: 'E-Mail bereits vergeben.' });
+        }
+      }
+
+      const updateData = {
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`.trim(),
+      };
+
+      if (email !== currentUser.email) {
+        const verification = isDemoAccount(email)
+          ? { code: null, data: clearVerificationCodeData }
+          : createVerificationCodeData();
+
+        updateData.pendingEmail = isDemoAccount(email) ? null : email;
+        updateData.verificationCode = verification.data.verificationCode;
+        updateData.verificationCodeExpiresAt = verification.data.verificationCodeExpiresAt;
+        updateData.verificationCodeAttempts = verification.data.verificationCodeAttempts;
+
+        if (verification.code) {
+          sendVerificationEmailLater({
+            to: email,
+            firstName,
+            code: verification.code,
+          });
+        } else {
+          updateData.email = email;
+          updateData.emailVerified = true;
+        }
+      }
+
+      if (hasProfileImageUpdate) {
+        const { profileImage } = req.body;
+        if (!isAllowedProfileImage(profileImage)) {
+          return res.status(400).json({ error: 'Profilbild muss ein PNG, JPG oder WebP unter 500 KB sein.' });
+        }
+
+        updateData.profileImage = profileImage || null;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'gender')) {
+        const gender = normalizeText(req.body.gender);
+        if (!['Male', 'Female', 'Other'].includes(gender)) {
+          return res.status(400).json({ error: 'Please choose a valid gender.' });
+        }
+        updateData.gender = gender;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'heightCm')) {
+        const heightCm = Number(req.body.heightCm);
+        if (!Number.isFinite(heightCm) || heightCm < 100 || heightCm > 240) {
+          return res.status(400).json({ error: 'Please enter a valid height.' });
+        }
+        updateData.heightCm = heightCm;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'weightKg')) {
+        const weightKg = Number(req.body.weightKg);
+        if (!Number.isFinite(weightKg) || weightKg < 30 || weightKg > 250) {
+          return res.status(400).json({ error: 'Please enter a valid weight.' });
+        }
+        updateData.weightKg = weightKg;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'hydrationGoalLiters')) {
+        const hydrationGoalLiters = Number(req.body.hydrationGoalLiters);
+        if (!Number.isFinite(hydrationGoalLiters) || hydrationGoalLiters < 1.5 || hydrationGoalLiters > 7) {
+          return res.status(400).json({ error: 'Please enter a hydration goal between 1.5L and 7L.' });
+        }
+        updateData.hydrationGoalLiters = hydrationGoalLiters;
+      }
+
+      if (newPassword) {
+        const isValidPassword = await bcrypt.compare(currentPassword, currentUser.passwordHash);
+        if (!isValidPassword) {
+          return res.status(400).json({ error: 'Aktuelles Passwort ist ungültig.' });
+        }
+        updateData.passwordHash = await bcrypt.hash(newPassword, 12);
+      }
+
+      const user = await prisma.user.update({
+        where: { id: currentUser.id },
+        data: updateData,
+        select: hasProfileImageUpdate ? { ...selectPublicUser, ...selectProfileImage } : selectPublicUser,
+      });
+
+      if (user.email !== req.user.email) {
+        setAuthCookie(res, createToken(user));
+      }
+
+      res.status(200).json({ user: userWithClaims(user) });
+    } catch (error) {
+      return handleInternalError(res, 'profile update failed', error);
+    }
+  });
+
+  router.post('/verify-email-change', authenticate, verificationRateLimiter, async (req, res) => {
+    const code = normalizeText(req.body.code);
+
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (!currentUser.pendingEmail) return res.status(400).json({ error: 'Keine ausstehende E-Mail-Änderung.' });
+
+      const verification = await validateVerificationCode(currentUser, code);
+      if (!verification.valid) {
+        return res.status(400).json({
+          error: verification.expired
+            ? 'Verification code has expired. Please request a new code.'
+            : 'Verification code is invalid.',
+        });
+      }
+
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: currentUser.pendingEmail,
+          NOT: { id: currentUser.id },
+        },
+      });
+      if (existingUser) return res.status(409).json({ error: 'E-Mail bereits vergeben.' });
+
+      const user = await prisma.user.update({
+        where: { id: currentUser.id },
+        data: {
+          email: currentUser.pendingEmail,
+          pendingEmail: null,
+          emailVerified: true,
+          ...clearVerificationCodeData,
+        },
+        select: selectPublicUser,
+      });
+
+      setAuthCookie(res, createToken(user));
+      res.status(200).json({ user: userWithClaims(user) });
+    } catch (error) {
+      return handleInternalError(res, 'email change verification failed', error);
+    }
+  });
+
+  router.post('/resend-email-change', authenticate, authEmailRateLimiter, async (req, res) => {
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (!currentUser.pendingEmail) return res.status(400).json({ error: 'Keine ausstehende E-Mail-Änderung.' });
+
+      const verification = createVerificationCodeData();
+      await prisma.user.update({
+        where: { id: currentUser.id },
+        data: verification.data,
+      });
+      sendVerificationEmailLater({
+        to: currentUser.pendingEmail,
+        firstName: currentUser.firstName,
+        code: verification.code,
+      });
+
+      res.status(200).json({
+        message: 'Verification code sent.',
+      });
+    } catch (error) {
+      return handleInternalError(res, 'email change resend failed', error);
+    }
+  });
+
+  router.post('/verify-email', authenticate, verificationRateLimiter, async (req, res) => {
+    const code = normalizeText(req.body.code);
+
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+
+      if (isDemoAccount(currentUser.email) || currentUser.emailVerified) {
+        const user = await prisma.user.update({
+          where: { id: currentUser.id },
+          data: { emailVerified: true, ...clearVerificationCodeData },
+          select: selectPublicUser,
+        });
+        return res.status(200).json({ user: userWithClaims(user) });
+      }
+
+      const verification = await validateVerificationCode(currentUser, code);
+      if (!verification.valid) {
+        return res.status(400).json({
+          error: verification.expired
+            ? 'Verification code has expired. Please request a new code.'
+            : 'Verification code is invalid.',
+        });
+      }
+
+      const user = await prisma.user.update({
+        where: { id: currentUser.id },
+        data: { emailVerified: true, ...clearVerificationCodeData },
+        select: selectPublicUser,
+      });
+
+      res.status(200).json({ user: userWithClaims(user) });
+    } catch (error) {
+      return handleInternalError(res, 'email verification failed', error);
+    }
+  });
+
+  router.post('/resend-verification', authenticate, authEmailRateLimiter, async (req, res) => {
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+
+      if (isDemoAccount(currentUser.email) || currentUser.emailVerified) {
+        return res.status(200).json({ message: 'Already verified.' });
+      }
+
+      const verification = createVerificationCodeData();
+      await prisma.user.update({
+        where: { id: currentUser.id },
+        data: verification.data,
+      });
+      sendVerificationEmailLater({
+        to: currentUser.email,
+        firstName: currentUser.firstName,
+        code: verification.code,
+      });
+
+      res.status(200).json({
+        message: 'Verification code sent.',
+      });
+    } catch (error) {
+      return handleInternalError(res, 'verification resend failed', error);
+    }
+  });
+
+  router.post('/onboarding', authenticate, async (req, res) => {
+    const heightCm = Number(req.body.heightCm);
+    const weightKg = Number(req.body.weightKg);
+    const gender = normalizeText(req.body.gender);
+    const hydrationGoalLiters = Number(req.body.hydrationGoalLiters);
+    const fitnessGoal = normalizeText(req.body.fitnessGoal);
+
+    if (!Number.isFinite(heightCm) || heightCm < 100 || heightCm > 240) {
+      return res.status(400).json({ error: 'Please enter a valid height.' });
+    }
+
+    if (!Number.isFinite(weightKg) || weightKg < 30 || weightKg > 250) {
+      return res.status(400).json({ error: 'Please enter a valid weight.' });
+    }
+
+    if (!['Male', 'Female', 'Other'].includes(gender)) {
+      return res.status(400).json({ error: 'Please choose a valid gender.' });
+    }
+
+    if (!Number.isFinite(hydrationGoalLiters) || hydrationGoalLiters < 1.5 || hydrationGoalLiters > 7) {
+      return res.status(400).json({ error: 'Please enter a hydration goal between 1.5L and 7L.' });
+    }
+
+    if (!['fat_loss', 'muscle_gain', 'definition'].includes(fitnessGoal)) {
+      return res.status(400).json({ error: 'Please choose a training goal.' });
+    }
+
+    try {
+      const currentUser = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (!currentUser) return res.status(401).json({ error: 'Nicht autorisiert.' });
+      if (!currentUser.emailVerified) return res.status(400).json({ error: 'Please verify your email first.' });
+
+      const user = await prisma.user.update({
+        where: { id: currentUser.id },
+        data: {
+          heightCm,
+          weightKg,
+          gender,
+          hydrationGoalLiters,
+          fitnessGoal,
+          onboardingCompleted: true,
+        },
+        select: selectPublicUser,
+      });
+
+      res.status(200).json({ user: userWithClaims(user) });
+    } catch (error) {
+      return handleInternalError(res, 'onboarding failed', error);
+    }
+  });
+
+  router.post('/logout', (req, res) => {
+    res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
+    res.status(204).send();
+  });
+
+  return router;
+}
+
+module.exports = createAuthRouter;

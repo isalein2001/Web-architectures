@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  pendingEmail String?  @unique @map("pending_email")
+  name         String?
+  firstName    String?  @map("first_name")
+  lastName     String?  @map("last_name")
+  emailVerified Boolean @default(false) @map("email_verified")
+  verificationCode String? @map("verification_code")
+  verificationCodeExpiresAt DateTime? @map("verification_code_expires_at")
+  verificationCodeAttempts Int @default(0) @map("verification_code_attempts")
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+  heightCm     Int?     @map("height_cm")
+  weightKg     Float?   @map("weight_kg")
+  gender       String?
+  hydrationGoalLiters Float? @map("hydration_goal_liters")
+  fitnessGoal  String?  @map("fitness_goal")
+  profileImage  String?  @db.LongText @map("profile_image")
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  plans        Plan[]
+  sessions     WorkoutSession[]
+  dailyActivities DailyActivity[]
+  pushSubscriptions PushSubscription[]
+  productAnalyticsEvents ProductAnalyticsEvent[]
+
+  @@map("users")
+}
+
+model ProductAnalyticsEvent {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  eventName     String   @map("event_name") @db.VarChar(64)
+  clientEventId String   @unique @map("client_event_id") @db.VarChar(64)
+  source        String   @default("web") @db.VarChar(16)
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([eventName, createdAt])
+  @@map("product_analytics_events")
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  endpoint  String   @unique @db.VarChar(512)
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model DailyActivity {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  date          String
+  waterIntakeMl Int      @default(0) @map("water_intake_ml")
+  waterGoalMl   Int      @default(3000) @map("water_goal_ml")
+  steps         Int      @default(0)
+  stepGoal      Int      @default(10000) @map("step_goal")
+  activeEnergyKcal Int   @default(0) @map("active_energy_kcal")
+  exerciseMinutes Int    @default(0) @map("exercise_minutes")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([date])
+  @@map("daily_activities")
+}
+
+model Plan {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?          @db.Text
+  image       String?          @db.LongText
+  iconKey     String?          @map("icon_key")
+  userId      Int?             @map("user_id")
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises   PlanExercise[]
+  sessions    WorkoutSession[]
+
+  @@index([userId])
+  @@map("plans")
+}
+
+model PlanExercise {
+  id           Int     @id @default(autoincrement())
+  planId       Int?    @map("plan_id")
+  exerciseName String  @map("exercise_name")
+  targetSets   Int?    @map("target_sets")
+  targetReps   String? @map("target_reps")
+  plan         Plan?   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("plan_exercises")
+}
+
+model WorkoutSession {
+  id     Int          @id @default(autoincrement())
+  date   String
+  clientSessionId String? @map("client_session_id")
+  planId Int?         @map("plan_id")
+  planName String?     @map("plan_name")
+  userId Int?         @map("user_id")
+  notes  String? @db.Text
+  caloriesBurned Int? @map("calories_burned")
+  durationSeconds Int? @map("duration_seconds")
+  intensity String?
+  perceivedExertion Int? @map("perceived_exertion")
+  plan   Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+  user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs   WorkoutLog[]
+
+  @@index([userId])
+  @@unique([userId, clientSessionId])
+  @@map("workout_sessions")
+}
+
+model WorkoutLog {
+  id           Int             @id @default(autoincrement())
+  sessionId    Int?            @map("session_id")
+  exerciseName String          @map("exercise_name")
+  setNumber    Int?            @map("set_number")
+  reps         Int?
+  weight       Float?
+  restSeconds  Int?            @map("rest_seconds")
+  session      WorkoutSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("workout_logs")
+}

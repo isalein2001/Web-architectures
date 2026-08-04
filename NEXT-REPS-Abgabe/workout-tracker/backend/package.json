@@ -1,0 +1,52 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "seed": "node scripts/seed.js",
+    "analytics:report": "node scripts/productAnalyticsReport.js",
+    "check:modules": "node scripts/check-module-boundaries.js",
+    "lint": "node scripts/lint.js && npm run check:modules",
+    "start": "node server.js",
+    "test:prepare": "docker compose -f ../../docker-compose.yml up -d --wait mysql && npm run prisma:generate && npm run prisma:deploy",
+    "test": "vitest run",
+    "test:coverage": "npm run test:prepare && vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "body-parser": "2.3.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^9.0.3",
+    "prisma": "^7.9.1",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.10"
+  }
+}

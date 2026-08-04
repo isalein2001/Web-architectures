@@ -1,0 +1,69 @@
+@import './styles/designTokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-main);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+}
+
+/* Custom Cursor styling */
+#custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--size-20);
+  height: var(--size-20);
+  border-radius: var(--radius-screen-24);
+  background-color: var(--color-primary);
+  pointer-events: none;
+  z-index: 9999;
+  transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+  transform-origin: center center;
+}
+
+#custom-cursor.hover-active {
+  background-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-3));
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-8));
+  box-shadow: 0 0 var(--size-8) rgb(var(--rgb-197-254-0) / var(--opacity-0-5));
+}
+
+* {
+  cursor: none !important;
+}
+
+@media (max-width: 900px), (hover: none), (pointer: coarse) {
+  html {
+    background-color: var(--color-background);
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    background-color: var(--palette-0e0e0e);
+    /* clip statt hidden – erhält position:sticky auf Mobile */
+    overflow-x: clip;
+    overscroll-behavior-y: none;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: var(--font-size-screen-127);
+    touch-action: manipulation;
+  }
+}

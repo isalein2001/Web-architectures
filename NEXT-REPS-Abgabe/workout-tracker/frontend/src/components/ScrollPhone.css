@@ -1,0 +1,105 @@
+.scroll-phone {
+  position: relative;
+  background: transparent;
+}
+
+.scroll-phone-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.scroll-phone-sticky canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.scroll-phone-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    46% 52% at 50% 50%,
+    rgb(197 254 0 / 0.13),
+    transparent 70%
+  );
+}
+
+/* --- Optionale Text-Overlays (als children übergeben) --- */
+.scroll-phone-captions {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scroll-phone-cap {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 300px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.scroll-phone-cap.is-active {
+  opacity: 1;
+}
+
+.scroll-phone-cap.is-left {
+  left: max(32px, calc(50% - 520px));
+}
+
+.scroll-phone-cap.is-right {
+  right: max(32px, calc(50% - 520px));
+  text-align: right;
+}
+
+.scroll-phone-cap span {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--palette-c5fe00, #c5fe00);
+  margin-bottom: 14px;
+}
+
+.scroll-phone-cap h2 {
+  font-size: clamp(22px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--palette-f7f7f2, #f7f7f2);
+}
+
+.scroll-phone-cap p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-muted, #adaaaa);
+}
+
+@media (max-width: 860px) {
+  .scroll-phone-cap {
+    max-width: 220px;
+  }
+
+  .scroll-phone-cap.is-left {
+    left: 20px;
+  }
+
+  .scroll-phone-cap.is-right {
+    right: 20px;
+  }
+
+  .scroll-phone-cap p {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-phone-cap {
+    transition: none;
+  }
+}
