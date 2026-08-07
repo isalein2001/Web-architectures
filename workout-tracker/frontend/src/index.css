@@ -30,7 +30,7 @@ body {
   border-radius: var(--radius-screen-24);
   background-color: var(--color-primary);
   pointer-events: none;
-  z-index: 9999;
+  z-index: 2147483647;
   transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
   transform-origin: center center;
 }

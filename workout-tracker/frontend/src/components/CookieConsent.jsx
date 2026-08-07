@@ -69,6 +69,17 @@ export default function CookieConsent() {
     return () => window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, reopenSettings);
   }, []);
 
+  useEffect(() => {
+    if (isNativeApp || !isOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   if (isNativeApp || isLoaderPreview || !isOpen) return null;
 
   const chooseConsent = (allowAnalytics) => {
@@ -79,7 +90,8 @@ export default function CookieConsent() {
   };
 
   return (
-    <div className="cookie-consent-shell" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
+    <div className="cookie-consent-backdrop">
+      <div className="cookie-consent-shell" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
       <div className="cookie-consent-visual" aria-hidden="true">
         <span className="cookie-consent-orbit" />
         <Cookie size={58} strokeWidth={1.7} />
@@ -148,11 +160,12 @@ export default function CookieConsent() {
         </div>
       </div>
 
-      {existingConsent && (
-        <button className="cookie-consent-close" type="button" onClick={() => setIsOpen(false)} aria-label={labels.close}>
-          <X size={17} />
-        </button>
-      )}
+        {existingConsent && (
+          <button className="cookie-consent-close" type="button" onClick={() => setIsOpen(false)} aria-label={labels.close}>
+            <X size={17} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

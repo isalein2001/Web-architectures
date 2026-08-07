@@ -1,12 +1,22 @@
-.cookie-consent-shell {
+.cookie-consent-backdrop {
   position: fixed;
-  right: clamp(18px, 3vw, 42px);
-  bottom: clamp(18px, 3vw, 42px);
+  inset: 0;
   z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(7px);
+  animation: cookie-backdrop-enter 0.3s ease both;
+}
+
+.cookie-consent-shell {
+  position: relative;
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
   gap: 24px;
-  width: min(690px, calc(100vw - 36px));
+  width: min(760px, 100%);
   padding: 26px;
   overflow: hidden;
   border: 1px solid rgb(197 254 0 / 0.26);
@@ -282,6 +292,11 @@
   }
 }
 
+@keyframes cookie-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes cookie-float {
   0%, 100% { transform: translateY(0) rotate(-4deg); }
   50% { transform: translateY(-7px) rotate(3deg); }
@@ -298,13 +313,15 @@
 }
 
 @media (max-width: 680px) {
+  .cookie-consent-backdrop {
+    place-items: center;
+    padding: 12px;
+  }
+
   .cookie-consent-shell {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
     grid-template-columns: 1fr;
     gap: 10px;
-    width: auto;
+    width: 100%;
     max-height: calc(100dvh - 24px);
     padding: 18px;
     overflow-y: auto;
@@ -345,6 +362,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cookie-consent-backdrop,
   .cookie-consent-shell,
   .cookie-consent-visual,
   .cookie-consent-orbit,
