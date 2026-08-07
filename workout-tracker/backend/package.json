@@ -10,6 +10,8 @@
     "prisma:studio": "prisma studio",
     "seed": "node scripts/seed.js",
     "analytics:report": "node scripts/productAnalyticsReport.js",
+    "analytics:summary": "node scripts/productAnalyticsReport.js",
+    "users:count": "node scripts/countUsers.js",
     "check:modules": "node scripts/check-module-boundaries.js",
     "lint": "node scripts/lint.js && npm run check:modules",
     "start": "node server.js",

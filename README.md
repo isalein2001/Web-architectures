@@ -156,8 +156,21 @@ Serveraufgabe:
 
 ```bash
 cd workout-tracker/backend
-npm run analytics:report
+npm run analytics:summary
+npm run analytics:summary -- --days=7
+npm run users:count
 ```
+
+Der Summary-Report enthält ausschließlich aggregierte Kennzahlen: Accountzahlen,
+Registrierungen pro Tag, verifizierte und vollständig eingerichtete Accounts,
+gespeicherte Pläne und Workouts sowie Analytics-Events, aktive Accounts, Quellen
+und den Workout-Start/Abschluss-Funnel. Das Zeitfenster kann mit `--days=1` bis
+`--days=365` gewählt werden; Standard sind 30 Tage. Es werden keine E-Mail-Adressen,
+Namen, Nutzer-IDs oder Trainingsinhalte ausgegeben.
+
+Eine Cookie-Zustimmungsquote lässt sich bewusst nicht aus diesem Report ableiten:
+Die Auswahl wird ausschließlich im jeweiligen Browser gespeichert. Der Report
+weist daher nur Accounts mit tatsächlich aufgezeichneten Analytics-Events aus.
 
 Die Einwilligung kann im Cookie-Dialog granular erteilt beziehungsweise
 widerrufen werden. Details stehen in der Datenschutzerklärung und in
