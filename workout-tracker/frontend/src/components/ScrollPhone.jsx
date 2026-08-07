@@ -22,6 +22,9 @@ const CONFIG = {
   rotateY: Math.PI * 0.55,
   tiltX: 0.34,
   damping: 5,
+  tabletX: 2.2,
+  compactDesktopX: 2.8,
+  desktopX: 3.8,
 };
 
 /* ---------- Maße aus dem Video ---------- */
@@ -162,12 +165,29 @@ function Phone({ progress, videoSrc }) {
     g.rotation.x = THREE.MathUtils.damp(g.rotation.x, -0.04 + p * CONFIG.tiltX, CONFIG.damping, dt);
     g.position.x = THREE.MathUtils.damp(
       g.position.x,
-      state.size.width < 700 ? 0 : 2.2,
+      state.size.width < 700
+        ? 0
+        : state.size.width < 1000
+          ? CONFIG.tabletX
+          : state.size.width < 1280
+            ? CONFIG.compactDesktopX
+            : CONFIG.desktopX,
       CONFIG.damping,
       dt,
     );
-    g.position.y = THREE.MathUtils.damp(g.position.y, Math.sin(p * Math.PI) * 0.22, CONFIG.damping, dt);
-    const targetScale = state.size.width < 700 ? 0.86 : 1.24;
+    g.position.y = THREE.MathUtils.damp(
+      g.position.y,
+      Math.sin(p * Math.PI) * 0.12 - 0.2,
+      CONFIG.damping,
+      dt,
+    );
+    const targetScale = state.size.width < 700
+      ? 0.86
+      : state.size.height < 800
+        ? 1.02
+        : state.size.height < 950
+          ? 1.12
+          : 1.2;
     const nextScale = THREE.MathUtils.damp(g.scale.x, targetScale, CONFIG.damping, dt);
     g.scale.setScalar(nextScale);
 

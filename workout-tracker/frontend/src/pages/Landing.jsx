@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavLink } from 'react-router';
-import { Activity, ArrowRight, BarChart3, Dumbbell, Globe, Instagram, LineChart, PlayCircle, Target, Trophy } from 'lucide-react';
+import { ArrowRight, Dumbbell, Globe, Instagram, LineChart, Trophy } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import './Landing.css';
 
@@ -15,36 +15,6 @@ const reveal = {
 const featureIcons = [Dumbbell, LineChart, Trophy];
 const heroIcons = [Dumbbell, LineChart, Trophy];
 const heroVideos = ['/hero-reel-1.mp4', '/hero-reel-2.mp4', '/hero-reel-3.mp4'];
-
-function ProductPreview({ preview, compact = false }) {
-  return (
-    <div className={`landing-product-preview${compact ? ' is-compact' : ''}`}>
-      <div className="landing-product-toolbar">
-        <span>NEXT REPS</span>
-        <i aria-hidden="true" />
-      </div>
-      <div className="landing-product-heading">
-        <span>{preview.eyebrow}</span>
-        <strong>{preview.title}</strong>
-        <small>{preview.metric}</small>
-      </div>
-      <div className="landing-product-chart" aria-hidden="true">
-        {[42, 58, 51, 74, 68, 86, 96].map((height, index) => (
-          <i key={height + index} style={{ '--preview-bar-height': `${height}%` }} />
-        ))}
-      </div>
-      <div className="landing-product-rows">
-        {preview.rows.map((row, index) => (
-          <div key={row}>
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            <strong>{row}</strong>
-            <i className={index < 2 ? 'is-complete' : ''} aria-hidden="true" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function DeferredScrollPhone({ children }) {
   const boundaryRef = useRef(null);
@@ -90,7 +60,7 @@ const landingCopy = {
     exploreApp: 'Explore the App',
     tryNextReps: 'Try Next Reps',
     goToApp: 'Go to App',
-    scroll: 'Scroll',
+    launchTicker: 'NEXT REPS MOBILE APP LAUNCHES SOON · YOUR WORKOUTS. YOUR PROGRESS. ONE APP. · BE FIRST TO TRAIN SMARTER ·',
     heroEyebrow: 'Workout planner + training tracker',
     heroTitle: 'Your gym notebook, calendar and analytics in one app.',
     heroText: 'Build workout plans, log every set and keep your training progress connected in one clean system.',
@@ -108,8 +78,17 @@ const landingCopy = {
     proofText:
       'Use Next Reps live during your session, connect Apple Health for daily activity, or add a workout afterward when life gets messy. Your data stays organized per user.',
     proofItems: ['Goal-based workout planning', 'Apple Health activity sync', 'Live and past workout logging'],
-    finalEyebrow: 'Your next rep starts here.',
-    finalTitle: 'Create your first plan and start tracking with purpose.',
+    finalEyebrow: 'Ready for your next rep?',
+    finalTitle: 'Everyone trains smarter with Next Reps. You too?',
+    finalBody: 'One place for every plan, every set and every result. Next Reps keeps your training connected from the first workout to your next personal best.',
+    footerProduct: 'Product',
+    footerStart: 'Get started',
+    footerLegal: 'Legal',
+    footerFeatures: 'Features',
+    footerHow: 'How it works',
+    footerCreate: 'Create account',
+    footerImprint: 'Legal notice',
+    footerPrivacy: 'Privacy policy',
     heroSlides: [
       { kicker: '01 / 03', caption: 'Plan workouts' },
       { kicker: '02 / 03', caption: 'Log every set' },
@@ -189,7 +168,7 @@ const landingCopy = {
     exploreApp: 'App entdecken',
     tryNextReps: 'Next Reps testen',
     goToApp: 'Zur App',
-    scroll: 'Scroll',
+    launchTicker: 'DIE NEXT REPS MOBILE APP STARTET BALD · DEINE WORKOUTS. DEIN FORTSCHRITT. EINE APP. · SEI VON ANFANG AN DABEI ·',
     heroEyebrow: 'Workout-Planer + Trainingstracker',
     heroTitle: 'Dein Gym-Notizbuch, Kalender und deine Analytics in einer App.',
     heroText: 'Plane Workouts, logge jeden Satz und behalte deinen Fortschritt in einem cleanen System im Blick.',
@@ -207,8 +186,17 @@ const landingCopy = {
     proofText:
       'Nutze Next Reps live während deiner Session, verbinde Apple Health für deine Tagesaktivität oder trag ein Workout später nach, wenn es im Alltag mal hektisch wird. Deine Daten bleiben sauber pro Nutzer gespeichert.',
     proofItems: ['Workout-Planung nach deinen Zielen', 'Apple-Health-Aktivitätssync', 'Live loggen oder später nachtragen'],
-    finalEyebrow: 'Dein nächster Rep startet hier.',
-    finalTitle: 'Erstell deinen ersten Plan und trainiere mit echtem Fokus.',
+    finalEyebrow: 'Bereit für deinen nächsten Rep?',
+    finalTitle: 'Alle trainieren smarter mit Next Reps. Du auch?',
+    finalBody: 'Ein Ort für jeden Plan, jeden Satz und jedes Ergebnis. Next Reps verbindet dein Training vom ersten Workout bis zu deiner nächsten Bestleistung.',
+    footerProduct: 'Produkt',
+    footerStart: 'Loslegen',
+    footerLegal: 'Rechtliches',
+    footerFeatures: 'Features',
+    footerHow: 'So läufts',
+    footerCreate: 'Konto erstellen',
+    footerImprint: 'Impressum',
+    footerPrivacy: 'Datenschutz',
     heroSlides: [
       { kicker: '01 / 03', caption: 'Workouts planen' },
       { kicker: '02 / 03', caption: 'Jeden Satz loggen' },
@@ -285,8 +273,6 @@ export default function Landing({ currentUser }) {
   const { lang, setLang } = useLanguage();
   const statementRef = useRef(null);
   const arrowRef = useRef(null);
-  const faqRef = useRef(null);
-  const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [activeFaq, setActiveFaq] = useState(-1);
   const { scrollYProgress } = useScroll();
@@ -296,11 +282,7 @@ export default function Landing({ currentUser }) {
   });
   const { scrollYProgress: arrowScrollProgress } = useScroll({
     target: arrowRef,
-    offset: isCompactViewport ? ['start 68%', 'start -8%'] : ['start 62%', 'start -14%'],
-  });
-  const { scrollYProgress: faqArrowScrollProgress } = useScroll({
-    target: faqRef,
-    offset: isCompactViewport ? ['start 72%', 'start -28%'] : ['start 66%', 'start -34%'],
+    offset: ['start 62%', 'start -14%'],
   });
   const heroCopyY = useTransform(scrollYProgress, [0, 0.28], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0.25]);
@@ -309,22 +291,6 @@ export default function Landing({ currentUser }) {
   const statementOpacity = useTransform(statementScrollProgress, [0, 0.35, 1], [1, 1, 0.28]);
   const arrowClipPath = useTransform(arrowScrollProgress, [0, 1], ['inset(0 100% 0 0)', 'inset(0 0% 0 0)']);
   const arrowGlowOpacity = useTransform(arrowScrollProgress, [0, 0.35, 1], [0.12, 0.55, 0.82]);
-  const faqArrowX = useTransform(
-    faqArrowScrollProgress,
-    [0, 0.58, 1],
-    isCompactViewport
-      ? ['-98vw', '26vw', '-74vw']
-      : ['-62vw', '18vw', '-48vw']
-  );
-  const faqArrowY = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [10, -3, 0]);
-  const faqArrowRotate = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [-2, 1.1, 0]);
-  const faqArrowScale = useTransform(faqArrowScrollProgress, [0, 0.58, 1], [0.96, 1.04, 1]);
-  const faqArrowOpacity = useTransform(faqArrowScrollProgress, [0, 0.14, 1], [0, 0.9, 0.9]);
-  const faqLogoX = useTransform(
-    faqArrowScrollProgress,
-    [0, 0.58, 1],
-    isCompactViewport ? ['0vw', '0vw', '82vw'] : ['0vw', '0vw', '48vw']
-  );
   const primaryCta = currentUser ? '/dashboard' : '/register';
   const copy = landingCopy[lang] || landingCopy.en;
   const heroSlides = copy.heroSlides.map((slide, index) => ({
@@ -332,52 +298,10 @@ export default function Landing({ currentUser }) {
     video: heroVideos[index],
     Icon: heroIcons[index],
   }));
-  const productPreviewSlides = lang === 'de'
-    ? [
-        {
-          eyebrow: 'HEUTIGES TRAINING',
-          title: 'Upper Body Strength',
-          metric: '6 Übungen',
-          rows: ['Bench Press · 4 × 8', 'Lat Pulldown · 3 × 10', 'Shoulder Press · 3 × 10'],
-        },
-        {
-          eyebrow: 'LIVE LOGGER',
-          title: 'Bench Press',
-          metric: 'Satz 3 / 4',
-          rows: ['80 kg × 8 · erledigt', '82,5 kg × 8 · erledigt', '85 kg × 6 · aktiv'],
-        },
-        {
-          eyebrow: '30-TAGE-FORTSCHRITT',
-          title: '+12 % Trainingsvolumen',
-          metric: '9 Sessions',
-          rows: ['Bestleistung · 85 kg', 'Konstanz · 3× pro Woche', 'Nächstes Ziel · 87,5 kg'],
-        },
-      ]
-    : [
-        {
-          eyebrow: 'TODAY’S WORKOUT',
-          title: 'Upper Body Strength',
-          metric: '6 exercises',
-          rows: ['Bench Press · 4 × 8', 'Lat Pulldown · 3 × 10', 'Shoulder Press · 3 × 10'],
-        },
-        {
-          eyebrow: 'LIVE LOGGER',
-          title: 'Bench Press',
-          metric: 'Set 3 / 4',
-          rows: ['80 kg × 8 · complete', '82.5 kg × 8 · complete', '85 kg × 6 · active'],
-        },
-        {
-          eyebrow: '30-DAY PROGRESS',
-          title: '+12% training volume',
-          metric: '9 sessions',
-          rows: ['Personal best · 85 kg', 'Consistency · 3× weekly', 'Next target · 87.5 kg'],
-        },
-      ];
   const featureCards = copy.features.map((feature, index) => ({
     ...feature,
     Icon: featureIcons[index],
   }));
-  const scrollFrames = copy.scrollFrames;
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -385,16 +309,6 @@ export default function Landing({ currentUser }) {
     }, HERO_SLIDE_DURATION_MS);
 
     return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 980px)');
-    const syncViewport = () => setIsCompactViewport(mediaQuery.matches);
-
-    syncViewport();
-    mediaQuery.addEventListener('change', syncViewport);
-
-    return () => mediaQuery.removeEventListener('change', syncViewport);
   }, []);
 
   return (
@@ -407,7 +321,6 @@ export default function Landing({ currentUser }) {
         </NavLink>
         <nav className="landing-nav-actions" aria-label="Landing navigation">
           <a href="#features">{copy.navFeatures}</a>
-          <a href="#how-it-works">{copy.navHow}</a>
           <a
             className="landing-social-button"
             href="https://www.instagram.com/next.reps/"
@@ -449,40 +362,42 @@ export default function Landing({ currentUser }) {
             >
               {copy.heroEyebrow}
             </motion.span>
-            <motion.h1
-              initial="hidden"
-              animate="visible"
-              variants={reveal}
-              transition={{ duration: 0.65, delay: 0.08 }}
-            >
-              {copy.heroTitle}
-            </motion.h1>
-            <motion.p
-              initial="hidden"
-              animate="visible"
-              variants={reveal}
-              transition={{ duration: 0.65, delay: 0.16 }}
-            >
-              {copy.heroText}
-            </motion.p>
-            <motion.div
-              className="landing-hero-actions"
-              initial="hidden"
-              animate="visible"
-              variants={reveal}
-              transition={{ duration: 0.65, delay: 0.24 }}
-            >
-              <NavLink className="landing-primary-button" to={primaryCta}>
-                {currentUser ? copy.openDashboard : copy.createWorkout}
-                <ArrowRight size={18} />
-              </NavLink>
-              {currentUser ? (
-                <a className="landing-secondary-button" href="#features">{copy.exploreApp}</a>
-              ) : (
-                <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
-              )}
-            </motion.div>
-            {!currentUser && <small className="landing-cta-note">{copy.ctaNote}</small>}
+            <div className="landing-hero-main-copy">
+              <motion.h1
+                initial="hidden"
+                animate="visible"
+                variants={reveal}
+                transition={{ duration: 0.65, delay: 0.08 }}
+              >
+                {copy.heroTitle}
+              </motion.h1>
+              <motion.p
+                initial="hidden"
+                animate="visible"
+                variants={reveal}
+                transition={{ duration: 0.65, delay: 0.16 }}
+              >
+                {copy.heroText}
+              </motion.p>
+              <motion.div
+                className="landing-hero-actions"
+                initial="hidden"
+                animate="visible"
+                variants={reveal}
+                transition={{ duration: 0.65, delay: 0.24 }}
+              >
+                <NavLink className="landing-primary-button" to={primaryCta}>
+                  {currentUser ? copy.openDashboard : copy.createWorkout}
+                  <ArrowRight size={18} />
+                </NavLink>
+                {currentUser ? (
+                  <a className="landing-secondary-button" href="#features">{copy.exploreApp}</a>
+                ) : (
+                  <NavLink className="landing-secondary-button" to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
+                )}
+              </motion.div>
+              {!currentUser && <small className="landing-cta-note">{copy.ctaNote}</small>}
+            </div>
           </motion.div>
 
           <motion.aside
@@ -530,10 +445,12 @@ export default function Landing({ currentUser }) {
             </div>
           </motion.aside>
         </div>
+      </section>
 
-        <div className="landing-scroll-cue">
-          <span>{copy.scroll}</span>
-          <i />
+      <section className="landing-launch-ticker" aria-label={copy.launchTicker}>
+        <div className="landing-launch-ticker-track" aria-hidden="true">
+          <span>{copy.launchTicker}</span>
+          <span>{copy.launchTicker}</span>
         </div>
       </section>
 
@@ -601,36 +518,16 @@ export default function Landing({ currentUser }) {
 
         <motion.div
           className="landing-faq"
-          ref={faqRef}
+          id="faq"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
           variants={reveal}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <motion.img
-            aria-hidden="true"
-            className="landing-faq-watermark"
-            src="/nextreps-logo.svg"
-            alt=""
-            style={{ x: faqLogoX }}
-          />
           <div className="landing-faq-copy">
             <h2>{copy.faqTitle}</h2>
             <p>{copy.faqText}</p>
-            <motion.div
-              aria-hidden="true"
-              className="landing-faq-arrows"
-              style={{
-                opacity: faqArrowOpacity,
-                rotate: faqArrowRotate,
-                scale: faqArrowScale,
-                x: faqArrowX,
-                y: faqArrowY,
-              }}
-            >
-              <img src="/nextreps-double-arrows.svg" alt="" />
-            </motion.div>
           </div>
           <div className="landing-faq-list">
             {copy.faqItems.map((item, index) => {
@@ -656,70 +553,9 @@ export default function Landing({ currentUser }) {
         </motion.div>
       </section>
 
-      <section className="landing-scroll-story" id="how-it-works">
-        {scrollFrames.map((frame, index) => (
-          <motion.article
-            className={`landing-story-frame ${index % 2 === 1 ? 'is-reversed' : ''}`}
-            key={frame.title}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, amount: 0.42 }}
-            variants={reveal}
-            transition={{ duration: 0.65 }}
-          >
-            <div className="landing-story-copy">
-              <span>{frame.kicker}</span>
-              <h2>{frame.title}</h2>
-              <p>{frame.text}</p>
-            </div>
-            <motion.div
-              className="landing-story-product"
-              whileInView={{ scale: 1, rotate: 0 }}
-              initial={{ scale: 0.94, rotate: index % 2 === 0 ? -2 : 2 }}
-              viewport={{ once: false, amount: 0.45 }}
-              transition={{ duration: 0.7 }}
-            >
-              <ProductPreview preview={productPreviewSlides[index]} compact />
-              <div className="landing-image-badge">
-                <BarChart3 size={16} />
-                <span>{frame.stat}</span>
-              </div>
-            </motion.div>
-          </motion.article>
-        ))}
-      </section>
-
-      <section className="landing-proof">
-        <motion.div
-          className="landing-proof-copy"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.4 }}
-          variants={reveal}
-          transition={{ duration: 0.65 }}
-        >
-          <span>{copy.proofEyebrow}</span>
-          <h2>{copy.proofTitle}</h2>
-          <p>{copy.proofText}</p>
-          <div className="landing-proof-list">
-            <span><Target size={17} /> {copy.proofItems[0]}</span>
-            <span><Activity size={17} /> {copy.proofItems[1]}</span>
-            <span><PlayCircle size={17} /> {copy.proofItems[2]}</span>
-          </div>
-        </motion.div>
-        <motion.div
-          className="landing-proof-dashboard"
-          initial={{ opacity: 0, scale: 0.94 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.65 }}
-        >
-          <ProductPreview preview={productPreviewSlides[2]} compact />
-        </motion.div>
-      </section>
-
       <section className="landing-final">
         <motion.div
+          className="landing-final-content"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.45 }}
@@ -728,12 +564,55 @@ export default function Landing({ currentUser }) {
         >
           <span>{copy.finalEyebrow}</span>
           <h2>{copy.finalTitle}</h2>
-          <NavLink className="landing-primary-button" to={primaryCta}>
-            {currentUser ? copy.goToApp : copy.tryNextReps}
-            <ArrowRight size={18} />
-          </NavLink>
+          <div className="landing-final-actions">
+            <NavLink className="landing-final-primary" to={primaryCta}>
+              {currentUser ? copy.goToApp : copy.tryNextReps}
+              <ArrowRight size={18} />
+            </NavLink>
+            {currentUser ? (
+              <a className="landing-final-secondary" href="#features">{copy.exploreApp}</a>
+            ) : (
+              <NavLink className="landing-final-secondary" to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
+            )}
+          </div>
         </motion.div>
       </section>
+
+      <footer className="landing-footer">
+        <div className="landing-footer-grid">
+          <div className="landing-footer-brand">
+            <img src="/nextreps-logo.svg" alt="NEXT REPS" />
+            <p>{copy.finalBody}</p>
+            <NavLink className="landing-footer-cta" to={primaryCta}>
+              {currentUser ? copy.goToApp : copy.tryNextReps}
+              <ArrowRight size={17} />
+            </NavLink>
+          </div>
+
+          <nav className="landing-footer-column" aria-label={copy.footerProduct}>
+            <strong>{copy.footerProduct}</strong>
+            <a href="#features">{copy.footerFeatures}</a>
+            <a href="#faq">FAQ</a>
+            <a href="https://www.instagram.com/next.reps/" target="_blank" rel="noreferrer">
+              <Instagram size={17} /> Instagram
+            </a>
+          </nav>
+
+          <nav className="landing-footer-column" aria-label={copy.footerStart}>
+            <strong>{copy.footerStart}</strong>
+            <NavLink to={primaryCta}>{copy.footerCreate}</NavLink>
+            <NavLink to="/login" state={{ loginIntent: true }}>{copy.login}</NavLink>
+            <a href="#features">{copy.exploreApp}</a>
+          </nav>
+
+          <nav className="landing-footer-column" aria-label={copy.footerLegal}>
+            <strong>{copy.footerLegal}</strong>
+            <NavLink to="/impressum">{copy.footerImprint}</NavLink>
+            <NavLink to="/datenschutz">{copy.footerPrivacy}</NavLink>
+            <a href="mailto:info@next-reps.de">info@next-reps.de</a>
+          </nav>
+        </div>
+      </footer>
     </main>
   );
 }
