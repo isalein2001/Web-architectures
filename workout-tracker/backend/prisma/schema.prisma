@@ -109,6 +109,16 @@ model PlanExercise {
   @@map("plan_exercises")
 }
 
+model ExerciseMedia {
+  id            Int    @id @default(autoincrement())
+  exerciseName  String @unique @map("exercise_name")
+  imagePath     String @map("image_path")
+  displayOrder  Int    @map("display_order")
+
+  @@index([displayOrder])
+  @@map("exercise_media")
+}
+
 model WorkoutSession {
   id     Int          @id @default(autoincrement())
   date   String

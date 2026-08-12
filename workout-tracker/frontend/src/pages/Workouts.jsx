@@ -269,6 +269,7 @@ export default function Workouts({ currentUser }) {
   const [coachAnalysis, setCoachAnalysis] = useState(null);
   const [isCoachLoading, setIsCoachLoading] = useState(false);
   const [isExerciseLibraryOpen, setIsExerciseLibraryOpen] = useState(false);
+  const [exerciseMedia, setExerciseMedia] = useState(() => new Map());
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState('');
   const [activeExerciseCategory, setActiveExerciseCategory] = useState('All');
   const [pendingExerciseNames, setPendingExerciseNames] = useState(() => new Set());
@@ -287,14 +288,19 @@ export default function Workouts({ currentUser }) {
     new Set(exercises.map((exercise) => exercise.name.trim().toLowerCase()).filter(Boolean))
   ), [exercises]);
 
+  const libraryExercises = useMemo(() => exerciseLibrary.map((exercise) => ({
+    ...exercise,
+    image: exerciseMedia.get(exercise.name) || exercise.image,
+  })), [exerciseMedia]);
+
   const selectedLibraryExercises = useMemo(() => (
-    exerciseLibrary.filter((exercise) => selectedExerciseNames.has(exercise.name.toLowerCase()))
-  ), [selectedExerciseNames]);
+    libraryExercises.filter((exercise) => selectedExerciseNames.has(exercise.name.toLowerCase()))
+  ), [libraryExercises, selectedExerciseNames]);
 
   const filteredLibraryExercises = useMemo(() => {
     const normalizedQuery = exerciseSearchQuery.trim().toLowerCase();
 
-    return exerciseLibrary.filter((exercise) => {
+    return libraryExercises.filter((exercise) => {
       const matchesQuery = !normalizedQuery || [
         exercise.name,
         exercise.muscleGroup,
@@ -308,7 +314,24 @@ export default function Workouts({ currentUser }) {
 
       return matchesQuery && matchesCategory;
     });
-  }, [activeExerciseCategory, exerciseSearchQuery]);
+  }, [activeExerciseCategory, exerciseSearchQuery, libraryExercises]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    api.getExerciseMedia()
+      .then((entries) => {
+        if (!isActive || !Array.isArray(entries)) return;
+        setExerciseMedia(new Map(entries.map((entry) => [entry.exerciseName, entry.imagePath])));
+      })
+      .catch(() => {
+        // The bundled exercise library remains available when the app is offline.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const libraryListExercises = useMemo(() => {
     return filteredLibraryExercises.filter((exercise) => {

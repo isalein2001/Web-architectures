@@ -5,6 +5,7 @@ const path = require('path');
 const createAuthRouter = require('./modules/identity-access/identity-access.routes');
 const createWorkoutsRouter = require('./modules/training/training.routes');
 const createSessionsRouter = require('./modules/training/sessions.routes');
+const createExerciseMediaRouter = require('./modules/training/exercise-media.routes');
 const {
   createCoachRouter,
   createProgressRouter,
@@ -133,6 +134,7 @@ app.use('/api/auth', createAuthRouter());
 app.use('/api/events', verifiedUser, createEventsRouter());
 app.use('/api/plans', verifiedUser, workoutsRouter);
 app.use('/api/workouts', verifiedUser, workoutsRouter);
+app.use('/api/exercise-media', verifiedUser, createExerciseMediaRouter());
 app.use('/api/sessions', verifiedUser, createSessionsRouter());
 app.use('/api/progress', verifiedUser, createProgressRouter());
 app.use('/api/stats', verifiedUser, createStatsRouter());

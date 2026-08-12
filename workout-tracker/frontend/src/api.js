@@ -424,6 +424,9 @@ export const api = {
   getPlans: async () => {
     return requestJson(`${API_URL}/plans`);
   },
+  getExerciseMedia: async () => {
+    return requestJson(`${API_URL}/exercise-media`);
+  },
   getPlan: async (id) => {
     return requestJson(`${API_URL}/plans/${id}`);
   },
