@@ -4,7 +4,7 @@ import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
-import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle } from 'lucide-react';
+import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle, TrendingUp } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { trackProductEvent } from '../productAnalytics';
 import { 
@@ -311,6 +311,62 @@ const getBestWeightMilestone = (sessions = []) => {
   ))[0] || null;
 };
 
+const clampScore = (value) => Math.max(0, Math.min(100, Math.round(value)));
+
+const buildProgressScore = (sessions = []) => {
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  const recent = sessions.filter((session) => now - getSessionTimestamp(session) <= 28 * day);
+  const previous = sessions.filter((session) => {
+    const age = now - getSessionTimestamp(session);
+    return age > 28 * day && age <= 56 * day;
+  });
+  const sessionVolume = (items) => items.reduce((sum, session) => sum + getSessionVolume(session), 0);
+  const bestStrength = (items) => Math.max(0, ...items.flatMap((session) => (session.logs || []).map((log) => {
+    const weight = Number(log.weight) || 0;
+    const reps = Number(log.reps) || 0;
+    return weight * (1 + reps / 30);
+  })));
+  const recentStrength = bestStrength(recent);
+  const previousStrength = bestStrength(previous);
+  const recentVolume = sessionVolume(recent);
+  const previousVolume = sessionVolume(previous);
+  const strengthTrend = previousStrength > 0 ? ((recentStrength - previousStrength) / previousStrength) * 100 : 0;
+  const volumeTrend = previousVolume > 0 ? ((recentVolume - previousVolume) / previousVolume) * 100 : 0;
+  const exerciseBests = new Map();
+  let improvingLifts = 0;
+  let comparedLifts = 0;
+  previous.forEach((session) => (session.logs || []).forEach((log) => {
+    const key = String(log.exercise_name || '').toLowerCase();
+    const value = (Number(log.weight) || 0) * (1 + (Number(log.reps) || 0) / 30);
+    exerciseBests.set(key, Math.max(exerciseBests.get(key) || 0, value));
+  }));
+  const recentBests = new Map();
+  recent.forEach((session) => (session.logs || []).forEach((log) => {
+    const key = String(log.exercise_name || '').toLowerCase();
+    const value = (Number(log.weight) || 0) * (1 + (Number(log.reps) || 0) / 30);
+    recentBests.set(key, Math.max(recentBests.get(key) || 0, value));
+  }));
+  recentBests.forEach((value, key) => {
+    if (!exerciseBests.has(key)) return;
+    comparedLifts += 1;
+    if (value > exerciseBests.get(key)) improvingLifts += 1;
+  });
+  const rpes = recent.map((session) => Number(session.perceived_exertion)).filter((value) => value > 0);
+  const avgRpe = rpes.length ? rpes.reduce((sum, value) => sum + value, 0) / rpes.length : 7;
+  const components = [
+    { key: 'Strength', score: clampScore(62 + strengthTrend * 2.2), detail: previousStrength ? `${strengthTrend >= 0 ? '+' : ''}${strengthTrend.toFixed(1)}% vs previous 4 weeks` : 'Building your strength baseline' },
+    { key: 'Consistency', score: clampScore((recent.length / 12) * 100), detail: `${recent.length} sessions in the last 4 weeks` },
+    { key: 'Volume', score: clampScore(62 + volumeTrend * 1.5), detail: previousVolume ? `${volumeTrend >= 0 ? '+' : ''}${volumeTrend.toFixed(1)}% vs previous 4 weeks` : `${Math.round(recentVolume).toLocaleString()} kg logged` },
+    { key: 'Progressive overload', score: clampScore(comparedLifts ? 50 + (improvingLifts / comparedLifts) * 50 : 55), detail: comparedLifts ? `${improvingLifts} of ${comparedLifts} comparable lifts improved` : 'More comparable workouts needed' },
+    { key: 'Recovery', score: clampScore(100 - Math.max(0, avgRpe - 6) * 14), detail: rpes.length ? `${avgRpe.toFixed(1)}/10 average session effort` : 'Add session RPE for sharper recovery data' },
+  ];
+  const score = clampScore(components.reduce((sum, component) => sum + component.score, 0) / components.length);
+  const previousConsistency = clampScore((previous.length / 12) * 100);
+  const previousScore = clampScore((62 + previousConsistency + 62 + 55 + 72) / 5);
+  return { score, change: score - previousScore, components, hasData: sessions.length > 0 };
+};
+
 const getCurrentWorkoutStreak = (sessionDates = []) => {
   const sortedDays = [...new Set(sessionDates.map(getSessionDateKey).filter(Boolean))]
     .sort((left, right) => new Date(right) - new Date(left));
@@ -330,7 +386,7 @@ const getCurrentWorkoutStreak = (sessionDates = []) => {
   return streak;
 };
 
-const buildPersonalInsight = ({
+const _buildPersonalInsight = ({
   sessions,
   stats,
   stepsValue,
@@ -506,6 +562,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
   const calendarSwipeStartX = useRef(null);
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
+  const [isProgressScoreOpen, setIsProgressScoreOpen] = useState(false);
   const [customWorkouts, setCustomWorkouts] = useState([]);
   const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
@@ -586,23 +643,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
     : dailyGoalCompletion <= 0
       ? 'NOT STARTED YET'
       : dailyGoalStatus;
-  const personalInsight = useMemo(() => buildPersonalInsight({
-    sessions: displaySessions,
-    stats: displayStats,
-    stepsValue,
-    caloriesValue,
-    minutesValue,
-    dailyGoalCompletion,
-    currentUser,
-  }), [
-    displaySessions,
-    displayStats,
-    stepsValue,
-    caloriesValue,
-    minutesValue,
-    dailyGoalCompletion,
-    currentUser,
-  ]);
+  const progressScore = useMemo(() => buildProgressScore(displaySessions), [displaySessions]);
   const completedWorkoutDates = new Set((displayStats.sessionDates || []).map(getSessionDateKey));
 
   const mergeSessionsWithStorage = (backendSessions = [], storedSessions = []) => {
@@ -1226,7 +1267,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
   const todaysScheduledWorkout = workoutSchedule[todayDateKey];
   const todaysSessions = displaySessions.filter((session) => getSessionDateKey(session.date) === todayDateKey);
   const hasCompletedToday = todaysSessions.length > 0;
-  const hasDashboardWorkoutData = displayStats.totalSessions > 0;
   const todayPrimaryWorkoutTitle = hasCompletedToday
     ? (todaysSessions[0]?.plan_name || t('WORKOUT COMPLETED'))
     : (todaysScheduledWorkout?.title || t('No workout planned yet.'));
@@ -1478,41 +1518,38 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
         </div>
       </div>
 
-      {/* Personal Insight Card */}
-      <div className={`card achievements-card ${hasDashboardWorkoutData ? '' : 'is-locked'}`}>
-        <div className="achievements-content">
-          <div className="achievements-text-area">
-            <div className="achievements-label">
-              {hasDashboardWorkoutData ? t(personalInsight.type) : t('MILESTONE')}
-            </div>
-            <h2>{hasDashboardWorkoutData ? t(personalInsight.title) : t('First milestone waiting')}</h2>
-            <p className="achievements-desc">
-              {hasDashboardWorkoutData
-                ? t(personalInsight.description)
-                : t('Log your first workout to unlock personalized trends and stronger weekly insights.')}
-            </p>
-            
-            {hasDashboardWorkoutData ? <div className="lifts-grid">
-              {personalInsight.metrics.map((metric, index) => (
-                <div className="lift-item" key={`${metric.label}-${metric.value}`}>
-                  <span className="lift-name">{t(metric.label)}</span>
-                  <span className="lift-weight">{metric.value}</span>
-                  <span className={`badge ${index === 0 ? 'badge-solid' : 'badge-outline'}`}>
-                    {index === 0 ? t(personalInsight.badge) : t('LIVE')}
-                  </span>
+      <button className="card progress-score-card" type="button" onClick={() => setIsProgressScoreOpen(true)}>
+        <div className="progress-score-value">{progressScore.hasData ? progressScore.score : '—'}</div>
+        <div className="progress-score-copy">
+          <span>{t('PROGRESS SCORE')}</span>
+          <h2>{progressScore.hasData ? t('Your training progress, in one transparent score.') : t('Log your first workout to create your Progress Score.')}</h2>
+          <p><TrendingUp size={17} /> {progressScore.change >= 0 ? '+' : ''}{progressScore.change} {t('THIS MONTH')}</p>
+          <small>{t('Tap to see why')}</small>
+        </div>
+        <ChevronRight size={28} />
+      </button>
+
+      {isProgressScoreOpen && (
+        <div className="progress-score-modal-overlay" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setIsProgressScoreOpen(false);
+        }}>
+          <MotionDiv className="progress-score-modal" role="dialog" aria-modal="true" aria-labelledby="progress-score-title" initial={{ opacity: 0, y: 22, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
+            <button className="progress-score-modal-close" type="button" onClick={() => setIsProgressScoreOpen(false)} aria-label={t('Close')}><X size={18} /></button>
+            <span>{t('WHY')} {progressScore.score}?</span>
+            <h2 id="progress-score-title">{t('PROGRESS SCORE')}</h2>
+            <p>{t('Your score combines five equally weighted signals. Every point is explained below.')}</p>
+            <div className="progress-score-breakdown">
+              {progressScore.components.map((component) => (
+                <div className="progress-score-component" key={component.key}>
+                  <div><strong>{t(component.key)}</strong><b>{component.score}</b></div>
+                  <span><i style={{ width: `${component.score}%` }} /></span>
+                  <small>{t(component.detail)}</small>
                 </div>
               ))}
-            </div> : (
-              <button className="insight-unlock-button" type="button" onClick={() => navigate('/start-workout')}>
-                <Dumbbell size={16} />
-                {t('START WORKOUT')}
-              </button>
-            )}
-          </div>
-          
-          <AnimatedMedal Icon={personalInsight.Icon} />
+            </div>
+          </MotionDiv>
         </div>
-      </div>
+      )}
 
       {isHydrationModalOpen && (
         <div

@@ -2163,6 +2163,174 @@
 }
 
 /* ACHIEVEMENTS CARD */
+.progress-score-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--size-34);
+  width: 100%;
+  padding: var(--size-42) var(--size-48);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-28));
+  background:
+    radial-gradient(circle at 12% 50%, rgb(var(--rgb-197-254-0) / var(--opacity-0-16)), transparent 30%),
+    var(--palette-0e0e0e);
+  color: var(--palette-fff);
+  text-align: left;
+}
+
+.progress-score-value {
+  display: grid;
+  place-items: center;
+  width: var(--size-160);
+  aspect-ratio: 1;
+  border: var(--size-8) solid var(--color-primary);
+  border-radius: 50%;
+  color: var(--color-primary);
+  font-size: var(--font-size-screen-104);
+  font-weight: 950;
+  box-shadow: 0 0 var(--size-34) rgb(var(--rgb-197-254-0) / var(--opacity-0-17));
+}
+
+.progress-score-copy span,
+.progress-score-modal > span {
+  color: var(--color-primary);
+  font-size: var(--font-size-screen-14);
+  font-weight: 950;
+  letter-spacing: 0.15em;
+}
+
+.progress-score-copy h2 {
+  margin: var(--size-8) 0;
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-51);
+  line-height: 1.08;
+}
+
+.progress-score-copy p {
+  display: flex;
+  align-items: center;
+  gap: var(--size-7);
+  margin: 0 0 var(--size-8);
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.progress-score-copy small {
+  color: var(--palette-888);
+}
+
+.progress-score-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: var(--size-18);
+  background: rgb(var(--rgb-0-0-0) / var(--opacity-0-72));
+  backdrop-filter: blur(var(--size-9));
+}
+
+.progress-score-modal {
+  position: relative;
+  width: min(100%, var(--size-620));
+  max-height: 90dvh;
+  padding: var(--size-34);
+  overflow-y: auto;
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-28));
+  border-radius: var(--radius-screen-16);
+  background: var(--palette-101010);
+  color: var(--palette-fff);
+}
+
+.progress-score-modal-close {
+  position: absolute;
+  top: var(--size-18);
+  right: var(--size-18);
+  display: grid;
+  place-items: center;
+  width: var(--size-38);
+  height: var(--size-38);
+  border: 0;
+  border-radius: 50%;
+  background: var(--palette-222);
+  color: var(--palette-fff);
+}
+
+.progress-score-modal h2 {
+  margin: var(--size-8) 0;
+  font-size: var(--font-size-screen-65);
+}
+
+.progress-score-modal > p {
+  margin: 0 0 var(--size-28);
+  color: var(--palette-999);
+  line-height: 1.5;
+}
+
+.progress-score-breakdown {
+  display: grid;
+  gap: var(--size-18);
+}
+
+.progress-score-component {
+  display: grid;
+  gap: var(--size-8);
+}
+
+.progress-score-component > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.progress-score-component > div b {
+  color: var(--color-primary);
+  font-size: var(--font-size-screen-30);
+}
+
+.progress-score-component > span {
+  height: var(--size-8);
+  overflow: hidden;
+  border-radius: var(--radius-screen-28);
+  background: var(--palette-262626);
+}
+
+.progress-score-component > span i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.progress-score-component small {
+  color: var(--palette-888);
+}
+
+@media (max-width: 760px) {
+  .progress-score-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--size-16);
+    padding: var(--size-18);
+  }
+
+  .progress-score-card > svg {
+    display: none;
+  }
+
+  .progress-score-value {
+    width: var(--size-86);
+    border-width: var(--size-5);
+    font-size: var(--font-size-screen-68);
+  }
+
+  .progress-score-copy h2 {
+    font-size: var(--font-size-screen-30);
+  }
+
+  .progress-score-modal {
+    padding: var(--size-26) var(--size-20);
+  }
+}
+
 .achievements-card {
   background-image: linear-gradient(90deg, rgb(var(--rgb-14-14-14) / var(--opacity-1)) 0%, rgb(var(--rgb-14-14-14) / var(--opacity-0-95)) 40%, rgb(var(--rgb-14-14-14) / var(--opacity-0-85)) 100%), url('/achievements-bg.jpg');
   background-size: cover;
