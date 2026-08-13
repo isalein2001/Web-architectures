@@ -4,7 +4,7 @@ import { useInView, motion } from 'framer-motion';
 import { api } from '../api';
 import { getUserFirstName, getUserStorageKey, loadStoredWorkoutSessions, saveStoredWorkoutSessions } from '../userStorage';
 import { getTodayHealthDateKey, isHealthKitRuntime, isHealthMetricsFromToday, syncAppleHealthActivity } from '../healthKit';
-import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle, TrendingUp } from 'lucide-react';
+import { Activity, Flame, Clock, Droplets, ChevronLeft, ChevronRight, Award, X, Zap, Brain, Target, Minus, Plus, Dumbbell, CalendarDays, Trash2, Bike, Flower2, PlusCircle, TrendingUp, CircleHelp } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { trackProductEvent } from '../productAnalytics';
 import { 
@@ -1545,9 +1545,8 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
           <span>{t('PROGRESS SCORE')}</span>
           <h2>{progressScore.hasData ? t('Your training progress, in one transparent score.') : t('Log your first workout to create your Progress Score.')}</h2>
           {progressScore.change !== null && <p><TrendingUp size={17} /> {progressScore.change >= 0 ? '+' : ''}{progressScore.change} {t('THIS MONTH')}</p>}
-          <small>{t('Tap to see why')}</small>
         </div>
-        <ChevronRight size={28} />
+        <CircleHelp className="progress-score-help-icon" size={19} aria-hidden="true" />
       </button>
 
       {isProgressScoreOpen && (
