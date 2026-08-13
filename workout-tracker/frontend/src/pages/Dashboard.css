@@ -156,50 +156,109 @@
   right: 0;
   z-index: 65;
   display: flex;
-  align-items: stretch;
-  min-height: var(--size-62);
-  overflow: hidden;
-  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-22));
+  align-items: center;
+  width: var(--size-248);
+  min-height: var(--size-104);
+  padding: var(--size-9) var(--size-18) var(--size-9) var(--size-9);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-1));
   border-right: 0;
-  border-radius: var(--radius-screen-13) 0 0 var(--radius-screen-13);
-  background: rgb(var(--rgb-14-14-14) / var(--opacity-0-9));
-  box-shadow: 0 var(--size-12) var(--size-30) rgb(var(--rgb-0-0-0) / var(--opacity-0-42));
-  backdrop-filter: blur(var(--size-16));
-  transform: translateX(calc(100% - var(--size-42)));
-  transition: transform 220ms ease, border-color 180ms ease;
+  border-radius: var(--radius-screen-18) 0 0 var(--radius-screen-18);
+  background:
+    radial-gradient(circle at 0 50%, rgb(var(--rgb-197-254-0) / var(--opacity-0-12)), transparent 42%),
+    rgb(var(--rgb-14-14-14) / var(--opacity-0-92));
+  box-shadow:
+    0 var(--size-18) var(--size-42) rgb(var(--rgb-0-0-0) / var(--opacity-0-48)),
+    inset 0 var(--size-1) 0 rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
+  backdrop-filter: blur(var(--size-20)) saturate(1.25);
+  transform: translateX(calc(100% - var(--size-48)));
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease;
+}
+
+.quick-log-dock::after {
+  content: '';
+  position: absolute;
+  inset: var(--size-14) auto var(--size-14) 0;
+  width: var(--size-2);
+  border-radius: var(--radius-screen-28);
+  background: var(--color-primary);
+  box-shadow: 0 0 var(--size-14) rgb(var(--rgb-197-254-0) / var(--opacity-0-42));
 }
 
 .quick-log-dock.is-open {
-  transform: translateX(var(--size-10));
-}
-
-.quick-log-dock-toggle,
-.quick-log-dock-action {
-  border: 0;
-  color: inherit;
-  background: transparent;
+  transform: translateX(var(--size-12));
 }
 
 .quick-log-dock-toggle {
+  border: 0;
   display: grid;
   place-items: center;
-  width: var(--size-42);
-  min-width: var(--size-42);
-  color: var(--color-primary);
-  border-right: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-08));
+  width: var(--size-34);
+  min-width: var(--size-34);
+  height: var(--size-50);
+  margin-right: var(--size-8);
+  border-radius: var(--radius-screen-24);
+  color: var(--palette-050505);
+  background: var(--color-primary);
+  box-shadow: 0 0 var(--size-18) rgb(var(--rgb-197-254-0) / var(--opacity-0-26));
 }
 
-.quick-log-dock-action {
+.quick-log-dock-content {
+  display: grid;
+  flex: 1;
+  gap: var(--size-9);
+  min-width: 0;
+}
+
+.quick-log-dock-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--size-8);
+}
+
+.quick-log-dock-heading span {
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-14);
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.quick-log-dock-heading small {
+  color: var(--palette-777);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.quick-log-dock-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--size-6);
+}
+
+.quick-log-dock-actions button {
   display: flex;
   align-items: center;
-  gap: var(--size-10);
-  padding: var(--size-8) var(--size-22) var(--size-8) var(--size-10);
-  text-align: left;
+  justify-content: center;
+  gap: var(--size-5);
+  min-height: var(--size-38);
+  padding: 0 var(--size-7);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-07));
+  border-radius: var(--radius-screen-9);
+  color: var(--palette-d8d8d8);
+  background: rgb(var(--rgb-255-255-255) / var(--opacity-0-045));
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.quick-log-dock-action .hero-quick-log-icon {
-  width: var(--size-36);
-  height: var(--size-36);
+.quick-log-dock-actions button:first-child svg {
+  color: var(--palette-86d7ff);
+}
+
+.quick-log-dock-actions button:last-child svg {
+  color: var(--color-primary);
 }
 
 .today-section,
@@ -2612,7 +2671,6 @@
 
   .quick-log-dock {
     top: calc(env(safe-area-inset-top) + var(--mobile-header-height) + var(--size-12));
-    min-height: var(--size-58);
   }
 
   .hero-log-icon {

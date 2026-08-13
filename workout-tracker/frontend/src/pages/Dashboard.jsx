@@ -1333,13 +1333,22 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
           >
             {isQuickLogDockOpen ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
           </button>
-          <button className="quick-log-dock-action" type="button" onClick={() => onOpenQuickLog?.('water')}>
-            <span className="hero-quick-log-icon"><PlusCircle size={18} /></span>
-            <span className="hero-quick-log-copy">
-              <strong>{t('QUICK LOG')}</strong>
-              <small>{t('WATER & STEPS')}</small>
-            </span>
-          </button>
+          <div className="quick-log-dock-content">
+            <div className="quick-log-dock-heading">
+              <span>{t('QUICK LOG')}</span>
+              <small>{t('TRACK IT FAST')}</small>
+            </div>
+            <div className="quick-log-dock-actions">
+              <button type="button" onClick={() => onOpenQuickLog?.('water')}>
+                <Droplets size={17} />
+                <span>{t('HYDRATION')}</span>
+              </button>
+              <button type="button" onClick={() => onOpenQuickLog?.('steps')}>
+                <Activity size={17} />
+                <span>{t('STEPS')}</span>
+              </button>
+            </div>
+          </div>
         </aside>
       )}
       
