@@ -150,6 +150,13 @@
   transform: translateY(var(--size-neg-2));
 }
 
+.dashboard-surface-app .hero-quick-log-button {
+  position: fixed;
+  top: calc(var(--size-80) + var(--size-16));
+  right: var(--size-16);
+  z-index: 65;
+}
+
 .today-section,
 .daily-goal-section {
   width: 100%;
@@ -2556,6 +2563,26 @@
     border-radius: var(--radius-screen-7);
     color: inherit;
     background: rgb(var(--rgb-255-255-255) / var(--opacity-0-025));
+  }
+
+  .dashboard-surface-app .hero-log-card {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + var(--mobile-header-height) + var(--size-12));
+    right: var(--size-12);
+    z-index: 65;
+    min-width: var(--size-74);
+    padding: var(--size-9) var(--size-11);
+    border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-2));
+    background: rgb(var(--rgb-14-14-14) / var(--opacity-0-88));
+    box-shadow:
+      0 var(--size-10) var(--size-26) rgb(var(--rgb-0-0-0) / var(--opacity-0-38)),
+      0 0 var(--size-18) rgb(var(--rgb-197-254-0) / var(--opacity-0-08));
+    backdrop-filter: blur(var(--size-14));
+  }
+
+  .dashboard-surface-app .hero-log-icon {
+    width: var(--size-26);
+    height: var(--size-26);
   }
 
   .hero-log-icon {
