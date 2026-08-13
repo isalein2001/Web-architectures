@@ -150,11 +150,56 @@
   transform: translateY(var(--size-neg-2));
 }
 
-.dashboard-surface-app .hero-quick-log-button {
+.quick-log-dock {
   position: fixed;
   top: calc(var(--size-80) + var(--size-16));
-  right: var(--size-16);
+  right: 0;
   z-index: 65;
+  display: flex;
+  align-items: stretch;
+  min-height: var(--size-62);
+  overflow: hidden;
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-22));
+  border-right: 0;
+  border-radius: var(--radius-screen-13) 0 0 var(--radius-screen-13);
+  background: rgb(var(--rgb-14-14-14) / var(--opacity-0-9));
+  box-shadow: 0 var(--size-12) var(--size-30) rgb(var(--rgb-0-0-0) / var(--opacity-0-42));
+  backdrop-filter: blur(var(--size-16));
+  transform: translateX(calc(100% - var(--size-42)));
+  transition: transform 220ms ease, border-color 180ms ease;
+}
+
+.quick-log-dock.is-open {
+  transform: translateX(var(--size-10));
+}
+
+.quick-log-dock-toggle,
+.quick-log-dock-action {
+  border: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.quick-log-dock-toggle {
+  display: grid;
+  place-items: center;
+  width: var(--size-42);
+  min-width: var(--size-42);
+  color: var(--color-primary);
+  border-right: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-08));
+}
+
+.quick-log-dock-action {
+  display: flex;
+  align-items: center;
+  gap: var(--size-10);
+  padding: var(--size-8) var(--size-22) var(--size-8) var(--size-10);
+  text-align: left;
+}
+
+.quick-log-dock-action .hero-quick-log-icon {
+  width: var(--size-36);
+  height: var(--size-36);
 }
 
 .today-section,
@@ -2565,24 +2610,9 @@
     background: rgb(var(--rgb-255-255-255) / var(--opacity-0-025));
   }
 
-  .dashboard-surface-app .hero-log-card {
-    position: fixed;
+  .quick-log-dock {
     top: calc(env(safe-area-inset-top) + var(--mobile-header-height) + var(--size-12));
-    right: var(--size-12);
-    z-index: 65;
-    min-width: var(--size-74);
-    padding: var(--size-9) var(--size-11);
-    border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-2));
-    background: rgb(var(--rgb-14-14-14) / var(--opacity-0-88));
-    box-shadow:
-      0 var(--size-10) var(--size-26) rgb(var(--rgb-0-0-0) / var(--opacity-0-38)),
-      0 0 var(--size-18) rgb(var(--rgb-197-254-0) / var(--opacity-0-08));
-    backdrop-filter: blur(var(--size-14));
-  }
-
-  .dashboard-surface-app .hero-log-icon {
-    width: var(--size-26);
-    height: var(--size-26);
+    min-height: var(--size-58);
   }
 
   .hero-log-icon {
