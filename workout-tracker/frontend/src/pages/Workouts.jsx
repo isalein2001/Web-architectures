@@ -266,6 +266,8 @@ export default function Workouts({ currentUser }) {
   const [selectedIconKey, setSelectedIconKey] = useState('dumbbell');
   const [savedPlans, setSavedPlans] = useState([]);
   const [editingPlanId, setEditingPlanId] = useState(null);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+  const [isDeletingPlan, setIsDeletingPlan] = useState(false);
   const [coachAnalysis, setCoachAnalysis] = useState(null);
   const [isCoachLoading, setIsCoachLoading] = useState(false);
   const [isExerciseLibraryOpen, setIsExerciseLibraryOpen] = useState(false);
@@ -794,15 +796,19 @@ export default function Workouts({ currentUser }) {
   };
 
   const deleteSavedPlan = async () => {
-    if (!editingPlanId) return;
+    if (!editingPlanId || isDeletingPlan) return;
     const planToDelete = savedPlans.find((plan) => plan.id === editingPlanId);
+    setIsDeletingPlan(true);
 
-    if (planToDelete?.backendPlanId) {
-      try {
+    try {
+      if (planToDelete?.backendPlanId) {
         await api.deletePlan(planToDelete.backendPlanId);
-      } catch {
-        // Keep the local cleanup so the UI can recover even if the backend entry was already gone.
       }
+    } catch {
+        // Keep the local cleanup so the UI can recover even if the backend entry was already gone.
+    } finally {
+      setIsDeletingPlan(false);
+      setIsDeleteConfirmationOpen(false);
     }
 
     setSavedPlans((currentPlans) => currentPlans.filter((plan) => plan.id !== editingPlanId));
@@ -900,7 +906,7 @@ export default function Workouts({ currentUser }) {
             {editingPlanId ? t('EDIT YOUR PLAN') : t('BUILD YOUR OWN PLAN')}
           </div>
           {editingPlanId && (
-            <button className="delete-workout-button" type="button" onClick={deleteSavedPlan}>
+            <button className="delete-workout-button" type="button" onClick={() => setIsDeleteConfirmationOpen(true)}>
               <Trash2 size={16} /> {t('DELETE WORKOUT')}
             </button>
           )}
@@ -1289,6 +1295,48 @@ export default function Workouts({ currentUser }) {
         </div>
       </aside>
     </div>
+    <AnimatePresence>
+    {isDeleteConfirmationOpen && (
+      <MotionDiv
+        className="workout-delete-confirmation-overlay"
+        role="presentation"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => !isDeletingPlan && setIsDeleteConfirmationOpen(false)}
+      >
+        <MotionDiv
+          className="workout-delete-confirmation"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="workout-delete-title"
+          aria-describedby="workout-delete-description"
+          initial={{ opacity: 0, y: 18, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="workout-delete-confirmation-icon" aria-hidden="true">
+            <Trash2 size={24} />
+          </div>
+          <h2 id="workout-delete-title">{t('Delete workout?')}</h2>
+          <p id="workout-delete-description">
+            {t('Do you really want to delete this workout?')} <strong>{workoutName}</strong>
+            <span>{t('This action cannot be undone.')}</span>
+          </p>
+          <div className="workout-delete-confirmation-actions">
+            <button type="button" onClick={() => setIsDeleteConfirmationOpen(false)} disabled={isDeletingPlan}>
+              {t('CANCEL')}
+            </button>
+            <button className="confirm-delete" type="button" onClick={deleteSavedPlan} disabled={isDeletingPlan}>
+              <Trash2 size={16} /> {isDeletingPlan ? t('DELETING') : t('DELETE WORKOUT')}
+            </button>
+          </div>
+        </MotionDiv>
+      </MotionDiv>
+    )}
+    </AnimatePresence>
+
     <AnimatePresence>
     {isExerciseLibraryOpen && (
       <MotionDiv

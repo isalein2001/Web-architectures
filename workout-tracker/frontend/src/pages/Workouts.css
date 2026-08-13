@@ -68,6 +68,114 @@
   filter: drop-shadow(0 0 var(--size-7) rgb(var(--rgb-255-79-95) / var(--opacity-0-42)));
 }
 
+.workout-delete-confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding:
+    max(var(--size-20), env(safe-area-inset-top))
+    var(--size-16)
+    max(var(--size-20), env(safe-area-inset-bottom));
+  background: rgb(var(--rgb-0-0-0) / var(--opacity-0-72));
+  backdrop-filter: blur(var(--size-9));
+}
+
+.workout-delete-confirmation {
+  width: min(100%, var(--size-480));
+  padding: var(--size-30);
+  border: var(--size-1) solid rgb(var(--rgb-255-79-95) / var(--opacity-0-42));
+  border-radius: var(--radius-screen-16);
+  background: linear-gradient(145deg, var(--palette-181818), var(--palette-101010));
+  color: var(--palette-fff);
+  box-shadow: 0 var(--size-24) var(--size-70) rgb(var(--rgb-0-0-0) / var(--opacity-0-65));
+}
+
+.workout-delete-confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: var(--size-48);
+  height: var(--size-48);
+  margin-bottom: var(--size-20);
+  border-radius: 50%;
+  background: rgb(var(--rgb-255-79-95) / var(--opacity-0-12));
+  color: var(--palette-ff6b78);
+}
+
+.workout-delete-confirmation h2 {
+  margin: 0 0 var(--size-12);
+  font-size: var(--font-size-screen-45);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.workout-delete-confirmation p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-screen-20);
+  line-height: 1.55;
+}
+
+.workout-delete-confirmation p strong,
+.workout-delete-confirmation p span {
+  display: block;
+}
+
+.workout-delete-confirmation p strong {
+  margin-top: var(--size-8);
+  color: var(--palette-fff);
+  overflow-wrap: anywhere;
+}
+
+.workout-delete-confirmation p span {
+  margin-top: var(--size-12);
+  color: var(--palette-ff9aa3);
+  font-size: var(--font-size-screen-16);
+}
+
+.workout-delete-confirmation-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--size-10);
+  margin-top: var(--size-28);
+}
+
+.workout-delete-confirmation-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-8);
+  min-height: var(--size-50);
+  padding: 0 var(--size-16);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-14));
+  border-radius: var(--radius-screen-28);
+  background: transparent;
+  color: var(--palette-fff);
+  font-weight: 900;
+}
+
+.workout-delete-confirmation-actions .confirm-delete {
+  border-color: var(--palette-ff6b78);
+  background: var(--palette-ff6b78);
+  color: var(--palette-090909);
+}
+
+.workout-delete-confirmation-actions button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+@media (max-width: 480px) {
+  .workout-delete-confirmation {
+    padding: var(--size-24) var(--size-20);
+  }
+
+  .workout-delete-confirmation-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .workout-name-input {
   width: 100%;
   height: var(--size-70);
