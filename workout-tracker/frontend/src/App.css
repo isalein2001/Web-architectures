@@ -450,6 +450,212 @@
   background: rgb(var(--rgb-197-254-0) / var(--opacity-0-12));
 }
 
+.quick-log-floating {
+  position: fixed;
+  top: clamp(180px, 24vh, 220px);
+  right: 0;
+  z-index: 75;
+  width: 320px;
+  pointer-events: none;
+}
+
+.quick-log-floating-tab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-7);
+  width: 142px;
+  height: var(--size-50);
+  padding: 0 var(--size-14);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-1));
+  border-right: 0;
+  border-radius: var(--radius-screen-10) 0 0 var(--radius-screen-10);
+  color: var(--palette-d8d8d8);
+  background: rgb(var(--rgb-14-14-14) / var(--opacity-0-94));
+  box-shadow: 0 var(--size-10) var(--size-26) rgb(var(--rgb-0-0-0) / var(--opacity-0-38));
+  backdrop-filter: blur(var(--size-14));
+  pointer-events: auto;
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 250ms ease;
+}
+
+.quick-log-floating-tab svg:nth-child(2) {
+  color: var(--color-primary);
+}
+
+.quick-log-floating-tab span {
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.quick-log-floating-tab:hover {
+  color: var(--palette-fff);
+  border-color: rgb(var(--rgb-197-254-0) / var(--opacity-0-26));
+  background: var(--palette-141414);
+}
+
+.quick-log-floating.is-open .quick-log-floating-tab {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(100%);
+}
+
+.quick-log-floating-panel {
+  width: 100%;
+  padding: var(--size-18);
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-1));
+  border-right: 0;
+  border-radius: var(--radius-screen-13) 0 0 var(--radius-screen-13);
+  background: rgb(var(--rgb-18-18-18) / var(--opacity-0-97));
+  box-shadow: 0 var(--size-22) var(--size-48) rgb(var(--rgb-0-0-0) / var(--opacity-0-52));
+  backdrop-filter: blur(var(--size-18));
+  pointer-events: auto;
+  transform: translateX(100%);
+  transition: transform 250ms ease;
+}
+
+.quick-log-floating.is-open .quick-log-floating-panel {
+  transform: translateX(0);
+}
+
+.quick-log-floating-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--size-14);
+}
+
+.quick-log-floating-panel > header div {
+  display: grid;
+  gap: var(--size-3);
+}
+
+.quick-log-floating-panel > header strong {
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-17);
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.quick-log-floating-panel > header small {
+  color: var(--palette-888);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.quick-log-floating-panel > header button {
+  display: grid;
+  place-items: center;
+  width: var(--size-30);
+  height: var(--size-30);
+  border: 0;
+  border-radius: 50%;
+  color: var(--palette-aaa);
+  background: rgb(var(--rgb-255-255-255) / var(--opacity-0-05));
+}
+
+.quick-log-floating-section {
+  display: grid;
+  gap: var(--size-9);
+  padding: var(--size-13) 0;
+  border-top: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-07));
+}
+
+.quick-log-floating-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-10);
+}
+
+.quick-log-floating-section-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-7);
+  color: var(--palette-d8d8d8);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.quick-log-floating-section-head span svg {
+  color: var(--color-primary);
+}
+
+.quick-log-floating-section-head strong {
+  color: var(--palette-aaa);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.quick-log-floating-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--size-7);
+}
+
+.quick-log-floating-presets button,
+.quick-log-floating-input button {
+  min-height: var(--size-34);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-18));
+  border-radius: var(--radius-screen-6);
+  color: var(--color-primary);
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-055));
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.quick-log-floating-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  overflow: hidden;
+  border: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-08));
+  border-radius: var(--radius-screen-6);
+  background: var(--palette-0d0d0d);
+}
+
+.quick-log-floating-input input {
+  min-width: 0;
+  height: var(--size-38);
+  padding: 0 var(--size-11);
+  border: 0;
+  outline: 0;
+  color: var(--palette-fff);
+  background: transparent;
+  font-size: 12px;
+}
+
+.quick-log-floating-input button {
+  min-width: var(--size-54);
+  border: 0;
+  border-radius: 0;
+  color: var(--palette-050505);
+  background: var(--color-primary);
+}
+
+.quick-log-floating button:disabled {
+  opacity: 0.45;
+}
+
+.quick-log-floating-status {
+  padding: var(--size-8) var(--size-10);
+  border-radius: var(--radius-screen-6);
+  color: var(--color-primary);
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-07));
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.quick-log-floating-status.error {
+  color: var(--palette-ff7a5f);
+}
+
 .quick-log-overlay {
   position: fixed;
   inset: 0;
@@ -1036,6 +1242,33 @@
 }
 
 @media (max-width: 900px) {
+  .quick-log-floating {
+    top: auto;
+    right: var(--size-10);
+    bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-12));
+    width: min(310px, calc(100vw - var(--size-20)));
+  }
+
+  .quick-log-floating-tab {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    width: 132px;
+    height: var(--size-46);
+    border-right: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-1));
+    border-radius: var(--radius-screen-24);
+  }
+
+  .quick-log-floating-panel {
+    border-right: var(--size-1) solid rgb(var(--rgb-255-255-255) / var(--opacity-0-1));
+    border-radius: var(--radius-screen-13);
+    transform: translateY(calc(100% + var(--size-12)));
+  }
+
+  .quick-log-floating.is-open .quick-log-floating-panel {
+    transform: translateY(0);
+  }
+
   .app-container {
     --mobile-bottom-nav-height: var(--size-70);
     --mobile-main-action-size: var(--size-64);

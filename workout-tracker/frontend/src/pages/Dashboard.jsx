@@ -560,7 +560,7 @@ function AnimatedMedal({ Icon: MedalIcon = Award }) {
   );
 }
 
-export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, surface = 'web' }) {
+export default function Dashboard({ currentUser, dailyActivity, surface = 'web' }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
   useEffect(() => {
@@ -582,7 +582,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
   const calendarSwipeStartX = useRef(null);
   const [isHydrationModalOpen, setIsHydrationModalOpen] = useState(false);
   const [isProgressScoreOpen, setIsProgressScoreOpen] = useState(false);
-  const [isQuickLogDockOpen, setIsQuickLogDockOpen] = useState(true);
   const [customWorkouts, setCustomWorkouts] = useState([]);
   const [workoutSchedule, setWorkoutSchedule] = useState(() => loadWorkoutScheduleFromStorage(workoutScheduleStorageKey));
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
@@ -1322,36 +1321,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
 
   return (
     <div className={`dashboard-container dashboard-surface-${surface}`}>
-      {surface === 'app' && (
-        <aside className={`quick-log-dock ${isQuickLogDockOpen ? 'is-open' : ''}`} aria-label={t('QUICK LOG')}>
-          <button
-            className="quick-log-dock-toggle"
-            type="button"
-            onClick={() => setIsQuickLogDockOpen((open) => !open)}
-            aria-expanded={isQuickLogDockOpen}
-            aria-label={isQuickLogDockOpen ? t('Close') : t('QUICK LOG')}
-          >
-            <span>{isQuickLogDockOpen ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}</span>
-            <span className="quick-log-dock-title">
-              <strong>{t('QUICK LOG')}</strong>
-              <small>{t('WATER & STEPS')}</small>
-            </span>
-          </button>
-          <div className="quick-log-dock-actions" aria-hidden={!isQuickLogDockOpen}>
-            <button type="button" onClick={() => onOpenQuickLog?.('water')}>
-              <Droplets size={15} />
-              <strong>{t('WATER')}</strong>
-              <Plus size={12} />
-            </button>
-            <button type="button" onClick={() => onOpenQuickLog?.('steps')}>
-              <Activity size={15} />
-              <strong>{t('STEPS')}</strong>
-              <Plus size={12} />
-            </button>
-          </div>
-        </aside>
-      )}
-      
       {/* Hero Banner Slideshow */}
       <div className="hero-banner">
         {slides.map((slide, index) => (
@@ -1371,22 +1340,6 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
           <h1>{t('HELLO')}, <span>{firstName}</span></h1>
           <p>{t("Let's hit your goals today.")}</p>
         </div>
-        {surface === 'web' && (
-          <>
-            <button className="hero-log-card" type="button" onClick={() => onOpenQuickLog?.('water')}>
-              <span className="hero-log-icon"><PlusCircle size={16} /></span>
-              <strong>{t('QUICK LOG')}</strong>
-              <small>{t('WATER & STEPS')}</small>
-            </button>
-            <button className="hero-quick-log-button" type="button" onClick={() => onOpenQuickLog?.('water')}>
-              <span className="hero-quick-log-icon"><PlusCircle size={20} /></span>
-              <span className="hero-quick-log-copy">
-                <strong>{t('QUICK LOG')}</strong>
-                <small>{t('WATER & STEPS')}</small>
-              </span>
-            </button>
-          </>
-        )}
       </div>
 
       <section className="today-section" aria-label={t('TODAY OVERVIEW')}>
