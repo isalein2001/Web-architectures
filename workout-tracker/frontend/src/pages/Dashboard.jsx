@@ -1546,7 +1546,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
           <h2>{progressScore.hasData ? t('Your training progress, in one transparent score.') : t('Log your first workout to create your Progress Score.')}</h2>
           {progressScore.change !== null && <p><TrendingUp size={17} /> {progressScore.change >= 0 ? '+' : ''}{progressScore.change} {t('THIS MONTH')}</p>}
         </div>
-        <CircleHelp className="progress-score-help-icon" size={19} aria-hidden="true" />
+        <CircleHelp className="progress-score-help-icon" size={19} strokeWidth={1.25} aria-hidden="true" />
       </button>
 
       {isProgressScoreOpen && (
