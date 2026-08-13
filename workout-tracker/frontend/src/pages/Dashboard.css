@@ -2171,24 +2171,37 @@
   width: 100%;
   padding: var(--size-42) var(--size-48);
   border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-28));
-  background:
-    radial-gradient(circle at 12% 50%, rgb(var(--rgb-197-254-0) / var(--opacity-0-16)), transparent 30%),
-    var(--palette-0e0e0e);
+  background-image:
+    linear-gradient(90deg, rgb(var(--rgb-10-10-10) / var(--opacity-0-98)) 0%, rgb(var(--rgb-10-10-10) / var(--opacity-0-9)) 48%, rgb(var(--rgb-10-10-10) / var(--opacity-0-55)) 100%),
+    url('/achievements-bg.jpg');
+  background-size: cover;
+  background-position: center;
   color: var(--palette-fff);
   text-align: left;
 }
 
 .progress-score-value {
-  display: grid;
-  place-items: center;
-  width: var(--size-160);
-  aspect-ratio: 1;
-  border: var(--size-8) solid var(--color-primary);
-  border-radius: 50%;
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-7);
+  min-width: var(--size-190);
+  padding-right: var(--size-30);
+  border-right: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-34));
   color: var(--color-primary);
-  font-size: var(--font-size-screen-104);
+}
+
+.progress-score-value strong {
+  font-size: clamp(72px, 8vw, 126px);
   font-weight: 950;
-  box-shadow: 0 0 var(--size-34) rgb(var(--rgb-197-254-0) / var(--opacity-0-17));
+  line-height: 0.85;
+  letter-spacing: -0.07em;
+  text-shadow: 0 0 var(--size-32) rgb(var(--rgb-197-254-0) / var(--opacity-0-16));
+}
+
+.progress-score-value small {
+  color: var(--palette-777);
+  font-size: var(--font-size-screen-16);
+  font-weight: 900;
 }
 
 .progress-score-copy span,
@@ -2317,9 +2330,16 @@
   }
 
   .progress-score-value {
-    width: var(--size-86);
-    border-width: var(--size-5);
-    font-size: var(--font-size-screen-68);
+    min-width: var(--size-88);
+    padding-right: var(--size-14);
+  }
+
+  .progress-score-value strong {
+    font-size: clamp(56px, 17vw, 78px);
+  }
+
+  .progress-score-value small {
+    font-size: 10px;
   }
 
   .progress-score-copy h2 {

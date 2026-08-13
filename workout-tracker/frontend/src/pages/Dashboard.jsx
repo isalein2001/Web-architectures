@@ -314,10 +314,18 @@ const getBestWeightMilestone = (sessions = []) => {
 const clampScore = (value) => Math.max(0, Math.min(100, Math.round(value)));
 
 const buildProgressScore = (sessions = []) => {
+  const validSessions = sessions.filter((session) => (
+    Array.isArray(session?.logs)
+    && session.logs.some((log) => Number(log.reps) > 0 || Number(log.weight) > 0)
+  ));
+  if (!validSessions.length) {
+    return { score: null, change: null, components: [], hasData: false };
+  }
+
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
-  const recent = sessions.filter((session) => now - getSessionTimestamp(session) <= 28 * day);
-  const previous = sessions.filter((session) => {
+  const recent = validSessions.filter((session) => now - getSessionTimestamp(session) <= 28 * day);
+  const previous = validSessions.filter((session) => {
     const age = now - getSessionTimestamp(session);
     return age > 28 * day && age <= 56 * day;
   });
@@ -364,7 +372,7 @@ const buildProgressScore = (sessions = []) => {
   const score = clampScore(components.reduce((sum, component) => sum + component.score, 0) / components.length);
   const previousConsistency = clampScore((previous.length / 12) * 100);
   const previousScore = clampScore((62 + previousConsistency + 62 + 55 + 72) / 5);
-  return { score, change: score - previousScore, components, hasData: sessions.length > 0 };
+  return { score, change: previous.length ? score - previousScore : null, components, hasData: true };
 };
 
 const getCurrentWorkoutStreak = (sessionDates = []) => {
@@ -1518,13 +1526,19 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
         </div>
       </div>
 
-      <button className="card progress-score-card" type="button" onClick={() => setIsProgressScoreOpen(true)}>
-        <div className="progress-score-value">{progressScore.hasData ? progressScore.score : '—'}</div>
+      <button className={`card progress-score-card${progressScore.hasData ? '' : ' is-empty'}`} type="button" onClick={() => {
+        if (progressScore.hasData) setIsProgressScoreOpen(true);
+        else navigate('/start-workout');
+      }}>
+        <div className="progress-score-value">
+          <strong>{progressScore.hasData ? progressScore.score : '—'}</strong>
+          <small>/ 100</small>
+        </div>
         <div className="progress-score-copy">
           <span>{t('PROGRESS SCORE')}</span>
           <h2>{progressScore.hasData ? t('Your training progress, in one transparent score.') : t('Log your first workout to create your Progress Score.')}</h2>
-          <p><TrendingUp size={17} /> {progressScore.change >= 0 ? '+' : ''}{progressScore.change} {t('THIS MONTH')}</p>
-          <small>{t('Tap to see why')}</small>
+          {progressScore.change !== null && <p><TrendingUp size={17} /> {progressScore.change >= 0 ? '+' : ''}{progressScore.change} {t('THIS MONTH')}</p>}
+          <small>{progressScore.hasData ? t('Tap to see why') : t('START WORKOUT')}</small>
         </div>
         <ChevronRight size={28} />
       </button>
