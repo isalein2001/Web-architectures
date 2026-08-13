@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useVideoTexture, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
@@ -226,10 +226,40 @@ function Placeholder() {
   );
 }
 
+function useMobileLayout() {
+  const [isMobile, setIsMobile] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+  ));
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 640px)');
+    const update = (event) => setIsMobile(event.matches);
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
+
+  return isMobile;
+}
+
 /* ---------- Export ---------- */
 export default function ScrollPhone({ videoSrc = '/app-demo.mp4', children }) {
   const sectionRef = useRef(null);
   const progress = useScrollProgress(sectionRef);
+  const isMobile = useMobileLayout();
+
+  if (isMobile) {
+    return (
+      <section ref={sectionRef} className="scroll-phone scroll-phone-mobile">
+        <div className="scroll-phone-mobile-layout">
+          <div className="scroll-phone-mobile-device" aria-label="Next Reps app preview">
+            <video autoPlay loop muted playsInline preload="metadata" src={videoSrc} />
+            <span aria-hidden="true" />
+          </div>
+          {children}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section ref={sectionRef} className="scroll-phone" style={{ height: CONFIG.scrollHeight }}>

@@ -1463,15 +1463,28 @@ body:has(.landing-final:hover) #custom-cursor.hover-active {
 }
 
 @media (max-width: 640px) {
-  .landing-intro .scroll-phone-sticky canvas {
-    transform: none;
+  .landing-intro {
+    padding-top: var(--size-58);
+    padding-bottom: var(--size-72);
+    overflow: hidden;
   }
 
-  .landing-phone-story-heading {
-    top: 7%;
-    left: var(--size-4);
-    width: calc(100% - var(--size-8));
-    text-align: center;
+  .landing-scroll-phone-boundary,
+  .landing-scroll-phone-boundary.is-ready {
+    min-height: 0;
+  }
+
+  .scroll-phone-mobile .landing-phone-story {
+    display: contents;
+  }
+
+  .scroll-phone-mobile .landing-phone-story-heading {
+    position: relative;
+    top: auto;
+    left: auto;
+    grid-row: 1;
+    width: 100%;
+    text-align: left;
   }
 
   .landing-phone-story-heading h2 {
@@ -1479,27 +1492,39 @@ body:has(.landing-final:hover) #custom-cursor.hover-active {
   }
 
   .landing-phone-story-heading p {
-    display: none;
+    display: block;
+    margin-top: var(--size-18);
+    font-size: var(--font-size-screen-25);
+    line-height: 1.58;
   }
 
-  .landing-phone-feature {
-    min-height: var(--size-72);
+  .scroll-phone-mobile .landing-phone-feature-map {
+    position: relative;
+    top: auto;
+    left: auto;
+    grid-row: 3;
     width: 100%;
-    padding: var(--size-12);
+    gap: var(--size-12);
   }
 
-  .landing-phone-feature-map {
-    top: 59%;
-    width: 100%;
-    gap: var(--size-8);
+  .scroll-phone-mobile .landing-phone-feature {
+    grid-template-columns: var(--size-54) minmax(0, 1fr);
+    min-height: 0;
+    padding: var(--size-20);
+    column-gap: var(--size-20);
+    opacity: 1;
+    transform: none;
   }
 
-  .landing-phone-feature h3 {
-    font-size: var(--font-size-screen-28);
+  .scroll-phone-mobile .landing-phone-feature h3 {
+    font-size: var(--font-size-screen-32);
   }
 
-  .landing-phone-feature > svg {
-    display: none;
+  .scroll-phone-mobile .landing-phone-feature p {
+    display: block;
+    margin-top: var(--size-8);
+    font-size: var(--font-size-screen-22);
+    line-height: 1.5;
   }
 
   .landing-nav {
