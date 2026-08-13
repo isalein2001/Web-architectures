@@ -241,6 +241,56 @@ function useMobileLayout() {
   return isMobile;
 }
 
+function MobilePhone({ sectionRef, videoSrc }) {
+  const phoneRef = useRef(null);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const section = sectionRef.current;
+      const phone = phoneRef.current;
+      if (!section || !phone) return;
+
+      const rect = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || 1;
+      const progress = THREE.MathUtils.clamp(
+        (viewportHeight * 0.82 - rect.top) / (viewportHeight + rect.height * 0.42),
+        0,
+        1,
+      );
+      const rotateY = (progress - 0.5) * 28;
+      const rotateX = -4 + progress * 8;
+      const translateY = Math.sin(progress * Math.PI) * -10;
+
+      phone.style.setProperty('--mobile-phone-rotate-y', `${rotateY}deg`);
+      phone.style.setProperty('--mobile-phone-rotate-x', `${rotateX}deg`);
+      phone.style.setProperty('--mobile-phone-translate-y', `${translateY}px`);
+    };
+    const requestUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', requestUpdate);
+      window.removeEventListener('resize', requestUpdate);
+    };
+  }, [sectionRef]);
+
+  return (
+    <div className="scroll-phone-mobile-perspective">
+      <div ref={phoneRef} className="scroll-phone-mobile-device" aria-label="Next Reps app preview">
+        <video autoPlay loop muted playsInline preload="metadata" src={videoSrc} />
+        <span aria-hidden="true" />
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Export ---------- */
 export default function ScrollPhone({ videoSrc = '/app-demo.mp4', children }) {
   const sectionRef = useRef(null);
@@ -251,10 +301,7 @@ export default function ScrollPhone({ videoSrc = '/app-demo.mp4', children }) {
     return (
       <section ref={sectionRef} className="scroll-phone scroll-phone-mobile">
         <div className="scroll-phone-mobile-layout">
-          <div className="scroll-phone-mobile-device" aria-label="Next Reps app preview">
-            <video autoPlay loop muted playsInline preload="metadata" src={videoSrc} />
-            <span aria-hidden="true" />
-          </div>
+          <MobilePhone sectionRef={sectionRef} videoSrc={videoSrc} />
           {children}
         </div>
       </section>

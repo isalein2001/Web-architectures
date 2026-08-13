@@ -39,12 +39,20 @@
   padding: 22px 0 18px;
 }
 
-.scroll-phone-mobile-device {
+.scroll-phone-mobile-perspective {
   position: relative;
   z-index: 1;
   grid-row: 2;
   justify-self: center;
+  display: grid;
+  place-items: center;
   width: min(72vw, 310px);
+  perspective: 1100px;
+}
+
+.scroll-phone-mobile-device {
+  position: relative;
+  width: 100%;
   aspect-ratio: 1290 / 2796;
   padding: 7px;
   overflow: hidden;
@@ -54,6 +62,13 @@
   box-shadow:
     0 30px 70px rgb(0 0 0 / 0.58),
     0 0 52px rgb(197 254 0 / 0.14);
+  transform:
+    translateY(var(--mobile-phone-translate-y, 0px))
+    rotateX(var(--mobile-phone-rotate-x, 0deg))
+    rotateY(var(--mobile-phone-rotate-y, -14deg));
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 .scroll-phone-mobile-device video {

@@ -1493,6 +1493,8 @@ body:has(.landing-final:hover) #custom-cursor.hover-active {
 
   .landing-phone-story-heading p {
     display: block;
+    max-width: none;
+    width: 100%;
     margin-top: var(--size-18);
     font-size: var(--font-size-screen-25);
     line-height: 1.58;
