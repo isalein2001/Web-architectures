@@ -1332,20 +1332,20 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
             aria-label={isQuickLogDockOpen ? t('Close') : t('QUICK LOG')}
           >
             <span><Plus size={21} /></span>
-            <strong>{t('QUICK LOG')}</strong>
+            <span className="quick-log-dock-title">
+              <strong>{t('QUICK LOG')}</strong>
+              <small>{t('WATER & STEPS')}</small>
+            </span>
           </button>
-          <div className="quick-log-dock-menu" aria-hidden={!isQuickLogDockOpen}>
-            <small>{t('TRACK IT FAST')}</small>
-            <div className="quick-log-dock-actions">
-              <button type="button" onClick={() => onOpenQuickLog?.('water')}>
-                <Droplets size={18} />
-                <strong>{t('WATER')}</strong>
-              </button>
-              <button type="button" onClick={() => onOpenQuickLog?.('steps')}>
-                <Activity size={18} />
-                <strong>{t('STEPS')}</strong>
-              </button>
-            </div>
+          <div className="quick-log-dock-actions" aria-hidden={!isQuickLogDockOpen}>
+            <button type="button" onClick={() => onOpenQuickLog?.('water')}>
+              <Droplets size={15} />
+              <strong>{t('WATER')}</strong>
+            </button>
+            <button type="button" onClick={() => onOpenQuickLog?.('steps')}>
+              <Activity size={15} />
+              <strong>{t('STEPS')}</strong>
+            </button>
           </div>
         </aside>
       )}
