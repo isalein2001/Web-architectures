@@ -186,6 +186,7 @@ const createLogsFromPlan = (plan) => plan.exercises.flatMap((exercise) =>
     reps: '',
     weight: '',
     rest_seconds: exercise.rest || '',
+    rir: '',
     completed: false,
   }))
 );
@@ -252,6 +253,65 @@ const buildNextRepsRecommendation = (exerciseLogs, previousSets) => {
       ? 'You matched or exceeded your previous performance. A small progression is appropriate.'
       : 'Your last performance has not been exceeded yet. Hold the load and add a clean rep first.',
     confidence: previousSets.length >= 3 ? 'HIGH' : 'MEDIUM',
+  };
+};
+
+const parseTargetUpperBound = (target) => {
+  const values = String(target || '').match(/\d+/g)?.map(Number) || [];
+  return values.length ? Math.max(...values) : null;
+};
+
+const buildLiveAutoRegulation = (exerciseLogs) => {
+  const completed = exerciseLogs
+    .filter((log) => log.completed && Number(log.reps) > 0)
+    .sort((left, right) => left.set_number - right.set_number);
+  if (!completed.length) return null;
+
+  const latest = completed.at(-1);
+  const first = completed[0];
+  const latestReps = Number(latest.reps);
+  const firstReps = Number(first.reps);
+  const latestWeight = Number(latest.weight) || Number(first.weight) || 0;
+  const latestRir = latest.rir === '' || latest.rir === null || latest.rir === undefined ? null : Number(latest.rir);
+  const targetUpper = parseTargetUpperBound(latest.target_reps || first.target_reps);
+  const dropRate = completed.length >= 2 && firstReps > 0 ? (firstReps - latestReps) / firstReps : 0;
+
+  if (completed.length >= 3 && dropRate >= 0.35) {
+    return {
+      status: 'RECOVERY ALERT',
+      headline: 'Performance is dropping faster than usual.',
+      action: latestReps <= Math.max(3, firstReps * 0.6) ? 'End this exercise after this set.' : `Reduce your next set to ${roundToPlate(latestWeight * 0.94)} kg.`,
+      reason: `Reps fell from ${firstReps} to ${latestReps} across ${completed.length} working sets.`,
+      tone: 'warning',
+    };
+  }
+
+  if (latestRir !== null && latestRir >= 3 && targetUpper && latestReps >= targetUpper) {
+    return {
+      status: 'OUTPERFORMING TARGET',
+      headline: "You're outperforming today's target.",
+      action: latestWeight > 0 ? `Increase the next set to ${roundToPlate(latestWeight + 2.5)} kg?` : 'Add 1–2 reps on the next set.',
+      reason: `You reached ${latestReps} reps with ${latestRir} reps still in reserve.`,
+      tone: 'positive',
+    };
+  }
+
+  if (latestRir !== null && latestRir <= 1) {
+    return {
+      status: 'HIGH FATIGUE',
+      headline: 'This set was close to failure.',
+      action: `Keep ${latestWeight || 'the'} kg or reduce the next set slightly.`,
+      reason: `You reported ${latestRir} RIR. More load is unlikely to improve the next set.`,
+      tone: 'warning',
+    };
+  }
+
+  return {
+    status: 'ON TRACK',
+    headline: 'Performance is matching the plan.',
+    action: latestWeight > 0 ? `Keep ${latestWeight} kg for the next set.` : 'Keep the same setup for the next set.',
+    reason: latestRir === null ? 'Add RIR after the set for a sharper recommendation.' : `${latestRir} RIR supports the current load.`,
+    tone: 'neutral',
   };
 };
 
@@ -548,6 +608,7 @@ export default function WorkoutLogger({ currentUser }) {
           reps: '',
           weight: '',
           rest_seconds: '',
+          rir: '',
           completed: false,
         },
       ];
@@ -600,6 +661,7 @@ export default function WorkoutLogger({ currentUser }) {
           reps: Number(log.reps) || 0,
           weight: Number(log.weight) || 0,
           rest_seconds: Number(log.rest_seconds) || 0,
+          rir: log.rir === '' ? null : Number(log.rir),
         })),
     };
 
@@ -622,6 +684,7 @@ export default function WorkoutLogger({ currentUser }) {
           reps: Number(log.reps) || 0,
           weight: Number(log.weight) || 0,
           rest_seconds: Number(log.rest_seconds) || 0,
+          rir: log.rir === '' ? null : Number(log.rir),
         })),
     };
 
@@ -914,6 +977,19 @@ export default function WorkoutLogger({ currentUser }) {
             </div>
 
             {(() => {
+              const regulation = buildLiveAutoRegulation(group.logs);
+              if (!regulation) return null;
+              return (
+                <div className={`auto-regulation-card ${regulation.tone}`} aria-live="polite">
+                  <span><BrainCircuit size={15} /> {t('AUTO-REGULATION')} · {t(regulation.status)}</span>
+                  <h3>{t(regulation.headline)}</h3>
+                  <strong>{t(regulation.action)}</strong>
+                  <p>{t(regulation.reason)}</p>
+                </div>
+              );
+            })()}
+
+            {(() => {
               const previousSets = previousPerformance.get(normalizeExerciseKey(group.name)) || [];
               const nextReps = buildNextRepsRecommendation(group.logs, previousSets);
               return (
@@ -932,6 +1008,7 @@ export default function WorkoutLogger({ currentUser }) {
                 <span>{t('REPS')}</span>
                 <span>{t('WEIGHT')}</span>
                 <span>{t('REST')}</span>
+                <span>{t('RIR')}</span>
                 <span>{t('DONE')}</span>
               </div>
               {group.logs.map((log) => {
@@ -972,6 +1049,17 @@ export default function WorkoutLogger({ currentUser }) {
                     <label>
                       <span>{t('SEC')}</span>
                       <input type="number" value={log.rest_seconds} onChange={(event) => updateLog(log.id, 'rest_seconds', event.target.value)} />
+                    </label>
+                    <label>
+                      <span>{t('RIR')}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={log.rir}
+                        placeholder="2"
+                        onChange={(event) => updateLog(log.id, 'rir', event.target.value)}
+                      />
                     </label>
                     <button type="button" className={log.completed ? 'done' : ''} onClick={() => toggleComplete(log.id)} aria-label={t('DONE')}>
                       <Check size={17} />

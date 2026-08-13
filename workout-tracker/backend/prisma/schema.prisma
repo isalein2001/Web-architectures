@@ -148,6 +148,7 @@ model WorkoutLog {
   reps         Int?
   weight       Float?
   restSeconds  Int?            @map("rest_seconds")
+  rir          Int?
   session      WorkoutSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("workout_logs")

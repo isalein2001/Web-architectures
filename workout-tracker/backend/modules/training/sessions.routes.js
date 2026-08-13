@@ -14,6 +14,7 @@ const serializeLog = (log) => ({
   reps: log.reps,
   weight: log.weight,
   rest_seconds: log.restSeconds,
+  rir: log.rir,
 });
 
 const serializeSession = (session) => ({
@@ -119,6 +120,12 @@ function createSessionsRouter() {
       return res.status(400).json({ error: 'Every log needs an exercise_name' });
     }
 
+    const invalidRir = logs.find((log) => log.rir !== undefined && log.rir !== null && log.rir !== ''
+      && (!Number.isInteger(Number(log.rir)) || Number(log.rir) < 0 || Number(log.rir) > 10));
+    if (invalidRir) {
+      return res.status(400).json({ error: 'RIR must be a number between 0 and 10' });
+    }
+
     try {
       const clientSessionId = typeof client_session_id === 'string' && client_session_id.trim()
         ? client_session_id.trim()
@@ -175,6 +182,7 @@ function createSessionsRouter() {
               reps: log.reps ?? null,
               weight: log.weight ?? null,
               restSeconds: log.rest_seconds ?? null,
+              rir: log.rir === undefined || log.rir === null || log.rir === '' ? null : Number(log.rir),
             })),
           },
         },
