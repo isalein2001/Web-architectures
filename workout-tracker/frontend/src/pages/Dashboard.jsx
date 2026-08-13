@@ -319,7 +319,18 @@ const buildProgressScore = (sessions = []) => {
     && session.logs.some((log) => Number(log.reps) > 0 || Number(log.weight) > 0)
   ));
   if (!validSessions.length) {
-    return { score: null, change: null, components: [], hasData: false };
+    return {
+      score: 0,
+      change: null,
+      hasData: false,
+      components: [
+        { key: 'Strength', score: 0, detail: 'Log weighted sets to build your strength score.' },
+        { key: 'Consistency', score: 0, detail: 'Log workouts regularly to build your consistency score.' },
+        { key: 'Volume', score: 0, detail: 'Your logged sets, reps and weight will create your volume score.' },
+        { key: 'Progressive overload', score: 0, detail: 'Repeated exercises are needed to detect progressive overload.' },
+        { key: 'Recovery', score: 0, detail: 'Session RPE and training frequency will shape your recovery score.' },
+      ],
+    };
   }
 
   const now = Date.now();
@@ -1526,19 +1537,15 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
         </div>
       </div>
 
-      <button className={`card progress-score-card${progressScore.hasData ? '' : ' is-empty'}`} type="button" onClick={() => {
-        if (progressScore.hasData) setIsProgressScoreOpen(true);
-        else navigate('/start-workout');
-      }}>
+      <button className={`card progress-score-card${progressScore.hasData ? '' : ' is-empty'}`} type="button" onClick={() => setIsProgressScoreOpen(true)}>
         <div className="progress-score-value">
-          <strong>{progressScore.hasData ? progressScore.score : '—'}</strong>
-          <small>/ 100</small>
+          <strong>{progressScore.score}</strong>
         </div>
         <div className="progress-score-copy">
           <span>{t('PROGRESS SCORE')}</span>
           <h2>{progressScore.hasData ? t('Your training progress, in one transparent score.') : t('Log your first workout to create your Progress Score.')}</h2>
           {progressScore.change !== null && <p><TrendingUp size={17} /> {progressScore.change >= 0 ? '+' : ''}{progressScore.change} {t('THIS MONTH')}</p>}
-          <small>{progressScore.hasData ? t('Tap to see why') : t('START WORKOUT')}</small>
+          <small>{t('Tap to see why')}</small>
         </div>
         <ChevronRight size={28} />
       </button>
@@ -1551,7 +1558,9 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
             <button className="progress-score-modal-close" type="button" onClick={() => setIsProgressScoreOpen(false)} aria-label={t('Close')}><X size={18} /></button>
             <span>{t('WHY')} {progressScore.score}?</span>
             <h2 id="progress-score-title">{t('PROGRESS SCORE')}</h2>
-            <p>{t('Your score combines five equally weighted signals. Every point is explained below.')}</p>
+            <p>{progressScore.hasData
+              ? t('Your score combines five equally weighted signals. Every point is explained below.')
+              : t('Your score starts at zero. Log training data to activate each of the five signals below.')}</p>
             <div className="progress-score-breakdown">
               {progressScore.components.map((component) => (
                 <div className="progress-score-component" key={component.key}>
