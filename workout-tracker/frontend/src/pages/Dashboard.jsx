@@ -1331,7 +1331,7 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
             aria-expanded={isQuickLogDockOpen}
             aria-label={isQuickLogDockOpen ? t('Close') : t('QUICK LOG')}
           >
-            <span><Plus size={21} /></span>
+            <span>{isQuickLogDockOpen ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}</span>
             <span className="quick-log-dock-title">
               <strong>{t('QUICK LOG')}</strong>
               <small>{t('WATER & STEPS')}</small>
@@ -1341,10 +1341,12 @@ export default function Dashboard({ currentUser, dailyActivity, onOpenQuickLog, 
             <button type="button" onClick={() => onOpenQuickLog?.('water')}>
               <Droplets size={15} />
               <strong>{t('WATER')}</strong>
+              <Plus size={12} />
             </button>
             <button type="button" onClick={() => onOpenQuickLog?.('steps')}>
               <Activity size={15} />
               <strong>{t('STEPS')}</strong>
+              <Plus size={12} />
             </button>
           </div>
         </aside>

@@ -191,9 +191,9 @@
   width: var(--size-36);
   height: var(--size-36);
   border-radius: 50%;
-  color: var(--palette-050505);
-  background: var(--color-primary);
-  box-shadow: 0 0 var(--size-16) rgb(var(--rgb-197-254-0) / var(--opacity-0-22));
+  color: var(--palette-aaa);
+  background: rgb(var(--rgb-255-255-255) / var(--opacity-0-055));
+  box-shadow: inset 0 0 0 var(--size-1) rgb(var(--rgb-255-255-255) / var(--opacity-0-06));
 }
 
 .quick-log-dock-title {
@@ -226,9 +226,9 @@
 }
 
 .quick-log-dock-actions button {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--size-16) minmax(0, 1fr) var(--size-14);
   align-items: center;
-  justify-content: center;
   gap: var(--size-5);
   width: 100%;
   min-height: var(--size-30);
@@ -249,6 +249,12 @@
 
 .quick-log-dock-actions button > svg {
   color: var(--color-primary);
+}
+
+.quick-log-dock-actions button > svg:last-child {
+  justify-self: end;
+  color: var(--palette-888);
+  stroke-width: 1.6;
 }
 
 .today-section,
