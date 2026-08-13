@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { Activity, Check, Dumbbell, Flame, Pause, Plus, Save, Timer, X } from 'lucide-react';
+import { Activity, BrainCircuit, Check, ChevronUp, Dumbbell, Flame, Pause, Plus, Save, Sparkles, Timer, X } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import { getUserStorageKey, loadStoredWorkoutSessions, upsertStoredWorkoutSession } from '../userStorage';
@@ -225,6 +225,80 @@ const buildPreviousPerformance = (sessions) => {
   return previousByExercise;
 };
 
+const roundToPlate = (weight) => Math.max(0, Math.round(weight / 2.5) * 2.5);
+
+const buildNextRepsRecommendation = (exerciseLogs, previousSets) => {
+  if (!previousSets?.length) {
+    return {
+      recommendation: 'Complete this session to unlock your first recommendation.',
+      reason: 'NEXT REPS needs one completed performance for this exercise.',
+      confidence: 'LEARNING',
+    };
+  }
+
+  const completed = exerciseLogs.filter((log) => log.completed || log.reps || log.weight);
+  const current = completed.length ? completed : previousSets;
+  const currentWeight = Math.max(...current.map((log) => Number(log.weight) || 0));
+  const currentReps = Math.max(...current.map((log) => Number(log.reps) || 0));
+  const previousWeight = Math.max(...previousSets.map((log) => Number(log.weight) || 0));
+  const previousReps = Math.max(...previousSets.map((log) => Number(log.reps) || 0));
+  const improved = currentWeight > previousWeight || (currentWeight >= previousWeight && currentReps > previousReps);
+  const targetWeight = improved && currentReps >= 8 ? roundToPlate(Math.max(currentWeight, previousWeight) + 2.5) : Math.max(currentWeight, previousWeight);
+  const targetReps = improved && currentReps >= 8 ? `${Math.max(5, currentReps - 2)}–${Math.max(6, currentReps - 1)}` : `${Math.max(1, previousReps)}–${Math.max(2, previousReps + 1)}`;
+
+  return {
+    recommendation: targetWeight > 0 ? `${targetWeight} kg × ${targetReps}` : `${targetReps} reps`,
+    reason: improved
+      ? 'You matched or exceeded your previous performance. A small progression is appropriate.'
+      : 'Your last performance has not been exceeded yet. Hold the load and add a clean rep first.',
+    confidence: previousSets.length >= 3 ? 'HIGH' : 'MEDIUM',
+  };
+};
+
+const buildWorkoutIntelligence = (logs, previousPerformance, durationSeconds, perceivedExertion) => {
+  const activeLogs = logs.filter((log) => log.completed || log.reps || log.weight);
+  const exerciseGroups = new Map();
+  activeLogs.forEach((log) => {
+    const key = normalizeExerciseKey(log.exercise_name);
+    const group = exerciseGroups.get(key) || [];
+    group.push(log);
+    exerciseGroups.set(key, group);
+  });
+
+  const totalVolume = activeLogs.reduce((sum, log) => sum + (Number(log.weight) || 0) * (Number(log.reps) || 0), 0);
+  const restValues = activeLogs.map((log) => Number(log.rest_seconds)).filter((value) => value > 0);
+  const avgRest = restValues.length ? Math.round(restValues.reduce((sum, value) => sum + value, 0) / restValues.length) : null;
+  let improving = 0;
+  let compared = 0;
+
+  exerciseGroups.forEach((exerciseLogs, key) => {
+    const previous = previousPerformance.get(key) || [];
+    if (!previous.length) return;
+    compared += 1;
+    const bestCurrent = Math.max(...exerciseLogs.map((log) => (Number(log.weight) || 0) * (1 + (Number(log.reps) || 0) / 30)));
+    const bestPrevious = Math.max(...previous.map((log) => (Number(log.weight) || 0) * (1 + (Number(log.reps) || 0) / 30)));
+    if (bestCurrent > bestPrevious) improving += 1;
+  });
+
+  const headline = compared === 0
+    ? 'Your baseline is ready.'
+    : improving > compared / 2
+      ? 'Your strength trend is improving.'
+      : 'Your training is holding steady.';
+  const action = perceivedExertion >= 9
+    ? 'Effort was very high. Hold your loads next session and prioritize recovery.'
+    : improving > 0
+      ? 'Progress one lift at a time. Use the recommendations below for your next working sets.'
+      : 'Keep the load stable and aim for one additional clean rep before increasing weight.';
+
+  return {
+    headline,
+    detail: `${activeLogs.length} working sets · ${Math.round(totalVolume).toLocaleString()} kg volume · ${Math.round(durationSeconds / 60)} min${avgRest ? ` · ${avgRest}s average rest` : ''}.`,
+    action,
+    confidence: compared >= 3 ? 'HIGH' : compared > 0 ? 'MEDIUM' : 'LEARNING',
+  };
+};
+
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 const formatDuration = (seconds) => {
@@ -442,6 +516,10 @@ export default function WorkoutLogger({ currentUser }) {
   const caloriesToSave = energyMode === 'manual'
     ? (Number(manualCalories) || estimatedCalories)
     : estimatedCalories;
+  const workoutIntelligence = useMemo(
+    () => buildWorkoutIntelligence(logs, previousPerformance, durationSeconds, perceivedExertion),
+    [logs, previousPerformance, durationSeconds, perceivedExertion],
+  );
 
   const updateLog = (id, field, value) => {
     setLogs((currentLogs) =>
@@ -707,6 +785,14 @@ export default function WorkoutLogger({ currentUser }) {
             </div>
           </div>
 
+          <section className="next-reps-intelligence-card">
+            <div className="next-reps-intelligence-label"><BrainCircuit size={17} /> {t('NEXT REPS INTELLIGENCE')}</div>
+            <h2>{t(workoutIntelligence.headline)}</h2>
+            <p>{workoutIntelligence.detail}</p>
+            <strong><Sparkles size={15} /> {t(workoutIntelligence.action)}</strong>
+            <small>{t('CONFIDENCE')}: {t(workoutIntelligence.confidence)}</small>
+          </section>
+
           <label className="summary-duration-field">
             <span><Timer size={15} /> {t('ADJUST DURATION')}</span>
             <div>
@@ -826,6 +912,19 @@ export default function WorkoutLogger({ currentUser }) {
               <Dumbbell size={19} />
               <h2>{group.name}</h2>
             </div>
+
+            {(() => {
+              const previousSets = previousPerformance.get(normalizeExerciseKey(group.name)) || [];
+              const nextReps = buildNextRepsRecommendation(group.logs, previousSets);
+              return (
+                <div className="next-reps-set-advice">
+                  <span><ChevronUp size={15} /> {t('NEXT REPS')}</span>
+                  <strong>{nextReps.recommendation}</strong>
+                  <p><b>{t('WHY?')}</b> {t(nextReps.reason)}</p>
+                  <small>{t('CONFIDENCE')}: {t(nextReps.confidence)}</small>
+                </div>
+              );
+            })()}
 
             <div className="set-log-table">
               <div className="set-log-head">

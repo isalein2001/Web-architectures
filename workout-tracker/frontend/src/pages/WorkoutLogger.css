@@ -529,6 +529,103 @@
   text-transform: uppercase;
 }
 
+.next-reps-intelligence-card {
+  display: grid;
+  gap: var(--size-10);
+  margin-bottom: var(--size-20);
+  padding: var(--size-22);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-34));
+  border-radius: var(--radius-screen-10);
+  background:
+    radial-gradient(circle at 90% 15%, rgb(var(--rgb-197-254-0) / var(--opacity-0-13)), transparent 38%),
+    var(--palette-0d0d0d);
+}
+
+.next-reps-intelligence-label,
+.next-reps-set-advice > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-7);
+  color: var(--color-primary);
+  font-size: var(--font-size-screen-16);
+  font-weight: 950;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.next-reps-intelligence-card h2 {
+  margin: 0;
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-51);
+  font-weight: 950;
+  line-height: 1.05;
+}
+
+.next-reps-intelligence-card p {
+  margin: 0;
+  color: var(--palette-aaa);
+  font-size: var(--font-size-screen-22);
+  line-height: 1.55;
+}
+
+.next-reps-intelligence-card > strong {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--size-8);
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-20);
+  line-height: 1.45;
+}
+
+.next-reps-intelligence-card > strong svg {
+  flex: 0 0 auto;
+  margin-top: var(--size-3);
+  color: var(--color-primary);
+}
+
+.next-reps-intelligence-card > small,
+.next-reps-set-advice > small {
+  color: var(--palette-777);
+  font-size: var(--font-size-screen-10);
+  font-weight: 950;
+  letter-spacing: 0.11em;
+}
+
+.next-reps-set-advice {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--size-7) var(--size-16);
+  margin: var(--size-14) 0 var(--size-18);
+  padding: var(--size-16);
+  border: var(--size-1) solid rgb(var(--rgb-197-254-0) / var(--opacity-0-22));
+  border-radius: var(--radius-screen-8);
+  background: rgb(var(--rgb-197-254-0) / var(--opacity-0-045));
+}
+
+.next-reps-set-advice > strong {
+  color: var(--palette-fff);
+  font-size: var(--font-size-screen-34);
+  font-weight: 950;
+  text-align: right;
+}
+
+.next-reps-set-advice > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--palette-999);
+  font-size: var(--font-size-screen-18);
+  line-height: 1.5;
+}
+
+.next-reps-set-advice > p b {
+  color: var(--palette-fff);
+}
+
+.next-reps-set-advice > small {
+  grid-column: 1 / -1;
+}
+
 .summary-duration-field,
 .summary-kcal-field {
   display: grid;
@@ -778,6 +875,18 @@
 
   .summary-exertion-scale {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .next-reps-intelligence-card h2 {
+    font-size: var(--font-size-screen-45);
+  }
+
+  .next-reps-set-advice {
+    grid-template-columns: 1fr;
+  }
+
+  .next-reps-set-advice > strong {
+    text-align: left;
   }
 
   .workout-start-card {
